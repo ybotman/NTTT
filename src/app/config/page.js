@@ -6,7 +6,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { AuthContext } from '@/contexts/AuthContext';
 import { Box, Paper, Typography, TextField, Button, Slider, FormControlLabel, Checkbox, Tabs, Tab } from '@mui/material';
-import { db, doc, setDoc, getDoc } from '@/../firebase';
+import { db, doc, setDoc, getDoc } from '@/utils/firebase';
 
 // Default global config
 // global: {expertiseLevel: 3}
