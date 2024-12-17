@@ -87,8 +87,16 @@ export function shuffleArray(array) {
  * @returns {Array} An array of 3 random distractors.
  */
 export function getDistractors(correctArtist, allArtists) {
+  if (!correctArtist || !allArtists || !Array.isArray(allArtists)) {
+    console.warn("Invalid inputs for getDistractors:", { correctArtist, allArtists });
+    return [];
+  }
+
   const candidates = allArtists
-    .filter((artist) => artist.artist.toLowerCase() !== correctArtist.toLowerCase())
+    .filter((artist) => {
+      const artistName = artist?.artist?.toLowerCase(); // Safe chaining
+      return artistName && artistName !== correctArtist.toLowerCase();
+    })
     .map((artist) => artist.artist);
 
   return shuffleArray(candidates).slice(0, 3); // Return 3 random distractors
