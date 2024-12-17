@@ -1,6 +1,3 @@
-//------------------------------------------------------------
-// src/app/games/artistquiz/page.js
-//------------------------------------------------------------
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback, useContext } from "react";
@@ -26,24 +23,10 @@ import { playAudio, stopAudio, getRandomStartTime } from "@/utils/audio";
 export default function ArtistQuizPage() {
   const { sessionScore, setSessionScore } = useContext(ScoreContext);
 
-  const [artists, setArtists] = useState([]);
-  const [songs, setSongs] = useState([]);
-  const [filteredSongs, setFilteredSongs] = useState([]);
-  const [playedSongs, setPlayedSongs] = useState(new Set());
-  const [currentSong, setCurrentSong] = useState(null);
-  const [answers, setAnswers] = useState([]);
-  const [correctAnswer, setCorrectAnswer] = useState("");
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const audioRef = useRef(null);
+  const timerRef = useRef(null);
 
-  const [timeElapsed, setTimeElapsed] = useState(0);
-  const [timeLimit, setTimeLimit] = useState(15);
-  const [score, setScore] = useState(0);
-  const [quizOver, setQuizOver] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
-
-  const [disabledAnswers, setDisabledAnswers] = useState(new Set());
+  // Configuration loaded/stored here
   const [config, setConfig] = useState({
     numSongs: 10,
     timeLimit: 15,
@@ -53,22 +36,60 @@ export default function ArtistQuizPage() {
     includeAlternative: false,
   });
 
-  const audioRef = useRef(null);
+  // Data sets
+  const [artists, setArtists] = useState([]);
+  const [songs, setSongs] = useState([]);
+  const [filteredSongs, setFilteredSongs] = useState([]);
 
-  // Load songs and filter them based on configuration
+  // Gameplay state
+  const [playedSongs, setPlayedSongs] = useState(new Set());
+  const [currentSong, setCurrentSong] = useState(null);
+  const [answers, setAnswers] = useState([]);
+  const [correctAnswer, setCorrectAnswer] = useState("");
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [disabledAnswers, setDisabledAnswers] = useState(new Set());
+
+  const [score, setScore] = useState(0);
+  const [maxScore, setMaxScore] = useState(0);
+  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [quizOver, setQuizOver] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+
+  // roundState: "ready" | "playing" | "over" | "done"
+  const [roundState, setRoundState] = useState("ready");
+
+  // For end-of-round feedback messaging
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [showSnackbar, setShowSnackbar] = useState(false);
+
+  // Load configuration from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedAqSongs = localStorage.getItem('nttt_aq_songs');
+      const storedAqSeconds = localStorage.getItem('nttt_aq_seconds');
+      const storedLevels = localStorage.getItem('nttt_aq_levels');
+
+      setConfig(prev => ({
+        ...prev,
+        numSongs: storedAqSongs ? Number(storedAqSongs) : prev.numSongs,
+        timeLimit: storedAqSeconds ? Number(storedAqSeconds) : prev.timeLimit,
+        levels: storedLevels ? JSON.parse(storedLevels) : prev.levels
+      }));
+    }
+  }, []);
+
+  // Load songs and artists once config is set/changed
   useEffect(() => {
     fetchSongsAndArtists().then(({ validSongs, validArtists }) => {
       setSongs(validSongs);
-      setArtists(validArtists); 
+      setArtists(validArtists);
       filterSongs(validSongs);
     });
   }, [config]);
 
-
-
   const filterSongs = (songsToFilter) => {
+    const { levels, styles, includeCandombe, includeAlternative } = config;
     const filtered = songsToFilter.filter((song) => {
-      const { levels, styles, includeCandombe, includeAlternative } = config;
       return (
         levels.includes(Number(song.level)) &&
         styles[song.Style] &&
@@ -81,29 +102,38 @@ export default function ArtistQuizPage() {
 
   const loadNewSong = useCallback(() => {
     if (playedSongs.size >= config.numSongs || filteredSongs.length === 0) {
+      // All songs done
       finalizeQuiz();
       return;
     }
 
     let randomSong;
+    let tries = 0;
     do {
       const randomIndex = Math.floor(Math.random() * filteredSongs.length);
       randomSong = filteredSongs[randomIndex];
+      tries++;
+      if (tries > 1000) break; // safety break
     } while (playedSongs.has(randomSong.SongID));
 
     setPlayedSongs((prev) => new Set(prev).add(randomSong.SongID));
     setCurrentSong(randomSong);
     setCorrectAnswer(randomSong.ArtistMaster);
 
-   const distractors = getDistractors(randomSong.ArtistMaster, artists); 
-    setAnswers(shuffleArray([randomSong.ArtistMaster, ...distractors]));
+    const distractors = getDistractors(randomSong.ArtistMaster, artists);
+    const allAnswers = shuffleArray([randomSong.ArtistMaster, ...distractors]);
+    setAnswers(allAnswers);
 
-    setScore(calculateMaxScore(config.timeLimit));
+    const mScore = calculateMaxScore(config.timeLimit);
+    setMaxScore(mScore);
+    setScore(mScore);
     setTimeElapsed(0);
     setSelectedAnswer(null);
     setDisabledAnswers(new Set());
     setQuizOver(false);
-  }, [filteredSongs, playedSongs, config]);
+    setFeedbackMessage("");
+    setRoundState("ready");
+  }, [filteredSongs, playedSongs, config, artists]);
 
   const handleStartGame = () => {
     setSessionScore(0);
@@ -112,43 +142,134 @@ export default function ArtistQuizPage() {
     loadNewSong();
   };
 
+  const startRound = () => {
+    // Begin playback, timer
+    startAudio();
+    startTimer();
+    setRoundState("playing");
+  };
+
   const startAudio = () => {
     if (currentSong && audioRef.current) {
       const startTime = getRandomStartTime(90);
       audioRef.current.currentTime = startTime;
       playAudio(audioRef.current, startTime);
-      setIsPlaying(true);
     }
   };
 
+  const stopAllAudio = () => {
+    if (audioRef.current) {
+      stopAudio(audioRef.current);
+    }
+  };
+
+  const startTimer = () => {
+    stopTimer(); // Ensure no double intervals
+    timerRef.current = setInterval(() => {
+      setTimeElapsed((prev) => {
+        const newTime = prev + 0.1;
+        // Decrement score over time
+        setScore((oldScore) => {
+          const decrement = calculateDecrementPerInterval(maxScore, config.timeLimit);
+          return oldScore - decrement;
+        });
+
+        if (newTime >= config.timeLimit) {
+          // Time is up
+          onTimeUp();
+        }
+        return newTime;
+      });
+    }, 100);
+  };
+
+  const stopTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  const onTimeUp = () => {
+    stopTimer();
+    stopAllAudio();
+    // Time out means score could be negative as well
+    // End round
+    finalizeRound(false);
+  };
+
   const handleAnswerSelect = (answer) => {
-    if (quizOver || disabledAnswers.has(answer)) return;
+    if (roundState !== "playing" || quizOver || disabledAnswers.has(answer)) return;
 
     if (answer === correctAnswer) {
+      // Correct
       setFeedbackMessage("Correct!");
       setSessionScore((prev) => prev + Math.round(score));
-      setQuizOver(true);
+      finalizeRound(true);
     } else {
+      // Wrong
       setScore((prev) => prev * 0.95); // 5% penalty
       setFeedbackMessage("Wrong!");
       setDisabledAnswers((prev) => new Set(prev).add(answer));
     }
   };
 
+  const finalizeRound = (wasCorrect) => {
+    stopTimer();
+    stopAllAudio();
+    setQuizOver(true);
+    setRoundState("over");
+    // Show feedback message based on final score fraction
+    const fraction = score / maxScore;
+    let message = "Better luck next time";
+    if (fraction > 0.85) message = "Amazing";
+    else if (fraction > 0.70) message = "Great Job";
+    else if (fraction > 0.50) message = "NICE";
+    else if (fraction > 0.25) message = "Got it in Time!";
+    else if (fraction > 0.01) message = "Just Under There!";
+    else if (fraction <= 0) message = "Better luck next time";
+
+    setFeedbackMessage(message);
+    setShowSnackbar(true);
+  };
+
+  const nextSong = () => {
+    setShowSnackbar(false);
+    loadNewSong();
+  };
+
   const finalizeQuiz = () => {
+    stopTimer();
+    stopAllAudio();
     setGameStarted(false);
-    console.log("Quiz Complete. Total Score:", sessionScore);
+    setRoundState("done");
   };
 
-  const handleConfigChange = (field, value) => {
-    setConfig((prev) => ({ ...prev, [field]: value }));
+  const closeSnackbar = () => {
+    setShowSnackbar(false);
   };
 
-  const handleStyleChange = (style) => {
-    setConfig((prev) => ({
-      ...prev,
-      styles: { ...prev.styles, [style]: !prev.styles[style] },
-    }));
+  // Summary after all songs
+  const renderSummary = () => {
+    const fraction = sessionScore / (config.numSongs * 500); // 500 max possible at best scenario
+    let message = "Better luck next time";
+    if (fraction > 0.85) message = "Amazing";
+    else if (fraction > 0.70) message = "Great Job";
+    else if (fraction > 0.50) message = "NICE";
+    else if (fraction > 0.25) message = "Got it in Time!";
+    else if (fraction > 0.01) message = "Just Under There!";
+    else if (fraction <= 0) message = "Better luck next time";
+
+    return (
+      <Box sx={{ textAlign: "center", mt: 4 }}>
+        <Typography variant="h5">Quiz Complete!</Typography>
+        <Typography variant="h6">Your Total Score: {Math.round(sessionScore)}</Typography>
+        <Typography variant="body1">{message}</Typography>
+        <Button variant="contained" sx={{ mt: 2 }} onClick={() => window.location.reload()}>
+          Return to Start
+        </Button>
+      </Box>
+    );
   };
 
   return (
@@ -158,100 +279,97 @@ export default function ArtistQuizPage() {
 
       <Typography variant="h6">Session Score: {Math.round(sessionScore)}</Typography>
 
-      {!gameStarted && (
+      {!gameStarted && roundState !== "done" && (
         <>
           {/* Configuration Section */}
           <Box sx={{ my: 2, textAlign: "left" }}>
-            <Typography variant="h6">Configuration</Typography>
-            <TextField
-              label="Number of Songs"
-              type="number"
-              value={config.numSongs}
-              onChange={(e) => handleConfigChange("numSongs", Number(e.target.value))}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Time Limit (seconds)"
-              type="number"
-              value={config.timeLimit}
-              onChange={(e) => handleConfigChange("timeLimit", Number(e.target.value))}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <FormGroup>
-              <Typography>Levels</Typography>
-              {[1, 2, 3, 4, 5].map((level) => (
-                <FormControlLabel
-                  key={level}
-                  control={
-                    <Checkbox
-                      checked={config.levels.includes(level)}
-                      onChange={(e) => {
-                        const newLevels = e.target.checked
-                          ? [...config.levels, level]
-                          : config.levels.filter((l) => l !== level);
-                        handleConfigChange("levels", newLevels);
-                      }}
-                    />
-                  }
-                  label={`Level ${level}`}
-                />
-              ))}
-            </FormGroup>
-            <FormGroup>
-              <Typography>Styles</Typography>
-              {["Tango", "Milonga", "Vals"].map((style) => (
-                <FormControlLabel
-                  key={style}
-                  control={
-                    <Checkbox
-                      checked={config.styles[style]}
-                      onChange={() => handleStyleChange(style)}
-                    />
-                  }
-                  label={style}
-                />
-              ))}
-            </FormGroup>
+            <Typography variant="h6">Configuration (Loaded from Saved Config)</Typography>
+            <Typography># of Songs: {config.numSongs}</Typography>
+            <Typography>Seconds per Song: {config.timeLimit}</Typography>
+            <Typography>Levels: {config.levels.join(", ")}</Typography>
+            <Typography>Styles: {Object.keys(config.styles).filter(s => config.styles[s]).join(", ")}</Typography>
           </Box>
-
           <Button variant="contained" onClick={handleStartGame}>
             Start Artist Quiz
           </Button>
         </>
       )}
 
-      {gameStarted && currentSong && (
+      {gameStarted && currentSong && roundState !== "done" && (
         <>
           <audio ref={audioRef} src={currentSong.audioUrl} />
-          <Button variant="contained" onClick={startAudio}>
-            Play Song
-          </Button>
-          <Typography variant="h6">Who is the Artist?</Typography>
+          <Typography variant="h6" sx={{ mt: 2 }}>Who is the Artist?</Typography>
 
-          <Stack spacing={2}>
-            {answers.map((ans) => (
-              <Button
-                key={ans}
-                variant="outlined"
-                disabled={disabledAnswers.has(ans)}
-                onClick={() => handleAnswerSelect(ans)}
-              >
-                {ans}
+          {/* If roundState = ready: show answers disabled, and a "Ready to Play" button */}
+          {roundState === "ready" && (
+            <>
+              <Stack spacing={2} sx={{ mt: 2 }}>
+                {answers.map((ans) => (
+                  <Button key={ans} variant="outlined" disabled>
+                    {ans}
+                  </Button>
+                ))}
+              </Stack>
+              <Button variant="contained" sx={{ mt: 2 }} onClick={startRound}>
+                Ready to Play
               </Button>
-            ))}
-          </Stack>
+            </>
+          )}
 
-          {feedbackMessage && (
-            <Typography variant="body1" sx={{ mt: 2 }}>
-              {feedbackMessage}
-            </Typography>
+          {/* If roundState = playing: show answers enabled */}
+          {roundState === "playing" && (
+            <>
+              <Stack spacing={2} sx={{ mt: 2 }}>
+                {answers.map((ans) => (
+                  <Button
+                    key={ans}
+                    variant="outlined"
+                    disabled={disabledAnswers.has(ans)}
+                    onClick={() => handleAnswerSelect(ans)}
+                  >
+                    {ans}
+                  </Button>
+                ))}
+              </Stack>
+              <Typography variant="body1" sx={{ mt: 2 }}>
+                Time: {timeElapsed.toFixed(1)}s / {config.timeLimit}s
+              </Typography>
+              <Typography variant="body1">Current Score: {Math.round(score)}</Typography>
+            </>
+          )}
+
+          {/* If roundState = over: show feedback message and next song button */}
+          {roundState === "over" && (
+            <>
+              <Typography variant="h5" sx={{ mt: 3 }}>
+                {feedbackMessage}
+              </Typography>
+              <Typography variant="body1">Score This Round: {Math.round(score)}</Typography>
+              {playedSongs.size < config.numSongs ? (
+                <Button variant="contained" sx={{ mt: 2 }} onClick={nextSong}>
+                  Ready for Next
+                </Button>
+              ) : (
+                <Button variant="contained" sx={{ mt: 2 }} onClick={finalizeQuiz}>
+                  View Summary
+                </Button>
+              )}
+            </>
           )}
         </>
       )}
+
+      {roundState === "done" && renderSummary()}
+
+      <Snackbar open={showSnackbar} autoHideDuration={3000} onClose={closeSnackbar}>
+        <Alert onClose={closeSnackbar} severity="info" sx={{ width: '100%' }}>
+          {feedbackMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
 
-ArtistQuizPage.propTypes = {};
+ArtistQuizPage.propTypes = {
+  // no props currently
+};
