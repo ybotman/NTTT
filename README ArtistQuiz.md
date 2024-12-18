@@ -34,7 +34,8 @@ Core Features
 	•	“Excellent job!” (80%+ of max score)
 	•	“Great work!” (50%-80%)
 	•	“Not bad!” (20%-50%)
-	•	“Better luck next time.” (<20%)
+	•	“Just Barely.” (<20%)
+	•	“You wil get the next one” (>1%)
 	7.	Audio Playback
 	•	Song playback starts at a randomly selected time point and stops when:
 	•	The round ends (correct answer or time runs out).

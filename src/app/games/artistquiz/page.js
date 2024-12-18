@@ -251,7 +251,8 @@ export default function ArtistQuizPage() {
 
   // Summary after all songs
   const renderSummary = () => {
-    const fraction = sessionScore / (config.numSongs * 500); // 500 max possible at best scenario
+    const fraction = sessionScore / ((config.numSongs || 10) * 500);
+    // 500 max possible at best scenario
     let message = "Better luck next time";
     if (fraction > 0.85) message = "Amazing";
     else if (fraction > 0.70) message = "Great Job";

@@ -24,6 +24,7 @@ export default function GameHubPage() {
 
   const subgames = [
     { name: 'Artist Quiz', path: '/games/artistquiz', active: true },
+    { name: 'Artist-Quiz', path: '/games/artist-quiz', active: true },
     { name: 'Artist Train', path: '#', active: false },
     { name: 'Decade Quiz', path: '#', active: false },
     { name: 'Decade Train', path: '#', active: false },
