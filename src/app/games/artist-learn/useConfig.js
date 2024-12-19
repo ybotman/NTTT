@@ -41,7 +41,7 @@ export default function useConfig(gameName) {
   const updateConfig = (key, value) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
-  console.log("config", config);
+  console.log("artist-learn/useConfig.js", config);
 
   const saveConfig = () => {
     localStorage.setItem(`${gameName}_config`, JSON.stringify(config));

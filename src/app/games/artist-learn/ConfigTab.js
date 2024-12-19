@@ -1,10 +1,10 @@
-//------------------
+//--------
 //src/app/games/artist-learn/ConfigTab.js
-//------------------
+//--------
 
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
   TextField,
@@ -13,28 +13,31 @@ import {
   Typography,
   Autocomplete,
 } from "@mui/material";
+import PropTypes from "prop-types";
 import useConfig from "./useConfig";
 import { fetchFilteredSongs } from "@/utils/dataFetching";
 
-export default function ConfigTab() {
+export default function ConfigTab({ onSongsFetched }) {
   const { config, updateConfig, isDisabled } = useConfig("artistQuiz");
   const [primaryStyles, setPrimaryStyles] = useState([]);
   const [artistOptions, setArtistOptions] = useState([]);
   const [selectedArtists, setSelectedArtists] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [configChanged, setConfigChanged] = useState(false);
 
+  const isMountedRef = useRef(false);
+
+  // Fetch styles and artist options once
   useEffect(() => {
-    // Fetch StyleMaster.json to load styles
+    isMountedRef.current = true;
     (async () => {
       try {
         const styleData = await fetch("/songData/StyleMaster.json").then((res) => res.json());
-        setPrimaryStyles(styleData.primaryStyles || []);
+        if (isMountedRef.current) setPrimaryStyles(styleData.primaryStyles || []);
       } catch (error) {
         console.error("Error fetching StyleMaster.json:", error);
       }
     })();
 
-    // Fetch ArtistMaster.json for artists
     (async () => {
       try {
         const artistData = await fetch("/songData/ArtistMaster.json").then((res) => res.json());
@@ -44,36 +47,20 @@ export default function ConfigTab() {
             label: `${artist.artist} (Level ${artist.level})`,
             value: artist.artist,
           }));
-        setArtistOptions(activeArtists);
+        if (isMountedRef.current) setArtistOptions(activeArtists);
       } catch (error) {
         console.error("Error fetching ArtistMaster.json:", error);
       }
     })();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
-  const handlePlayClick = async () => {
-    setLoading(true);
-    const numSongs = config.numSongs ?? 10;
-    const artistLevels = config.levels || [];
-    const activeStyles = Object.keys(config.styles || {}).filter((key) => config.styles[key]);
-
-    try {
-      const { songs, qty } = await fetchFilteredSongs(
-        selectedArtists.map((a) => a.value),
-        artistLevels,
-        [],
-        activeStyles,
-        "N",
-        "N",
-        "N",
-        numSongs
-      );
-      console.log(`Fetched ${qty} songs for the game:`, songs);
-    } catch (error) {
-      console.error("Error fetching filtered songs:", error);
-    } finally {
-      setLoading(false);
-    }
+  // Handler to mark config as changed
+  const markConfigChanged = () => {
+    setConfigChanged(true);
   };
 
   const handleLevelChange = (level, checked) => {
@@ -84,6 +71,7 @@ export default function ConfigTab() {
       newLevels = newLevels.filter((l) => l !== level);
     }
     updateConfig("levels", newLevels);
+    markConfigChanged();
   };
 
   const handleStyleChange = (styleName, checked) => {
@@ -91,7 +79,63 @@ export default function ConfigTab() {
       ...config.styles,
       [styleName]: checked,
     });
+    markConfigChanged();
   };
+
+  const handleNumSongsChange = (e) => {
+    updateConfig("numSongs", Number(e.target.value));
+    markConfigChanged();
+  };
+
+  const handleTimeLimitChange = (e) => {
+    updateConfig("timeLimit", Number(e.target.value));
+    markConfigChanged();
+  };
+
+  const handleArtistsChange = (event, values) => {
+    setSelectedArtists(values);
+    markConfigChanged();
+  };
+
+  // Only fetch songs if configChanged is true
+  useEffect(() => {
+    if (!configChanged) return;
+    let mounted = true;
+
+    const fetchSongs = async () => {
+      const numSongs = config.numSongs ?? 10;
+      const artistLevels = config.levels || [];
+      const activeStyles = Object.keys(config.styles || {}).filter((key) => config.styles[key]);
+
+      try {
+        const { songs } = await fetchFilteredSongs(
+          selectedArtists.map((a) => a.value),
+          artistLevels,
+          [],
+          activeStyles,
+          "N",
+          "N",
+          "N",
+          numSongs
+        );
+        if (mounted && onSongsFetched) {
+          onSongsFetched(songs);
+        }
+      } catch (error) {
+        console.error("Error fetching filtered songs:", error);
+        if (mounted && onSongsFetched) {
+          onSongsFetched([]);
+        }
+      } finally {
+        // After fetch completes, reset configChanged
+        if (mounted) setConfigChanged(false);
+      }
+    };
+
+    fetchSongs();
+
+    return () => { mounted = false; };
+  }, [configChanged, config, selectedArtists, onSongsFetched]);
 
   return (
     <Box
@@ -100,20 +144,19 @@ export default function ConfigTab() {
         borderRadius: 2,
         backgroundColor: "#f5f5f5",
         mb: 4,
-        boxShadow: "0 0 10px 3px rgba(0, 153, 255, 0.5)", // Gradient shadow
+        boxShadow: "0 0 10px 3px rgba(0, 153, 255, 0.5)",
       }}
     >
       <Typography variant="h6" sx={{ mb: 2 }}>
         Configuration:
       </Typography>
 
-      {/* Qty and Duration */}
       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
         <TextField
           label="Number of Songs"
           type="number"
           value={config.numSongs ?? 10}
-          onChange={(e) => updateConfig("numSongs", Number(e.target.value))}
+          onChange={handleNumSongsChange}
           fullWidth
           margin="dense"
           disabled={isDisabled}
@@ -122,16 +165,14 @@ export default function ConfigTab() {
           label="Time Limit (Seconds)"
           type="number"
           value={config.timeLimit ?? 15}
-          onChange={(e) => updateConfig("timeLimit", Number(e.target.value))}
+          onChange={handleTimeLimitChange}
           fullWidth
           margin="dense"
           disabled={isDisabled}
         />
       </Box>
 
-      {/* Levels and Styles */}
       <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
-        {/* Levels */}
         <Box>
           <Typography variant="body1" gutterBottom>
             Levels:
@@ -150,7 +191,6 @@ export default function ConfigTab() {
           ))}
         </Box>
 
-        {/* Styles */}
         <Box>
           <Typography variant="body1" gutterBottom>
             Styles:
@@ -173,12 +213,11 @@ export default function ConfigTab() {
         </Box>
       </Box>
 
-      {/* Artist Dropdown */}
       <Autocomplete
         multiple
         options={artistOptions}
         value={selectedArtists}
-        onChange={(e, newValue) => setSelectedArtists(newValue)}
+        onChange={handleArtistsChange}
         isOptionEqualToValue={(option, value) => option.value === value.value}
         renderInput={(params) => (
           <TextField {...params} label="Select Artists" placeholder="Artists" margin="dense" />
@@ -188,3 +227,11 @@ export default function ConfigTab() {
     </Box>
   );
 }
+
+ConfigTab.propTypes = {
+  onSongsFetched: PropTypes.func,
+};
+
+ConfigTab.defaultProps = {
+  onSongsFetched: null,
+};
