@@ -1,3 +1,6 @@
+//--------------------------------------------------
+//src/app/games/test/page.js
+//--------------------------------------------------
 
 
 "use client";
@@ -10,9 +13,8 @@ const PLAY_DURATION = 2; // seconds
 const SEEK_TIME = 25; // seconds
 
 const song = {
-  //audioUrl: "https://namethattangotune.blob.core.windows.net/djsongs/06078921-51be-406d-8800-34c1c4e5d2c7.mp3",
   audioUrl: "https://namethattangotune.blob.core.windows.net/djsongs/0c38db2d-4228-4b31-867f-95075a6a6a02.mp3",
-  //audioUrl: "https://namethattangotune.blob.core.windows.net/djsongs/002c2530-9c81-46a0-9eb1-400a00710e3d.mp3",
+
 };
 
 export default function SongList() {

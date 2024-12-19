@@ -1,3 +1,7 @@
+//------------------
+//src/app/games/artist-learn/ConfigTab.js
+//------------------
+
 "use client";
 
 import React, { useEffect, useState } from "react";

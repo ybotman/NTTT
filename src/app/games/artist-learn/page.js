@@ -1,3 +1,7 @@
+//---------------------------------
+//src/app/games/artist-learn/page.js
+//---------------------------------
+
 "use client";
 
 import React from "react";

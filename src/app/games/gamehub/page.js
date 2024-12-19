@@ -87,8 +87,8 @@ export default function GameHubPage() {
                     src={game.icon}
                     alt={game.name}
                     style={{
-                      width: "80px",
-                      height: "80px",
+                      width: "150px",
+                      height: "150px",
                       marginBottom: "10px",
                       borderRadius: "8px",
                       boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
