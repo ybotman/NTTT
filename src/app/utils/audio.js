@@ -1,5 +1,9 @@
+//-------------
+//src/app/utils/audio.js
+//-------------
+
 export function getRandomStartTime(songDuration) {
-  const maxStart = songDuration * 0.75;
+  const maxStart = songDuration * 0.65;
   return Math.floor(Math.random() * maxStart);
 }
 

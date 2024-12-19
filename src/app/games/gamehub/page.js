@@ -1,15 +1,9 @@
-
-
-//------------------------------------------------------------
-// src/app/games/gamehub/page.js (Game Hub)
-//------------------------------------------------------------
 "use client";
-import React, { useContext } from 'react';
-import PropTypes from 'prop-types';
-import { Box, Button, Typography, List, ListItem, Paper, Stack } from '@mui/material';
-import Link from 'next/link';
-import { AuthContext } from '@/contexts/AuthContext';
-import { auth, signInAnonymously, signOut } from '@/utils/firebase';
+import React, { useContext } from "react";
+import { Box, Typography, Grid, Paper } from "@mui/material";
+import Link from "next/link";
+import { AuthContext } from "@/contexts/AuthContext";
+import { auth, signInAnonymously, signOut } from "@/utils/firebase";
 
 export default function GameHubPage() {
   const { user, loadingUser } = useContext(AuthContext);
@@ -22,58 +16,93 @@ export default function GameHubPage() {
     await signOut(auth);
   };
 
-  const subgames = [
-    { name: 'Artist Quiz', path: '/games/artistquiz', active: true },
-    { name: 'Artist-Quiz', path: '/games/artist-quiz', active: true },
-    { name: 'Artist Train', path: '#', active: false },
-    { name: 'Decade Quiz', path: '#', active: false },
-    { name: 'Decade Train', path: '#', active: false },
-    { name: 'Style Quiz', path: '#', active: false },
-    { name: 'Singer Quiz', path: '#', active: false },
-    { name: 'Singer Train', path: '#', active: false },
-    { name: 'Tango Bingo', path: '#', active: false },
-    { name: 'Song Quiz', path: '#', active: false },
-    { name: 'Song Train', path: '#', active: false }
+  // Define games for the grid
+  const games = [
+    { name: "Artist Learn", path: "/games/artist-learn", icon: "/IconLearnSongs.webp" },
+    { name: "Decade Learn", path: "#", icon: "/IconLearnDecade.webp" },
+    { name: "Style Learn", path: "#", icon: "/IconLearnStyles.webp" },
+    { name: "Singer Learn", path: "#", icon: "/IconLearnOrch.webp" },
+    { name: "Artist Quiz", path: "/games/artistquiz", icon: "/IconQuiz.webp" },
+    { name: "Decade Quiz", path: "#", icon: "/IconQuiz.webp" },
+    { name: "Style Quiz", path: "#", icon: "/IconQuiz.webp" },
+    { name: "Singer Quiz", path: "#", icon: "/IconQuiz.webp" },
   ];
 
   return (
     <Box sx={{ p: 3 }}>
-      <Paper sx={{ p: 3, mb: 2 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography variant="h4" gutterBottom>Game Hub</Typography>
+      {/* Header Section */}
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h4">Game Hub</Typography>
           {!loadingUser && (
             user ? (
-              <Button variant="outlined" onClick={handleLogout}>Logout</Button>
+              <Typography
+                onClick={handleLogout}
+                sx={{
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                  color: "blue",
+                  "&:hover": { textDecoration: "underline" },
+                }}
+              >
+                Logout
+              </Typography>
             ) : (
-              <Button variant="contained" onClick={handleLogin}>Login</Button>
+              <Typography
+                onClick={handleLogin}
+                sx={{
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                  color: "blue",
+                  "&:hover": { textDecoration: "underline" },
+                }}
+              >
+                Login
+              </Typography>
             )
           )}
-        </Stack>
-        <Typography variant="body1" sx={{ mb: 2 }}>
-          Select a subgame to start playing. (Others coming soon!)
-        </Typography>
-        <List>
-          {subgames.map((g) => (
-            <ListItem button="true" key={g.name}>
-              {g.active ? (
-                <Link href={g.path}>
-                  <Button variant="contained">{g.name}</Button>
-                </Link>
-              ) : (
-                <Button variant="outlined" disabled>{g.name}</Button>
-              )}
-            </ListItem>
-          ))}
-        </List>
+        </Box>
       </Paper>
+
+      {/* Games Grid */}
       <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>Configure Settings</Typography>
-        <Link href="/config">
-          <Button variant="outlined">Go to Configuration</Button>
-        </Link>
+        <Grid container spacing={3}>
+          {games.map((game, index) => (
+            <Grid item xs={6} md={3} key={index}>
+              <Link href={game.path}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    cursor: game.path === "#" ? "default" : "pointer",
+                    opacity: game.path === "#" ? 0.5 : 1,
+                    "&:hover": {
+                      transform: game.path === "#" ? "none" : "scale(1.05)",
+                    },
+                    transition: "transform 0.2s ease",
+                  }}
+                >
+                  <img
+                    src={game.icon}
+                    alt={game.name}
+                    style={{
+                      width: "80px",
+                      height: "80px",
+                      marginBottom: "10px",
+                      borderRadius: "8px",
+                      boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+                    }}
+                  />
+                  <Typography variant="body1" textAlign="center">
+                    {game.name}
+                  </Typography>
+                </Box>
+              </Link>
+            </Grid>
+          ))}
+        </Grid>
       </Paper>
     </Box>
   );
 }
-
-GameHubPage.propTypes = {};

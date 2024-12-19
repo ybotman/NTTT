@@ -1,0 +1,30 @@
+{
+  "primaryStyles": [
+    {
+      "style": "Tango",
+      "code": "T"
+    },
+    {
+      "style": "Vals",
+      "code": "V"
+    },
+    {
+      "style": "Milonga",
+      "code": "M"
+    }
+  ],
+  "StyleMarkers": [
+    {
+      "stylemarker": "Alternative"
+    },
+    {
+      "stylemarker": "Modern"
+    },
+    {
+      "stylemarker": "Candombe"
+    },
+    {
+      "stylemarker": "Cancion"
+    }
+  ]
+}

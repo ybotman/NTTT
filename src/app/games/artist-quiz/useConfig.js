@@ -41,7 +41,6 @@ export default function useConfig(gameName) {
   const updateConfig = (key, value) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
-  console.log("config", config);
 
   const saveConfig = () => {
     localStorage.setItem(`${gameName}_config`, JSON.stringify(config));
