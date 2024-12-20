@@ -16,6 +16,7 @@ import {
   Button,
 } from "@mui/material";
 import WaveSurfer from "wavesurfer.js";
+import styles from "../styles.module.css"; // Dark mode styles
 
 export default function PlayTab({ songs, config, onCancel }) {
   const wavesurferRef = useRef(null);
@@ -29,7 +30,7 @@ export default function PlayTab({ songs, config, onCancel }) {
   const [ready, setReady] = useState(false);
 
   const PLAY_DURATION = Math.min(config.timeLimit ?? 15, 15);
-  const FADE_DURATION = 0.75; // 0.75 seconds fade in/out
+  const FADE_DURATION = 0.75; // Fade in/out duration in seconds
 
   const cleanupWaveSurfer = useCallback(() => {
     if (fadeIntervalRef.current) {
@@ -50,7 +51,7 @@ export default function PlayTab({ songs, config, onCancel }) {
 
   const fadeVolume = useCallback((fromVol, toVol, durationSec, callback) => {
     if (!wavesurferRef.current) return;
-    const steps = 15; // number of steps in fade
+    const steps = 15; // steps for the fade
     const stepTime = (durationSec * 1000) / steps;
     let currentStep = 0;
     const volumeStep = (toVol - fromVol) / steps;
@@ -94,8 +95,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     // Fade in from 0 to 1
     wavesurferRef.current.setVolume(0);
     fadeVolume(0, 1, FADE_DURATION, () => {
-      // Fade-in complete, schedule fade-out before the end
-      // Set a timeout for fade-out start (PLAY_DURATION - FADE_DURATION)
+      // After fade-in, schedule fade-out near the end of PLAY_DURATION
       playTimeoutRef.current = setTimeout(() => {
         // Fade out in the last FADE_DURATION seconds
         fadeVolume(1, 0, FADE_DURATION, handleNextSong);
@@ -113,16 +113,18 @@ export default function PlayTab({ songs, config, onCancel }) {
       return;
     }
 
+    console.log("Playing Song:", currentSong); // Log full song details
+
     const ws = WaveSurfer.create({
       container: document.createElement("div"),
-      waveColor: 'transparent',
-      progressColor: 'transparent',
+      waveColor: "transparent",
+      progressColor: "transparent",
       barWidth: 0,
       height: 0,
-      backend: 'WebAudio', // Using WebAudio for volume control
+      backend: "WebAudio", // WebAudio required for volume fades
     });
 
-    ws.on('ready', () => {
+    ws.on("ready", () => {
       setReady(true);
       const dur = ws.getDuration();
       setDuration(dur);
@@ -139,7 +141,7 @@ export default function PlayTab({ songs, config, onCancel }) {
       });
     });
 
-    ws.on('error', (err) => {
+    ws.on("error", (err) => {
       console.error("Wavesurfer error:", err);
       handleNextSong();
     });
@@ -149,7 +151,6 @@ export default function PlayTab({ songs, config, onCancel }) {
   }, [currentIndex, songs, startPlaybackWithFade, handleNextSong, cleanupWaveSurfer]);
 
   const playSongAtIndex = useCallback((idx) => {
-    // User clicked a specific song
     setCurrentIndex(idx);
     setIsPlaying(true);
   }, []);
@@ -163,10 +164,9 @@ export default function PlayTab({ songs, config, onCancel }) {
     };
   }, [isPlaying, currentIndex, songs.length, loadCurrentSong, cleanupWaveSurfer]);
 
-  // Remove the PLAY tab and autostart if songs available
+  // Auto start if songs available and not started yet
   useEffect(() => {
     if (songs.length > 0 && !isPlaying && currentIndex === -1) {
-      // Auto start the playlist
       setCurrentIndex(0);
       setIsPlaying(true);
     }
@@ -192,46 +192,44 @@ export default function PlayTab({ songs, config, onCancel }) {
     const style = song.Style || "";
     const year = song.Year || "";
     const composer = song.Composer || "";
+    const alternative = song.Alternative === "Y" ? "Alternative " : "";
     const candombe = song.Candombe === "Y" ? "Candombe " : "";
     const cancion = song.Cancion === "Y" ? "Cancion " : "";
     const singer = song.Singer === "Y" ? "Singer " : "";
 
-    const extras = [candombe, cancion, singer].join("").trim();
+    const extras = [alternative, candombe, cancion, singer].join("").trim().replace(/\s+/g, " ");
+
     const metaParts = [style, year, composer, extras].filter(Boolean);
 
     return metaParts.length > 0 ? metaParts.join(" | ") : "";
   };
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h5" sx={{ mb: 2, textAlign: 'center', fontWeight: 'bold' }}>
+    <Box className={styles.container}>
+      <Typography variant="h5" className={styles.h5}>
         Now Playing
       </Typography>
 
-      {songs.length === 0 && (
+      {songs.length === 0 ? (
         <Typography>No songs. Adjust configuration and try again.</Typography>
-      )}
-      {songs.length > 0 && (
+      ) : (
         <>
-          <Box ref={listRef} sx={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #ccc', borderRadius: 1, mb: 3 }}>
+          <Box
+            ref={listRef}
+            className={styles.listContainer}
+          >
             <List>
               {songs.map((song, idx) => {
                 const title = song.Title || song.SongTitle || "Unknown Title";
                 const artist = song.ArtistMaster || "Unknown Artist";
                 const meta = renderMetadata(song);
                 const isCurrent = idx === currentIndex;
-
                 return (
                   <ListItem
                     key={song.SongID || idx}
                     data-idx={idx}
                     onClick={() => playSongAtIndex(idx)}
-                    sx={{
-                      cursor: "pointer",
-                      border: isCurrent ? '2px solid blue' : 'none',
-                      mb: 0.5,
-                      '&:hover': { backgroundColor: '#f0f0f0' },
-                    }}
+                    className={isCurrent ? styles.activeSong : styles.songRow}
                   >
                     <ListItemText
                       primary={title}
@@ -241,7 +239,7 @@ export default function PlayTab({ songs, config, onCancel }) {
                             {artist}
                           </Typography>
                           {meta && (
-                            <Typography component="div" variant="caption" sx={{ fontSize: '0.75rem', color: '#666' }}>
+                            <Typography component="div" variant="caption">
                               {meta}
                             </Typography>
                           )}
@@ -253,24 +251,33 @@ export default function PlayTab({ songs, config, onCancel }) {
               })}
             </List>
           </Box>
-          <Stack direction="row" spacing={2} sx={{ justifyContent: 'center' }}>
-            {/* Removed the Start button as per requirement (auto start) */}
+          <Stack direction="row" spacing={2} sx={{ justifyContent: "center" }}>
             {isPlaying && (
               <>
                 <Button
                   variant="contained"
-                  color="success"
+                  className={styles.button}
                   onClick={handleNextSong}
                   disabled={!ready}
                 >
                   Next
                 </Button>
-                <Button variant="contained" color="error" onClick={handleStop}>
+                <Button
+                  variant="contained"
+                  className={styles.button}
+                  onClick={handleStop}
+                >
                   Stop
                 </Button>
               </>
             )}
-            <Button variant="outlined" onClick={onCancel}>Cancel</Button>
+            <Button
+              variant="outlined"
+              className={`${styles.button} ${styles.outlined}`}
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
           </Stack>
         </>
       )}
@@ -289,6 +296,7 @@ PlayTab.propTypes = {
       Style: PropTypes.string,
       Year: PropTypes.string,
       Composer: PropTypes.string,
+      Alternative: PropTypes.string,
       Candombe: PropTypes.string,
       Cancion: PropTypes.string,
       Singer: PropTypes.string,

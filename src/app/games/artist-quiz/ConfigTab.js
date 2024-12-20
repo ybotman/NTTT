@@ -1,5 +1,6 @@
 "use client";
 
+import styles from "../styles.module.css";
 import React, { useState, useEffect } from "react";
 //import PropTypes from "prop-types";
 import {
@@ -86,8 +87,8 @@ const handleSubmit = async () => {
     numSongs            // qty parameter added here
   );
 
-  console.log(`Fetched ${qty} songs with criteria:`);
-  console.log(songs);
+ // console.log(`Fetched ${qty} songs with criteria:`);
+ // console.log(songs);
 };
 
 

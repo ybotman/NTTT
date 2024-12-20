@@ -1,3 +1,8 @@
+//-----------------------------------------------------------------------------------------
+//src/app/games/gamehub/page.js
+//-----------------------------------------------------------------------------------------
+
+
 "use client";
 import React, { useContext } from "react";
 import { Box, Typography, Grid, Paper } from "@mui/material";

@@ -1,5 +1,6 @@
 "use client";
 
+import styles from "..styles.module.css";
 import React, { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import {
@@ -208,7 +209,6 @@ export default function PlayTab() {
   return (
     <Box sx={{ mt: 2, textAlign: "center" }}>
       <Typography variant="h6">Session Score: {Math.round(sessionScore || 0)}</Typography>
-
       {!quizComplete && roundState === "ready" && !currentSong && (
         <>
           {renderConfigurationNote()}
@@ -220,16 +220,13 @@ export default function PlayTab() {
           </Button>
         </>
       )}
-
       {currentSong && (
         <audio ref={audioRef} src={currentSong.audioUrl} onLoadedMetadata={onLoadedMetadata} />
       )}
-
       {roundState === "ready" && currentSong && renderReadyState()}
       {roundState === "playing" && renderPlayingState()}
       {roundState === "over" && renderOverState()}
       {roundState === "done" && renderDoneState()}
-
       <Snackbar open={showSnackbar} onClose={closeSnackbar} autoHideDuration={3000}>
         <Alert severity="info" onClose={closeSnackbar} sx={{ width: "100%" }}>
           {feedbackMessage}

@@ -1,0 +1,57 @@
+.configurationContainer {
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #f5f5f5;
+  margin-bottom: 2rem;
+  box-shadow: 0 0 10px 3px rgba(0, 153, 255, 0.5);
+}
+
+.title {
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.fieldsContainer {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.optionsContainer {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.optionLabel {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.textField {
+  margin-bottom: 1rem;
+}
+
+.checkbox {
+  padding: 0.5rem;
+}
+
+.helperText {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.autocomplete {
+  margin-bottom: 1rem;
+}
+
+.validationError {
+  color: red;
+  margin-bottom: 1rem;
+}
+
+.errorText {
+  color: red;
+  font-weight: bold;
+}

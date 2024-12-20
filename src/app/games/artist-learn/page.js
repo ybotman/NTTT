@@ -6,7 +6,8 @@
 
 import React, { useState } from "react";
 import { Box, Typography } from "@mui/material";
-import styles from "./styles.module.css";
+
+import styles from "../styles.module.css";
 import ConfigTab from "./ConfigTab";
 import PlayTab from "./PlayTab";
 import useConfig from "./useConfig";
