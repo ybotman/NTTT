@@ -278,7 +278,6 @@ export default function ConfigTab({ onSongsFetched }) {
           </Box>
         </Box>
       </Box>
-
       <Box className={styles.optionsContainer}>
         <Box>
           <Typography variant="body1" className={styles.optionLabel}>
@@ -304,7 +303,6 @@ export default function ConfigTab({ onSongsFetched }) {
             </FormHelperText>
           )}
         </Box>
-
         <Box>
           <Typography variant="body1" className={styles.optionLabel}>
             Styles:
@@ -330,7 +328,6 @@ export default function ConfigTab({ onSongsFetched }) {
           })}
         </Box>
       </Box>
-
       <Autocomplete
         multiple
         options={artistOptions}
