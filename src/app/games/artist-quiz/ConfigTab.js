@@ -17,26 +17,31 @@ import useConfig from "./useConfig";
 import { fetchFilteredSongs } from "@/utils/dataFetching";
 
 export default function ConfigTab() {
-  const { config, updateConfig, saveConfig, isDisabled } = useConfig("artistQuiz");
+  const { config, updateConfig, saveConfig, isDisabled } =
+    useConfig("artistQuiz");
 
   const [artists, setArtists] = useState([]);
   const [selectedArtists, setSelectedArtists] = useState([]);
-  
+
   // Fetch artist data and prepare for dropdown
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const artistData = await fetch("/songData/ArtistMaster.json").then((r) => r.json());
+        const artistData = await fetch("/songData/ArtistMaster.json").then(
+          (r) => r.json(),
+        );
         const activeArtists = artistData
           .filter((a) => a.active === "true")
-          .map((a) => ({ 
-            name: a.artist, 
-            level: parseInt(a.level, 10) 
+          .map((a) => ({
+            name: a.artist,
+            level: parseInt(a.level, 10),
           }));
         // sort by level ascending, then by name
-        activeArtists.sort((a, b) => a.level - b.level || a.name.localeCompare(b.name));
-        
+        activeArtists.sort(
+          (a, b) => a.level - b.level || a.name.localeCompare(b.name),
+        );
+
         if (mounted) {
           setArtists(activeArtists);
         }
@@ -44,7 +49,9 @@ export default function ConfigTab() {
         console.error("Error fetching artists:", err);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleLevelChange = (level, checked) => {
@@ -68,29 +75,30 @@ export default function ConfigTab() {
     setSelectedArtists(values);
   };
 
-const handleSubmit = async () => {
-  const numSongs = config.numSongs ?? 10;
-  const timeLimit = config.timeLimit ?? 15;
-  const artistLevels = config.levels || [];
-  
-  const activeStyles = Object.keys(config.styles || {}).filter((key) => config.styles[key]);
-  const artistMasters = selectedArtists.map((a) => a.name);
+  const handleSubmit = async () => {
+    const numSongs = config.numSongs ?? 10;
+    const timeLimit = config.timeLimit ?? 15;
+    const artistLevels = config.levels || [];
 
-  const { songs, qty } = await fetchFilteredSongs(
-    artistMasters,      // artistMasters
-    artistLevels,       // artistLevels
-    [],                 // composers (empty)
-    activeStyles,       // styles
-    "N",                // candombe
-    "N",                // alternative
-    "N",                // cancion
-    numSongs            // qty parameter added here
-  );
+    const activeStyles = Object.keys(config.styles || {}).filter(
+      (key) => config.styles[key],
+    );
+    const artistMasters = selectedArtists.map((a) => a.name);
 
- // console.log(`Fetched ${qty} songs with criteria:`);
- // console.log(songs);
-};
+    const { songs, qty } = await fetchFilteredSongs(
+      artistMasters, // artistMasters
+      artistLevels, // artistLevels
+      [], // composers (empty)
+      activeStyles, // styles
+      "N", // candombe
+      "N", // alternative
+      "N", // cancion
+      numSongs, // qty parameter added here
+    );
 
+    // console.log(`Fetched ${qty} songs with criteria:`);
+    // console.log(songs);
+  };
 
   return (
     <Box sx={{ mt: 2 }}>
@@ -118,7 +126,9 @@ const handleSubmit = async () => {
 
       <Box sx={{ display: "flex", gap: 4, mt: 2 }}>
         <Box>
-          <Typography variant="body1" gutterBottom>Levels:</Typography>
+          <Typography variant="body1" gutterBottom>
+            Levels:
+          </Typography>
           {[1, 2, 3, 4, 5].map((level) => (
             <FormControlLabel
               key={level}
@@ -134,14 +144,18 @@ const handleSubmit = async () => {
         </Box>
 
         <Box>
-          <Typography variant="body1" gutterBottom>Styles:</Typography>
+          <Typography variant="body1" gutterBottom>
+            Styles:
+          </Typography>
           {["Tango", "Vals", "Milonga"].map((styleName) => (
             <FormControlLabel
               key={styleName}
               control={
                 <Checkbox
                   checked={config.styles?.[styleName] ?? false}
-                  onChange={(e) => handleStyleChange(styleName, e.target.checked)}
+                  onChange={(e) =>
+                    handleStyleChange(styleName, e.target.checked)
+                  }
                 />
               }
               label={`Include ${styleName}`}
@@ -151,31 +165,43 @@ const handleSubmit = async () => {
       </Box>
 
       <Box sx={{ mt: 2 }}>
-        <Typography variant="body1" gutterBottom>Artists (Check list):</Typography>
-<Autocomplete
-  multiple
-  options={artists}
-  getOptionLabel={(option) => `${option.name} (Level ${option.level})`}
-renderOption={(props, option, { selected }) => {
-  const { key, ...restProps } = props; // Destructure key out of props
-  return (
-    <li key={option.name} {...restProps}>
-      <MUICheckbox style={{ marginRight: 8 }} checked={selected} />
-      {`${option.name} (Level ${option.level})`}
-    </li>
-  );
-}}
-
-  onChange={handleArtistChange}
-  renderInput={(params) => <TextField {...params} label="Select Artists" placeholder="Artists" />}
-/>
+        <Typography variant="body1" gutterBottom>
+          Artists (Check list):
+        </Typography>
+        <Autocomplete
+          multiple
+          options={artists}
+          getOptionLabel={(option) => `${option.name} (Level ${option.level})`}
+          renderOption={(props, option, { selected }) => {
+            const { key, ...restProps } = props; // Destructure key out of props
+            return (
+              <li key={option.name} {...restProps}>
+                <MUICheckbox style={{ marginRight: 8 }} checked={selected} />
+                {`${option.name} (Level ${option.level})`}
+              </li>
+            );
+          }}
+          onChange={handleArtistChange}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Select Artists"
+              placeholder="Artists"
+            />
+          )}
+        />
       </Box>
 
       <Button variant="contained" onClick={saveConfig} sx={{ mt: 2, mr: 2 }}>
         Save Configuration
       </Button>
 
-      <Button variant="contained" color="secondary" onClick={handleSubmit} sx={{ mt: 2 }}>
+      <Button
+        variant="contained"
+        color="secondary"
+        onClick={handleSubmit}
+        sx={{ mt: 2 }}
+      >
         Submit & Test Fetch
       </Button>
     </Box>

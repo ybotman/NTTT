@@ -17,7 +17,8 @@ export function playAudio(audioElement, startTime) {
 
   audioElement.currentTime = startTime || 0;
 
-  audioElement.play()
+  audioElement
+    .play()
     .then(() => {
       console.log("Audio playback started successfully.");
     })

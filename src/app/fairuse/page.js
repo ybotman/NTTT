@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, Typography, Container, Paper } from '@mui/material';
+import React from "react";
+import { Box, Typography, Container, Paper } from "@mui/material";
 
 export default function FairUsePage() {
   return (
@@ -9,9 +9,11 @@ export default function FairUsePage() {
           Fair Use Disclaimer
         </Typography>
         <Typography variant="body1" paragraph>
-          This application uses audio snippets for the purpose of analysis, comparison, education, and research. 
-          These snippets are used in accordance with Section 107 of the Copyright Act, which allows for 
-          “Fair Use” of copyrighted material for purposes such as criticism, comment, teaching, scholarship, and research.
+          This application uses audio snippets for the purpose of analysis,
+          comparison, education, and research. These snippets are used in
+          accordance with Section 107 of the Copyright Act, which allows for
+          “Fair Use” of copyrighted material for purposes such as criticism,
+          comment, teaching, scholarship, and research.
         </Typography>
         <Typography variant="body1" paragraph>
           Specifically, the audio snippets are:
@@ -29,16 +31,20 @@ export default function FairUsePage() {
           </li>
           <li>
             <Typography variant="body1">
-              Not provided for entertainment or commercial replacement of the original works.
+              Not provided for entertainment or commercial replacement of the
+              original works.
             </Typography>
           </li>
         </Box>
         <Typography variant="body1" paragraph>
-          All rights to the original works remain with the respective copyright holders. If you believe any content 
-          infringes upon your rights, please <a href="mailto:support@example.com">contact us</a> for prompt resolution.
+          All rights to the original works remain with the respective copyright
+          holders. If you believe any content infringes upon your rights, please{" "}
+          <a href="mailto:support@example.com">contact us</a> for prompt
+          resolution.
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
-          This disclaimer is provided in good faith to demonstrate compliance with Fair Use principles.
+          This disclaimer is provided in good faith to demonstrate compliance
+          with Fair Use principles.
         </Typography>
       </Paper>
     </Container>

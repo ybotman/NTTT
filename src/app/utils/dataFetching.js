@@ -17,7 +17,7 @@
  * @param {string} cancion - 'N' or 'Y' if provided, or '' to skip this filter
  * @param {number} qty - The number of songs to randomly select from the filtered set (default: 10)
  *
- * @returns {Promise<{ songs: Array, qty: number }>} 
+ * @returns {Promise<{ songs: Array, qty: number }>}
  * Returns a promise that resolves to an object with:
  *  - songs: An array of filtered and enriched songs.
  *  - qty: The number of songs found after random selection (<= the filtered length)
@@ -27,15 +27,15 @@ export async function fetchFilteredSongs(
   artistLevels = [],
   composers = [],
   styles = [],
-  candombe = '',
-  alternative = '',
-  cancion = '',
-  qty = 10
+  candombe = "",
+  alternative = "",
+  cancion = "",
+  qty = 10,
 ) {
   try {
     const [djSongsData, artistData] = await Promise.all([
-      fetch('/songData/djSongs.json').then((r) => r.json()),
-      fetch('/songData/ArtistMaster.json').then((r) => r.json()),
+      fetch("/songData/djSongs.json").then((r) => r.json()),
+      fetch("/songData/ArtistMaster.json").then((r) => r.json()),
     ]);
 
     console.log(`Fetched raw songs: ${djSongsData.songs.length}`);
@@ -45,20 +45,25 @@ export async function fetchFilteredSongs(
     const artistLevelMap = {};
     artistData.forEach((artist) => {
       if (artist.active === "true") {
-        artistLevelMap[artist.artist.toLowerCase()] = parseInt(artist.level, 10);
+        artistLevelMap[artist.artist.toLowerCase()] = parseInt(
+          artist.level,
+          10,
+        );
       }
     });
 
     // Enrich songs with level where possible
-    const enrichedSongs = djSongsData.songs
-      .map((song) => {
-        const artistName = song.ArtistMaster?.trim().toLowerCase();
-        const songLevel = artistName && artistLevelMap[artistName] ? artistLevelMap[artistName] : null;
-        return {
-          ...song,
-          level: songLevel,
-        };
-      });
+    const enrichedSongs = djSongsData.songs.map((song) => {
+      const artistName = song.ArtistMaster?.trim().toLowerCase();
+      const songLevel =
+        artistName && artistLevelMap[artistName]
+          ? artistLevelMap[artistName]
+          : null;
+      return {
+        ...song,
+        level: songLevel,
+      };
+    });
 
     console.log(`Enriched songs count: ${enrichedSongs.length}`);
 
@@ -66,46 +71,55 @@ export async function fetchFilteredSongs(
     let filtered = enrichedSongs;
 
     // ArtistMaster filter
-    const validArtistMasters = artistMasters.filter((a) => a && a.trim() !== '');
+    const validArtistMasters = artistMasters.filter(
+      (a) => a && a.trim() !== "",
+    );
     if (validArtistMasters.length > 0) {
       const artistMastersLower = validArtistMasters.map((a) => a.toLowerCase());
-      filtered = filtered.filter((song) =>
-        song.ArtistMaster && artistMastersLower.includes(song.ArtistMaster.trim().toLowerCase())
+      filtered = filtered.filter(
+        (song) =>
+          song.ArtistMaster &&
+          artistMastersLower.includes(song.ArtistMaster.trim().toLowerCase()),
       );
     }
 
     // ArtistLevel filter
-    const validArtistLevels = artistLevels.filter((l) => typeof l === 'number');
+    const validArtistLevels = artistLevels.filter((l) => typeof l === "number");
     if (validArtistLevels.length > 0) {
-      filtered = filtered.filter((song) => song.level && validArtistLevels.includes(song.level));
+      filtered = filtered.filter(
+        (song) => song.level && validArtistLevels.includes(song.level),
+      );
     }
 
     // Composer filter
-    const validComposers = composers.filter((c) => c && c.trim() !== '');
+    const validComposers = composers.filter((c) => c && c.trim() !== "");
     if (validComposers.length > 0) {
       const composersLower = validComposers.map((c) => c.toLowerCase());
-      filtered = filtered.filter((song) =>
-        song.Composer && composersLower.includes(song.Composer.trim().toLowerCase())
+      filtered = filtered.filter(
+        (song) =>
+          song.Composer &&
+          composersLower.includes(song.Composer.trim().toLowerCase()),
       );
     }
 
     // Style filter
-    const validStyles = styles.filter((s) => s && s.trim() !== '');
+    const validStyles = styles.filter((s) => s && s.trim() !== "");
     if (validStyles.length > 0) {
       const stylesLower = validStyles.map((s) => s.toLowerCase());
-      filtered = filtered.filter((song) =>
-        song.Style && stylesLower.includes(song.Style.trim().toLowerCase())
+      filtered = filtered.filter(
+        (song) =>
+          song.Style && stylesLower.includes(song.Style.trim().toLowerCase()),
       );
     }
 
     // Candombe, Alternative, Cancion filters
-    if (candombe && candombe.trim() !== '') {
+    if (candombe && candombe.trim() !== "") {
       filtered = filtered.filter((song) => song.Candombe === candombe);
     }
-    if (alternative && alternative.trim() !== '') {
+    if (alternative && alternative.trim() !== "") {
       filtered = filtered.filter((song) => song.Alternative === alternative);
     }
-    if (cancion && cancion.trim() !== '') {
+    if (cancion && cancion.trim() !== "") {
       filtered = filtered.filter((song) => song.Cancion === cancion);
     }
 
@@ -119,9 +133,9 @@ export async function fetchFilteredSongs(
       artistLevels: validArtistLevels,
       composers: validComposers,
       styles: validStyles,
-      candombe: candombe || 'not applied',
-      alternative: alternative || 'not applied',
-      cancion: cancion || 'not applied',
+      candombe: candombe || "not applied",
+      alternative: alternative || "not applied",
+      cancion: cancion || "not applied",
       requestedQty: qty,
       finalQty,
     });
@@ -141,8 +155,8 @@ export async function fetchSongsAndArtists() {
   try {
     // Fetch data for songs and artists concurrently
     const [djSongsData, artistData] = await Promise.all([
-      fetch('/songData/djSongs.json').then((r) => r.json()),
-      fetch('/songData/ArtistMaster.json').then((r) => r.json()),
+      fetch("/songData/djSongs.json").then((r) => r.json()),
+      fetch("/songData/ArtistMaster.json").then((r) => r.json()),
     ]);
 
     console.log("Fetched raw songs:", djSongsData.songs.length);
@@ -151,7 +165,10 @@ export async function fetchSongsAndArtists() {
     const artistLevelMap = {};
     artistData.forEach((artist) => {
       if (artist.active === "true") {
-        artistLevelMap[artist.artist.toLowerCase()] = parseInt(artist.level, 10);
+        artistLevelMap[artist.artist.toLowerCase()] = parseInt(
+          artist.level,
+          10,
+        );
       }
     });
 
@@ -217,7 +234,10 @@ export function shuffleArray(array) {
  */
 export function getDistractors(correctArtist, allArtists) {
   if (!correctArtist || !allArtists || !Array.isArray(allArtists)) {
-    console.warn("Invalid inputs for getDistractors:", { correctArtist, allArtists });
+    console.warn("Invalid inputs for getDistractors:", {
+      correctArtist,
+      allArtists,
+    });
     return [];
   }
 

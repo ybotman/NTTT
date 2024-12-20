@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback, useContext } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useContext,
+} from "react";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -16,8 +22,15 @@ import {
 } from "@mui/material";
 import Image from "next/image";
 import { ScoreContext } from "@/contexts/ScoreContext";
-import { fetchSongsAndArtists, getDistractors, shuffleArray } from "@/utils/dataFetching";
-import { calculateMaxScore, calculateDecrementPerInterval } from "@/utils/scoring";
+import {
+  fetchSongsAndArtists,
+  getDistractors,
+  shuffleArray,
+} from "@/utils/dataFetching";
+import {
+  calculateMaxScore,
+  calculateDecrementPerInterval,
+} from "@/utils/scoring";
 import { playAudio, stopAudio, getRandomStartTime } from "@/utils/audio";
 
 export default function ArtistQuizPage() {
@@ -64,16 +77,16 @@ export default function ArtistQuizPage() {
 
   // Load configuration from localStorage
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedAqSongs = localStorage.getItem('nttt_aq_songs');
-      const storedAqSeconds = localStorage.getItem('nttt_aq_seconds');
-      const storedLevels = localStorage.getItem('nttt_aq_levels');
+    if (typeof window !== "undefined") {
+      const storedAqSongs = localStorage.getItem("nttt_aq_songs");
+      const storedAqSeconds = localStorage.getItem("nttt_aq_seconds");
+      const storedLevels = localStorage.getItem("nttt_aq_levels");
 
-      setConfig(prev => ({
+      setConfig((prev) => ({
         ...prev,
         numSongs: storedAqSongs ? Number(storedAqSongs) : prev.numSongs,
         timeLimit: storedAqSeconds ? Number(storedAqSeconds) : prev.timeLimit,
-        levels: storedLevels ? JSON.parse(storedLevels) : prev.levels
+        levels: storedLevels ? JSON.parse(storedLevels) : prev.levels,
       }));
     }
   }, []);
@@ -170,7 +183,10 @@ export default function ArtistQuizPage() {
         const newTime = prev + 0.1;
         // Decrement score over time
         setScore((oldScore) => {
-          const decrement = calculateDecrementPerInterval(maxScore, config.timeLimit);
+          const decrement = calculateDecrementPerInterval(
+            maxScore,
+            config.timeLimit,
+          );
           return oldScore - decrement;
         });
 
@@ -199,7 +215,8 @@ export default function ArtistQuizPage() {
   };
 
   const handleAnswerSelect = (answer) => {
-    if (roundState !== "playing" || quizOver || disabledAnswers.has(answer)) return;
+    if (roundState !== "playing" || quizOver || disabledAnswers.has(answer))
+      return;
 
     if (answer === correctAnswer) {
       // Correct
@@ -223,8 +240,8 @@ export default function ArtistQuizPage() {
     const fraction = score / maxScore;
     let message = "Better luck next time";
     if (fraction > 0.85) message = "Amazing";
-    else if (fraction > 0.70) message = "Great Job";
-    else if (fraction > 0.50) message = "NICE";
+    else if (fraction > 0.7) message = "Great Job";
+    else if (fraction > 0.5) message = "NICE";
     else if (fraction > 0.25) message = "Got it in Time!";
     else if (fraction > 0.01) message = "Just Under There!";
     else if (fraction <= 0) message = "Better luck next time";
@@ -255,8 +272,8 @@ export default function ArtistQuizPage() {
     // 500 max possible at best scenario
     let message = "Better luck next time";
     if (fraction > 0.85) message = "Amazing";
-    else if (fraction > 0.70) message = "Great Job";
-    else if (fraction > 0.50) message = "NICE";
+    else if (fraction > 0.7) message = "Great Job";
+    else if (fraction > 0.5) message = "NICE";
     else if (fraction > 0.25) message = "Got it in Time!";
     else if (fraction > 0.01) message = "Just Under There!";
     else if (fraction <= 0) message = "Better luck next time";
@@ -264,9 +281,15 @@ export default function ArtistQuizPage() {
     return (
       <Box sx={{ textAlign: "center", mt: 4 }}>
         <Typography variant="h5">Quiz Complete!</Typography>
-        <Typography variant="h6">Your Total Score: {Math.round(sessionScore)}</Typography>
+        <Typography variant="h6">
+          Your Total Score: {Math.round(sessionScore)}
+        </Typography>
         <Typography variant="body1">{message}</Typography>
-        <Button variant="contained" sx={{ mt: 2 }} onClick={() => window.location.reload()}>
+        <Button
+          variant="contained"
+          sx={{ mt: 2 }}
+          onClick={() => window.location.reload()}
+        >
           Return to Start
         </Button>
       </Box>
@@ -278,17 +301,26 @@ export default function ArtistQuizPage() {
       {/* Banner */}
       <Image src="/NTTTBanner.jpg" alt="NTTT Banner" width={600} height={100} />
 
-      <Typography variant="h6">Session Score: {Math.round(sessionScore)}</Typography>
+      <Typography variant="h6">
+        Session Score: {Math.round(sessionScore)}
+      </Typography>
 
       {!gameStarted && roundState !== "done" && (
         <>
           {/* Configuration Section */}
           <Box sx={{ my: 2, textAlign: "left" }}>
-            <Typography variant="h6">Configuration (Loaded from Saved Config)</Typography>
+            <Typography variant="h6">
+              Configuration (Loaded from Saved Config)
+            </Typography>
             <Typography># of Songs: {config.numSongs}</Typography>
             <Typography>Seconds per Song: {config.timeLimit}</Typography>
             <Typography>Levels: {config.levels.join(", ")}</Typography>
-            <Typography>Styles: {Object.keys(config.styles).filter(s => config.styles[s]).join(", ")}</Typography>
+            <Typography>
+              Styles:{" "}
+              {Object.keys(config.styles)
+                .filter((s) => config.styles[s])
+                .join(", ")}
+            </Typography>
           </Box>
           <Button variant="contained" onClick={handleStartGame}>
             Start Artist Quiz
@@ -299,7 +331,9 @@ export default function ArtistQuizPage() {
       {gameStarted && currentSong && roundState !== "done" && (
         <>
           <audio ref={audioRef} src={currentSong.audioUrl} />
-          <Typography variant="h6" sx={{ mt: 2 }}>Who is the Artist?</Typography>
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            Who is the Artist?
+          </Typography>
 
           {/* If roundState = ready: show answers disabled, and a "Ready to Play" button */}
           {roundState === "ready" && (
@@ -335,7 +369,9 @@ export default function ArtistQuizPage() {
               <Typography variant="body1" sx={{ mt: 2 }}>
                 Time: {timeElapsed.toFixed(1)}s / {config.timeLimit}s
               </Typography>
-              <Typography variant="body1">Current Score: {Math.round(score)}</Typography>
+              <Typography variant="body1">
+                Current Score: {Math.round(score)}
+              </Typography>
             </>
           )}
 
@@ -345,13 +381,19 @@ export default function ArtistQuizPage() {
               <Typography variant="h5" sx={{ mt: 3 }}>
                 {feedbackMessage}
               </Typography>
-              <Typography variant="body1">Score This Round: {Math.round(score)}</Typography>
+              <Typography variant="body1">
+                Score This Round: {Math.round(score)}
+              </Typography>
               {playedSongs.size < config.numSongs ? (
                 <Button variant="contained" sx={{ mt: 2 }} onClick={nextSong}>
                   Ready for Next
                 </Button>
               ) : (
-                <Button variant="contained" sx={{ mt: 2 }} onClick={finalizeQuiz}>
+                <Button
+                  variant="contained"
+                  sx={{ mt: 2 }}
+                  onClick={finalizeQuiz}
+                >
                   View Summary
                 </Button>
               )}
@@ -362,8 +404,12 @@ export default function ArtistQuizPage() {
 
       {roundState === "done" && renderSummary()}
 
-      <Snackbar open={showSnackbar} autoHideDuration={3000} onClose={closeSnackbar}>
-        <Alert onClose={closeSnackbar} severity="info" sx={{ width: '100%' }}>
+      <Snackbar
+        open={showSnackbar}
+        autoHideDuration={3000}
+        onClose={closeSnackbar}
+      >
+        <Alert onClose={closeSnackbar} severity="info" sx={{ width: "100%" }}>
           {feedbackMessage}
         </Alert>
       </Snackbar>

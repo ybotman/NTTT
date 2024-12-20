@@ -2,16 +2,17 @@
 //src/app/games/gamehub/page.js
 //-----------------------------------------------------------------------------------------
 
-
 "use client";
 import React, { useContext } from "react";
-import { Box, Typography, Grid, Paper } from "@mui/material";
+import { Box, Typography, Grid, Paper, Button } from "@mui/material";
 import Link from "next/link";
 import { AuthContext } from "@/contexts/AuthContext";
 import { auth, signInAnonymously, signOut } from "@/utils/firebase";
+import { useTheme } from "@/layout"; // Import the useTheme hook
 
 export default function GameHubPage() {
   const { user, loadingUser } = useContext(AuthContext);
+  const { theme, toggleTheme } = useTheme(); // Access theme and toggle
 
   const handleLogin = async () => {
     await signInAnonymously(auth);
@@ -23,7 +24,11 @@ export default function GameHubPage() {
 
   // Define games for the grid
   const games = [
-    { name: "Artist Learn", path: "/games/artist-learn", icon: "/IconLearnSongs.webp" },
+    {
+      name: "Artist Learn",
+      path: "/games/artist-learn",
+      icon: "/IconLearnSongs.webp",
+    },
     { name: "Decade Learn", path: "#", icon: "/IconLearnDecade.webp" },
     { name: "Style Learn", path: "#", icon: "/IconLearnStyles.webp" },
     { name: "Singer Learn", path: "#", icon: "/IconLearnOrch.webp" },
@@ -36,11 +41,11 @@ export default function GameHubPage() {
   return (
     <Box sx={{ p: 3 }}>
       {/* Header Section */}
-      <Paper sx={{ p: 3, mb: 3 }}>
+      <Paper sx={{ p: 3, mb: 3, position: "relative" }}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h4">Game Hub</Typography>
-          {!loadingUser && (
-            user ? (
+          {!loadingUser &&
+            (user ? (
               <Typography
                 onClick={handleLogout}
                 sx={{
@@ -64,9 +69,28 @@ export default function GameHubPage() {
               >
                 Login
               </Typography>
-            )
-          )}
+            ))}
         </Box>
+        {/* Dark Mode Toggle Button */}
+        <Button
+          onClick={toggleTheme}
+          sx={{
+            position: "absolute",
+            top: "1rem",
+            right: "1rem",
+            padding: "0.5rem 1rem",
+            background: "var(--foreground)",
+            color: "var(--background)",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+            "&:hover": {
+              opacity: 0.8,
+            },
+          }}
+        >
+          {theme === "light" ? "Dark Mode" : "Light Mode"}
+        </Button>
       </Paper>
 
       {/* Games Grid */}

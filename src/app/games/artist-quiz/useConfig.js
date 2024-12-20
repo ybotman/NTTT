@@ -24,9 +24,13 @@ export default function useConfig(gameName) {
           // Deep merge styles to ensure no keys disappear
           const mergedStyles = {
             ...defaultConfig.styles,
-            ...(parsed.styles || {})
+            ...(parsed.styles || {}),
           };
-          const mergedConfig = { ...defaultConfig, ...parsed, styles: mergedStyles };
+          const mergedConfig = {
+            ...defaultConfig,
+            ...parsed,
+            styles: mergedStyles,
+          };
           setConfig(mergedConfig);
         } catch (err) {
           console.error("Error parsing config:", err);

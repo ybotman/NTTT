@@ -1,11 +1,10 @@
-
 //------------------------------------------------------------
 // src/contexts/AuthContext.js
 //------------------------------------------------------------
 "use client";
-import React, { createContext, useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { auth, onAuthStateChanged } from '@/utils/firebase';
+import React, { createContext, useState, useEffect } from "react";
+import PropTypes from "prop-types";
+import { auth, onAuthStateChanged } from "@/utils/firebase";
 
 export const AuthContext = createContext({
   user: null,

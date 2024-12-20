@@ -16,7 +16,7 @@ import {
   Button,
 } from "@mui/material";
 import WaveSurfer from "wavesurfer.js";
-import styles from "../styles.module.css"; // Dark mode styles
+import styles from "../styles.module.css"; // Assuming we have dark mode or styling classes
 
 export default function PlayTab({ songs, config, onCancel }) {
   const wavesurferRef = useRef(null);
@@ -30,7 +30,7 @@ export default function PlayTab({ songs, config, onCancel }) {
   const [ready, setReady] = useState(false);
 
   const PLAY_DURATION = Math.min(config.timeLimit ?? 15, 15);
-  const FADE_DURATION = 0.75; // Fade in/out duration in seconds
+  const FADE_DURATION = 0.75;
 
   const cleanupWaveSurfer = useCallback(() => {
     if (fadeIntervalRef.current) {
@@ -51,7 +51,7 @@ export default function PlayTab({ songs, config, onCancel }) {
 
   const fadeVolume = useCallback((fromVol, toVol, durationSec, callback) => {
     if (!wavesurferRef.current) return;
-    const steps = 15; // steps for the fade
+    const steps = 15;
     const stepTime = (durationSec * 1000) / steps;
     let currentStep = 0;
     const volumeStep = (toVol - fromVol) / steps;
@@ -64,12 +64,9 @@ export default function PlayTab({ songs, config, onCancel }) {
     fadeIntervalRef.current = setInterval(() => {
       currentStep++;
       currentVol += volumeStep;
-      if (currentVol < 0) currentVol = 0;
-      if (currentVol > 1) currentVol = 1;
       if (wavesurferRef.current) {
-        wavesurferRef.current.setVolume(currentVol);
+        wavesurferRef.current.setVolume(Math.min(Math.max(currentVol, 0), 1));
       }
-
       if (currentStep >= steps) {
         clearInterval(fadeIntervalRef.current);
         fadeIntervalRef.current = null;
@@ -83,7 +80,6 @@ export default function PlayTab({ songs, config, onCancel }) {
     if (currentIndex + 1 < songs.length) {
       setCurrentIndex((prevIndex) => prevIndex + 1);
     } else {
-      // End of playlist
       setIsPlaying(false);
       setCurrentIndex(-1);
     }
@@ -91,15 +87,14 @@ export default function PlayTab({ songs, config, onCancel }) {
 
   const startPlaybackWithFade = useCallback(() => {
     if (!wavesurferRef.current) return;
-
-    // Fade in from 0 to 1
     wavesurferRef.current.setVolume(0);
     fadeVolume(0, 1, FADE_DURATION, () => {
-      // After fade-in, schedule fade-out near the end of PLAY_DURATION
-      playTimeoutRef.current = setTimeout(() => {
-        // Fade out in the last FADE_DURATION seconds
-        fadeVolume(1, 0, FADE_DURATION, handleNextSong);
-      }, (PLAY_DURATION - FADE_DURATION) * 1000);
+      playTimeoutRef.current = setTimeout(
+        () => {
+          fadeVolume(1, 0, FADE_DURATION, handleNextSong);
+        },
+        (PLAY_DURATION - FADE_DURATION) * 1000,
+      );
     });
   }, [fadeVolume, FADE_DURATION, PLAY_DURATION, handleNextSong]);
 
@@ -107,13 +102,12 @@ export default function PlayTab({ songs, config, onCancel }) {
     cleanupWaveSurfer();
     const currentSong = songs[currentIndex];
     if (!currentSong) {
-      // No song
       setIsPlaying(false);
       setCurrentIndex(-1);
       return;
     }
 
-    console.log("Playing Song:", currentSong); // Log full song details
+    console.log("Playing Song:", currentSong);
 
     const ws = WaveSurfer.create({
       container: document.createElement("div"),
@@ -121,7 +115,7 @@ export default function PlayTab({ songs, config, onCancel }) {
       progressColor: "transparent",
       barWidth: 0,
       height: 0,
-      backend: "WebAudio", // WebAudio required for volume fades
+      backend: "WebAudio",
     });
 
     ws.on("ready", () => {
@@ -133,12 +127,14 @@ export default function PlayTab({ songs, config, onCancel }) {
       const randomStart = Math.random() * maxStart;
       ws.seekTo(randomStart / dur);
 
-      ws.play().then(() => {
-        startPlaybackWithFade();
-      }).catch((err) => {
-        console.error("Error playing audio:", err);
-        handleNextSong();
-      });
+      ws.play()
+        .then(() => {
+          startPlaybackWithFade();
+        })
+        .catch((err) => {
+          console.error("Error playing audio:", err);
+          handleNextSong();
+        });
     });
 
     ws.on("error", (err) => {
@@ -148,9 +144,16 @@ export default function PlayTab({ songs, config, onCancel }) {
 
     ws.load(currentSong.AudioUrl);
     wavesurferRef.current = ws;
-  }, [currentIndex, songs, startPlaybackWithFade, handleNextSong, cleanupWaveSurfer]);
+  }, [
+    currentIndex,
+    songs,
+    startPlaybackWithFade,
+    handleNextSong,
+    cleanupWaveSurfer,
+  ]);
 
   const playSongAtIndex = useCallback((idx) => {
+    // Stop current playback, start new from clicked song
     setCurrentIndex(idx);
     setIsPlaying(true);
   }, []);
@@ -162,9 +165,14 @@ export default function PlayTab({ songs, config, onCancel }) {
     return () => {
       cleanupWaveSurfer();
     };
-  }, [isPlaying, currentIndex, songs.length, loadCurrentSong, cleanupWaveSurfer]);
+  }, [
+    isPlaying,
+    currentIndex,
+    songs.length,
+    loadCurrentSong,
+    cleanupWaveSurfer,
+  ]);
 
-  // Auto start if songs available and not started yet
   useEffect(() => {
     if (songs.length > 0 && !isPlaying && currentIndex === -1) {
       setCurrentIndex(0);
@@ -172,19 +180,13 @@ export default function PlayTab({ songs, config, onCancel }) {
     }
   }, [songs, isPlaying, currentIndex]);
 
-  const handleStop = () => {
-    cleanupWaveSurfer();
-    setIsPlaying(false);
-    setCurrentIndex(-1);
-  };
-
-  // Scroll the currently playing song into view
   useEffect(() => {
     if (listRef.current && currentIndex >= 0) {
-      const listItem = listRef.current.querySelector(`[data-idx="${currentIndex}"]`);
-      if (listItem) {
+      const listItem = listRef.current.querySelector(
+        `[data-idx="${currentIndex}"]`,
+      );
+      if (listItem)
         listItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
     }
   }, [currentIndex]);
 
@@ -196,17 +198,28 @@ export default function PlayTab({ songs, config, onCancel }) {
     const candombe = song.Candombe === "Y" ? "Candombe " : "";
     const cancion = song.Cancion === "Y" ? "Cancion " : "";
     const singer = song.Singer === "Y" ? "Singer " : "";
-
-    const extras = [alternative, candombe, cancion, singer].join("").trim().replace(/\s+/g, " ");
-
+    const extras = [alternative, candombe, cancion, singer]
+      .join("")
+      .trim()
+      .replace(/\s+/g, " ");
     const metaParts = [style, year, composer, extras].filter(Boolean);
-
     return metaParts.length > 0 ? metaParts.join(" | ") : "";
   };
 
   return (
-    <Box className={styles.container}>
-      <Typography variant="h5" className={styles.h5}>
+    <Box
+      className={styles.container}
+      sx={{
+        minHeight: "100vh",
+        background: "var(--background)",
+        color: "var(--foreground)",
+      }}
+    >
+      <Typography
+        variant="h5"
+        className={styles.h5}
+        sx={{ marginBottom: "1rem" }}
+      >
         Now Playing
       </Typography>
 
@@ -217,6 +230,14 @@ export default function PlayTab({ songs, config, onCancel }) {
           <Box
             ref={listRef}
             className={styles.listContainer}
+            sx={{
+              // Use as much vertical space as possible (minus header & buttons)
+              maxHeight: "calc(100vh - 200px)",
+              overflowY: "auto",
+              border: "1px solid var(--border-color)",
+              borderRadius: "8px",
+              padding: "10px",
+            }}
           >
             <List>
               {songs.map((song, idx) => {
@@ -224,22 +245,39 @@ export default function PlayTab({ songs, config, onCancel }) {
                 const artist = song.ArtistMaster || "Unknown Artist";
                 const meta = renderMetadata(song);
                 const isCurrent = idx === currentIndex;
+
                 return (
                   <ListItem
                     key={song.SongID || idx}
                     data-idx={idx}
                     onClick={() => playSongAtIndex(idx)}
                     className={isCurrent ? styles.activeSong : styles.songRow}
+                    sx={{
+                      cursor: "pointer",
+                      marginBottom: "0.5rem",
+                      border: isCurrent ? "2px solid var(--accent)" : "none",
+                      "&:hover": {
+                        background: "var(--input-bg)",
+                      },
+                    }}
                   >
                     <ListItemText
                       primary={title}
                       secondary={
                         <>
-                          <Typography component="span" variant="body2">
+                          <Typography
+                            component="span"
+                            variant="body2"
+                            color="var(--foreground)"
+                          >
                             {artist}
                           </Typography>
                           {meta && (
-                            <Typography component="div" variant="caption">
+                            <Typography
+                              component="div"
+                              variant="caption"
+                              sx={{ color: "var(--foreground)", opacity: 0.8 }}
+                            >
                               {meta}
                             </Typography>
                           )}
@@ -251,30 +289,41 @@ export default function PlayTab({ songs, config, onCancel }) {
               })}
             </List>
           </Box>
-          <Stack direction="row" spacing={2} sx={{ justifyContent: "center" }}>
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{ justifyContent: "center", marginTop: "1rem" }}
+          >
             {isPlaying && (
-              <>
-                <Button
-                  variant="contained"
-                  className={styles.button}
-                  onClick={handleNextSong}
-                  disabled={!ready}
-                >
-                  Next
-                </Button>
-                <Button
-                  variant="contained"
-                  className={styles.button}
-                  onClick={handleStop}
-                >
-                  Stop
-                </Button>
-              </>
+              <Button
+                variant="contained"
+                className={styles.button}
+                onClick={handleNextSong}
+                disabled={!ready}
+                sx={{
+                  background: "var(--accent)",
+                  color: "var(--background)",
+                  "&:hover": {
+                    opacity: 0.8,
+                  },
+                }}
+              >
+                Next
+              </Button>
             )}
+            {/* Stop button removed */}
             <Button
               variant="outlined"
               className={`${styles.button} ${styles.outlined}`}
               onClick={onCancel}
+              sx={{
+                borderColor: "var(--foreground)",
+                color: "var(--foreground)",
+                "&:hover": {
+                  background: "var(--foreground)",
+                  color: "var(--background)",
+                },
+              }}
             >
               Cancel
             </Button>
@@ -300,7 +349,7 @@ PlayTab.propTypes = {
       Candombe: PropTypes.string,
       Cancion: PropTypes.string,
       Singer: PropTypes.string,
-    })
+    }),
   ).isRequired,
   config: PropTypes.shape({
     numSongs: PropTypes.number,

@@ -1,10 +1,9 @@
-
 //------------------------------------------------------------
 // src/contexts/ScoreContext.js
 //------------------------------------------------------------
 "use client";
-import React, { createContext, useState } from 'react';
-import PropTypes from 'prop-types';
+import React, { createContext, useState } from "react";
+import PropTypes from "prop-types";
 
 export const ScoreContext = createContext({
   sessionScore: 0,

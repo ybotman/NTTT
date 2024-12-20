@@ -5,6 +5,7 @@
 import { useState, useEffect } from "react";
 
 export default function useConfig(gameName) {
+  console.log("hooks/useConfig", gameName);
   const defaultConfig = {
     numSongs: 10,
     timeLimit: 15,
@@ -24,9 +25,13 @@ export default function useConfig(gameName) {
           // Deep merge styles to ensure no keys disappear
           const mergedStyles = {
             ...defaultConfig.styles,
-            ...(parsed.styles || {})
+            ...(parsed.styles || {}),
           };
-          const mergedConfig = { ...defaultConfig, ...parsed, styles: mergedStyles };
+          const mergedConfig = {
+            ...defaultConfig,
+            ...parsed,
+            styles: mergedStyles,
+          };
           setConfig(mergedConfig);
         } catch (err) {
           console.error("Error parsing config:", err);
@@ -41,7 +46,6 @@ export default function useConfig(gameName) {
   const updateConfig = (key, value) => {
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
-  console.log("config", config);
 
   const saveConfig = () => {
     localStorage.setItem(`${gameName}_config`, JSON.stringify(config));

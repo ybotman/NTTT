@@ -9,7 +9,6 @@ export default function useConfig(gameName) {
     styles: { Tango: true, Vals: false, Milonga: false },
   });
 
-
   const [isDisabled, setIsDisabled] = useState(false);
 
   useEffect(() => {

@@ -3,14 +3,7 @@
 import styles from "..styles.module.css";
 import React, { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import {
-  Box,
-  Typography,
-  Button,
-  Stack,
-  Snackbar,
-  Alert
-} from "@mui/material";
+import { Box, Typography, Button, Stack, Snackbar, Alert } from "@mui/material";
 import { getRandomStartTime, playAudio, stopAudio } from "@/utils/audio";
 import useArtistQuiz from "@/hooks/useArtistQuiz";
 
@@ -48,7 +41,7 @@ export default function PlayTab() {
     closeSnackbar,
     sessionScore: baseSessionScore,
     config: baseConfig,
-    quizComplete: baseQuizComplete
+    quizComplete: baseQuizComplete,
   } = useArtistQuiz();
 
   // Merge base states with debug overrides
@@ -57,10 +50,12 @@ export default function PlayTab() {
   const score = debugOverrides.score ?? baseScore ?? 0;
   const roundState = debugOverrides.roundState ?? baseRoundState ?? "ready";
   const timeElapsed = debugOverrides.timeElapsed ?? baseTimeElapsed ?? 0;
-  const feedbackMessage = debugOverrides.feedbackMessage ?? baseFeedbackMessage ?? "";
+  const feedbackMessage =
+    debugOverrides.feedbackMessage ?? baseFeedbackMessage ?? "";
   const quizComplete = debugOverrides.quizComplete ?? baseQuizComplete ?? false;
   const sessionScore = debugOverrides.sessionScore ?? baseSessionScore ?? 0;
-  const config = debugOverrides.config ?? baseConfig ?? { numSongs: 1, timeLimit: 5, levels: [1] };
+  const config = debugOverrides.config ??
+    baseConfig ?? { numSongs: 1, timeLimit: 5, levels: [1] };
 
   // Console logs to debug state
   console.log("PlayTab State:", {
@@ -72,7 +67,7 @@ export default function PlayTab() {
     feedbackMessage,
     sessionScore,
     config,
-    quizComplete
+    quizComplete,
   });
 
   const onLoadedMetadata = () => {
@@ -119,10 +114,14 @@ export default function PlayTab() {
             </Button>
           ))}
         </Stack>
-        <Button variant="contained" sx={{ mt: 2 }} onClick={() => {
-          console.log("Start Round clicked");
-          startRound();
-        }}>
+        <Button
+          variant="contained"
+          sx={{ mt: 2 }}
+          onClick={() => {
+            console.log("Start Round clicked");
+            startRound();
+          }}
+        >
           Ready to Play
         </Button>
       </>
@@ -138,10 +137,14 @@ export default function PlayTab() {
         </Typography>
         <Stack spacing={2} sx={{ mt: 2 }}>
           {answers.map((ans) => (
-            <Button key={ans} variant="outlined" onClick={() => {
-              console.log("Answer Selected:", ans);
-              handleAnswerSelect(ans);
-            }}>
+            <Button
+              key={ans}
+              variant="outlined"
+              onClick={() => {
+                console.log("Answer Selected:", ans);
+                handleAnswerSelect(ans);
+              }}
+            >
               {ans}
             </Button>
           ))}
@@ -149,7 +152,9 @@ export default function PlayTab() {
         <Typography variant="body1" sx={{ mt: 2 }}>
           Time: {timeElapsed.toFixed(1)}s / {config.timeLimit}s
         </Typography>
-        <Typography variant="body1">Current Score: {Math.round(score)}</Typography>
+        <Typography variant="body1">
+          Current Score: {Math.round(score)}
+        </Typography>
       </>
     );
   };
@@ -161,7 +166,9 @@ export default function PlayTab() {
         <Typography variant="h5" sx={{ mt: 3 }}>
           {feedbackMessage}
         </Typography>
-        <Typography variant="body1">Score This Round: {Math.round(score)}</Typography>
+        <Typography variant="body1">
+          Score This Round: {Math.round(score)}
+        </Typography>
         <Button
           variant="contained"
           sx={{ mt: 2 }}
@@ -194,12 +201,18 @@ export default function PlayTab() {
     return (
       <Box sx={{ textAlign: "center", mt: 4 }}>
         <Typography variant="h5">Quiz Complete!</Typography>
-        <Typography variant="h6">Your Total Score: {Math.round(sessionScore)}</Typography>
+        <Typography variant="h6">
+          Your Total Score: {Math.round(sessionScore)}
+        </Typography>
         <Typography variant="body1">{feedbackMessage}</Typography>
-        <Button variant="contained" sx={{ mt: 2 }} onClick={() => {
-          console.log("Finalize Quiz clicked");
-          finalizeQuiz();
-        }}>
+        <Button
+          variant="contained"
+          sx={{ mt: 2 }}
+          onClick={() => {
+            console.log("Finalize Quiz clicked");
+            finalizeQuiz();
+          }}
+        >
           Return to Start
         </Button>
       </Box>
@@ -208,26 +221,39 @@ export default function PlayTab() {
 
   return (
     <Box sx={{ mt: 2, textAlign: "center" }}>
-      <Typography variant="h6">Session Score: {Math.round(sessionScore || 0)}</Typography>
+      <Typography variant="h6">
+        Session Score: {Math.round(sessionScore || 0)}
+      </Typography>
       {!quizComplete && roundState === "ready" && !currentSong && (
         <>
           {renderConfigurationNote()}
-          <Button variant="contained" onClick={() => {
-            console.log("Start Artist Quiz clicked");
-            startGame();
-          }}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              console.log("Start Artist Quiz clicked");
+              startGame();
+            }}
+          >
             Start Artist Quiz
           </Button>
         </>
       )}
       {currentSong && (
-        <audio ref={audioRef} src={currentSong.audioUrl} onLoadedMetadata={onLoadedMetadata} />
+        <audio
+          ref={audioRef}
+          src={currentSong.audioUrl}
+          onLoadedMetadata={onLoadedMetadata}
+        />
       )}
       {roundState === "ready" && currentSong && renderReadyState()}
       {roundState === "playing" && renderPlayingState()}
       {roundState === "over" && renderOverState()}
       {roundState === "done" && renderDoneState()}
-      <Snackbar open={showSnackbar} onClose={closeSnackbar} autoHideDuration={3000}>
+      <Snackbar
+        open={showSnackbar}
+        onClose={closeSnackbar}
+        autoHideDuration={3000}
+      >
         <Alert severity="info" onClose={closeSnackbar} sx={{ width: "100%" }}>
           {feedbackMessage}
         </Alert>

@@ -7,15 +7,16 @@
 import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
-  TextField,
   FormControlLabel,
+  TextField,
   Checkbox,
   Typography,
   Autocomplete,
-  FormHelperText
+  FormHelperText,
+  Slider,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import useConfig from "./useConfig";
+import useConfig from "@/hooks/useConfig";
 import { fetchFilteredSongs } from "@/utils/dataFetching";
 import styles from "../styles.module.css";
 
@@ -25,55 +26,50 @@ export default function ConfigTab({ onSongsFetched }) {
   const [artistOptions, setArtistOptions] = useState([]);
   const [selectedArtists, setSelectedArtists] = useState([]);
   const [configChanged, setConfigChanged] = useState(false);
-
   const [validationMessage, setValidationMessage] = useState("");
 
   const isMountedRef = useRef(false);
 
-  // Added helper functions to check validity
   const validateInputs = () => {
-    // Validate number of songs: 3-15
     const numSongs = config.numSongs ?? 10;
     if (numSongs < 3 || numSongs > 15) {
       return "Number of Songs must be between 3 and 15.";
     }
 
-    // Validate time limit: 3-15
     const timeLimit = config.timeLimit ?? 15;
     if (timeLimit < 3 || timeLimit > 15) {
       return "Time Limit must be between 3 and 15 seconds.";
     }
 
-    // Check if any style is checked
-    const stylesSelected = Object.keys(config.styles || {}).filter((k) => config.styles[k]);
+    const stylesSelected = Object.keys(config.styles || {}).filter(
+      (k) => config.styles[k],
+    );
     if (stylesSelected.length === 0) {
       return "At least one style must be selected.";
     }
 
-    // Check that either at least one artist is selected or at least one level is selected
     const levelsSelected = (config.levels || []).length > 0;
     const artistsSelected = selectedArtists.length > 0;
     if (!levelsSelected && !artistsSelected) {
       return "You must select either at least one Artist or at least one Level.";
     }
 
-    // If artists are selected, levels must be empty
     if (artistsSelected && levelsSelected) {
       return "Cannot select both Artists and Levels. Clear one of them.";
     }
 
-    return ""; // No issues
+    return "";
   };
 
-  // Fetch styles and artist options once
   useEffect(() => {
     isMountedRef.current = true;
     (async () => {
       try {
-        const styleData = await fetch("/songData/StyleMaster.json").then((res) => res.json());
+        const styleData = await fetch("/songData/StyleMaster.json").then(
+          (res) => res.json(),
+        );
         if (isMountedRef.current) {
           setPrimaryStyles(styleData.primaryStyles || []);
-          // Default Tango on if no styles defined yet
           if (!config.styles || Object.keys(config.styles).length === 0) {
             updateConfig("styles", { Tango: true });
             setConfigChanged(true);
@@ -86,8 +82,9 @@ export default function ConfigTab({ onSongsFetched }) {
 
     (async () => {
       try {
-        const artistData = await fetch("/songData/ArtistMaster.json").then((res) => res.json());
-        // Sort artists first by level then alphabetically
+        const artistData = await fetch("/songData/ArtistMaster.json").then(
+          (res) => res.json(),
+        );
         const activeArtists = artistData
           .filter((artist) => artist.active === "true")
           .sort((a, b) => {
@@ -101,6 +98,12 @@ export default function ConfigTab({ onSongsFetched }) {
             value: artist.artist,
           }));
         if (isMountedRef.current) setArtistOptions(activeArtists);
+
+        // After loading initial data, validate once
+        const initialValidation = validateInputs();
+        if (initialValidation) {
+          setValidationMessage(initialValidation);
+        }
       } catch (error) {
         console.error("Error fetching ArtistMaster.json:", error);
       }
@@ -109,17 +112,17 @@ export default function ConfigTab({ onSongsFetched }) {
     return () => {
       isMountedRef.current = false;
     };
-  }, [updateConfig, config.styles]);
+  }, []);
 
-  // Handler to mark config as changed
   const markConfigChanged = () => {
     setConfigChanged(true);
   };
 
   const handleLevelChange = (level, checked) => {
-    // If artists selected, can't select levels
     if (selectedArtists.length > 0) {
-      setValidationMessage("Levels not available when artists are selected. Clear artists first.");
+      setValidationMessage(
+        "Levels not available when artists are selected. Clear artists first.",
+      );
       return;
     }
 
@@ -141,34 +144,29 @@ export default function ConfigTab({ onSongsFetched }) {
     markConfigChanged();
   };
 
-  const handleNumSongsChange = (e) => {
-    updateConfig("numSongs", Number(e.target.value));
+  const handleNumSongsChange = (event, value) => {
+    updateConfig("numSongs", value);
     markConfigChanged();
   };
 
-  const handleTimeLimitChange = (e) => {
-    updateConfig("timeLimit", Number(e.target.value));
+  const handleTimeLimitChange = (event, value) => {
+    updateConfig("timeLimit", value);
     markConfigChanged();
   };
 
   const handleArtistsChange = (event, values) => {
-    // If artists selected, clear levels
-    if (values.length > 0) {
-      if ((config.levels || []).length > 0) {
-        updateConfig("levels", []); 
-        setValidationMessage("Clearing levels because artists are selected.");
-      }
+    if (values.length > 0 && (config.levels || []).length > 0) {
+      updateConfig("levels", []);
+      setValidationMessage("Clearing levels because artists are selected.");
     }
     setSelectedArtists(values);
     markConfigChanged();
   };
 
-  // Only fetch songs if configChanged is true
   useEffect(() => {
     if (!configChanged) return;
     let mounted = true;
 
-    // Validate inputs before fetching
     const validationErr = validateInputs();
     if (validationErr) {
       setValidationMessage(validationErr);
@@ -181,7 +179,9 @@ export default function ConfigTab({ onSongsFetched }) {
     const fetchSongsData = async () => {
       const numSongs = config.numSongs ?? 10;
       const artistLevels = config.levels || [];
-      const activeStyles = Object.keys(config.styles || {}).filter((key) => config.styles[key]);
+      const activeStyles = Object.keys(config.styles || {}).filter(
+        (key) => config.styles[key],
+      );
 
       try {
         const { songs } = await fetchFilteredSongs(
@@ -192,7 +192,7 @@ export default function ConfigTab({ onSongsFetched }) {
           "N",
           "N",
           "N",
-          numSongs
+          numSongs,
         );
         if (mounted && onSongsFetched) {
           onSongsFetched(songs);
@@ -203,134 +203,172 @@ export default function ConfigTab({ onSongsFetched }) {
           onSongsFetched([]);
         }
       } finally {
-        // After fetch completes, reset configChanged
         if (mounted) setConfigChanged(false);
       }
     };
 
     fetchSongsData();
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [configChanged, config, selectedArtists, onSongsFetched]);
 
-  // If artists selected, disable levels checkboxes
   const levelsDisabled = selectedArtists.length > 0;
 
   return (
-<Box className={styles.configurationContainer}>
-  <Typography variant="h6" className={styles.title}>
-    Configuration:
-  </Typography>
-
-  {/* Validation Message */}
-  {validationMessage && (
-    <FormHelperText className={styles.validationError}>
-      {validationMessage}
-    </FormHelperText>
-  )}
-
-  <Box className={styles.fieldsContainer}>
-    <TextField
-      label="Number of Songs"
-      type="number"
-      value={config.numSongs ?? 10}
-      onChange={handleNumSongsChange}
-      fullWidth
-      margin="dense"
-      disabled={isDisabled}
-      className={styles.textField}
-    />
-    <TextField
-      label="Time Limit (Seconds)"
-      type="number"
-      value={config.timeLimit ?? 15}
-      onChange={handleTimeLimitChange}
-      fullWidth
-      margin="dense"
-      disabled={isDisabled}
-      className={styles.textField}
-    />
-  </Box>
-
-  <Box className={styles.optionsContainer}>
-    {/* Levels */}
-    <Box>
-      <Typography variant="body1" className={styles.optionLabel}>
-        Levels:
+    <Box className={styles.configurationContainer}>
+      {validationMessage && (
+        <FormHelperText className={styles.validationError}>
+          {validationMessage}
+        </FormHelperText>
+      )}
+      <Typography variant="h6" className={styles.title}>
+        Configuration:
       </Typography>
-      {[1, 2, 3, 4, 5].map((level) => (
-        <FormControlLabel
-          key={level}
-          control={
-            <Checkbox
-              checked={(config.levels || []).includes(level)}
-              onChange={(e) => handleLevelChange(level, e.target.checked)}
-              disabled={isDisabled || levelsDisabled}
-              className={styles.checkbox}
+      <Box
+        className={styles.fieldsContainer}
+        sx={{ display: "flex", alignItems: "center", gap: 4, width: "100%" }}
+      >
+        <Box
+          className={styles.fieldsContainer}
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 4,
+            width: "100%",
+          }}
+        >
+          <Box sx={{ flex: 1 }}>
+            <Slider
+              value={config.numSongs ?? 10}
+              onChange={handleNumSongsChange}
+              step={1}
+              min={3}
+              max={15}
+              disabled={isDisabled}
+              valueLabelDisplay="on"
+              sx={{ color: "var(--foreground)" }}
             />
-          }
-          label={`Level ${level}`}
-        />
-      ))}
-      {levelsDisabled && (
-        <FormHelperText className={styles.helperText}>
-          Levels disabled because Artists are selected.
+            <Typography
+              variant="body1"
+              sx={{ color: "var(--foreground)", textAlign: "left" }}
+            >
+              QTY
+            </Typography>
+          </Box>
+
+          <Box sx={{ flex: 1 }}>
+            <Slider
+              value={config.timeLimit ?? 15}
+              onChange={handleTimeLimitChange}
+              step={1}
+              min={3}
+              max={15}
+              disabled={isDisabled}
+              valueLabelDisplay="on"
+              sx={{ color: "var(--foreground)" }}
+            />
+            <Typography
+              variant="body1"
+              sx={{ color: "var(--foreground)", textAlign: "right" }}
+            >
+              Duration
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+
+      <Box className={styles.optionsContainer}>
+        <Box>
+          <Typography variant="body1" className={styles.optionLabel}>
+            Levels:
+          </Typography>
+          {[1, 2, 3, 4, 5].map((level) => (
+            <FormControlLabel
+              key={level}
+              control={
+                <Checkbox
+                  checked={(config.levels || []).includes(level)}
+                  onChange={(e) => handleLevelChange(level, e.target.checked)}
+                  disabled={isDisabled || levelsDisabled}
+                  className={styles.checkbox}
+                />
+              }
+              label={`Level ${level}`}
+            />
+          ))}
+          {levelsDisabled && (
+            <FormHelperText className={styles.helperText}>
+              Levels disabled because Artists are selected.
+            </FormHelperText>
+          )}
+        </Box>
+
+        <Box>
+          <Typography variant="body1" className={styles.optionLabel}>
+            Styles:
+          </Typography>
+          {primaryStyles.map((styleObj) => {
+            const styleName = styleObj.style;
+            return (
+              <FormControlLabel
+                key={styleName}
+                control={
+                  <Checkbox
+                    checked={config.styles?.[styleName] ?? false}
+                    onChange={(e) =>
+                      handleStyleChange(styleName, e.target.checked)
+                    }
+                    disabled={isDisabled}
+                    className={styles.checkbox}
+                  />
+                }
+                label={styleName}
+              />
+            );
+          })}
+        </Box>
+      </Box>
+
+      <Autocomplete
+        multiple
+        options={artistOptions}
+        value={selectedArtists}
+        onChange={handleArtistsChange}
+        isOptionEqualToValue={(option, value) => option.value === value.value}
+        renderInput={(params) => (
+          <Box>
+            <Typography variant="body1" sx={{ color: "var(--foreground)" }}>
+              Select Artists:
+            </Typography>
+            <TextField
+              {...params}
+              margin="dense"
+              disabled={isDisabled || (config.levels || []).length > 0}
+              sx={{
+                backgroundColor: "var(--input-bg)",
+                color: "var(--input-text)",
+                "& .MuiFormLabel-root": { color: "var(--foreground)" },
+                "& .MuiInputBase-root": { color: "var(--input-text)" },
+              }}
+            />
+          </Box>
+        )}
+        sx={{
+          "& .MuiAutocomplete-listbox": {
+            backgroundColor: "var(--dropdown-bg)",
+            color: "var(--input-text)",
+          },
+        }}
+      />
+
+      {(config.levels || []).length > 0 && selectedArtists.length > 0 && (
+        <FormHelperText className={styles.errorText}>
+          Both artists and levels are selected. Please clear one.
         </FormHelperText>
       )}
     </Box>
-
-    {/* Styles */}
-    <Box>
-      <Typography variant="body1" className={styles.optionLabel}>
-        Styles:
-      </Typography>
-      {primaryStyles.map((styleObj) => {
-        const styleName = styleObj.style;
-        return (
-          <FormControlLabel
-            key={styleName}
-            control={
-              <Checkbox
-                checked={config.styles?.[styleName] ?? false}
-                onChange={(e) => handleStyleChange(styleName, e.target.checked)}
-                disabled={isDisabled}
-                className={styles.checkbox}
-              />
-            }
-            label={styleName}
-          />
-        );
-      })}
-    </Box>
-  </Box>
-
-  {/* Artist Autocomplete */}
-  <Autocomplete
-    multiple
-    options={artistOptions}
-    value={selectedArtists}
-    onChange={handleArtistsChange}
-    isOptionEqualToValue={(option, value) => option.value === value.value}
-    renderInput={(params) => (
-      <TextField
-        {...params}
-        label="Select Artists"
-        placeholder="Artists"
-        margin="dense"
-        disabled={isDisabled || (config.levels || []).length > 0}
-        className={styles.textField}
-      />
-    )}
-    className={styles.autocomplete}
-  />
-
-  {(config.levels || []).length > 0 && selectedArtists.length > 0 && (
-    <FormHelperText className={styles.errorText}>
-      Both artists and levels are selected. Please clear one.
-    </FormHelperText>
-  )}
-</Box>
-
   );
 }
 

@@ -2,11 +2,22 @@
 // src/app/config/page.js (Configuration Screen with Tabs)
 //------------------------------------------------------------
 "use client";
-import React, { useState, useContext, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { AuthContext } from '@/contexts/AuthContext';
-import { Box, Paper, Typography, TextField, Button, Slider, FormControlLabel, Checkbox, Tabs, Tab } from '@mui/material';
-import { db, doc, setDoc, getDoc } from '@/utils/firebase';
+import React, { useState, useContext, useEffect } from "react";
+import PropTypes from "prop-types";
+import { AuthContext } from "@/contexts/AuthContext";
+import {
+  Box,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Slider,
+  FormControlLabel,
+  Checkbox,
+  Tabs,
+  Tab,
+} from "@mui/material";
+import { db, doc, setDoc, getDoc } from "@/utils/firebase";
 
 // Default global config
 // global: {expertiseLevel: 3}
@@ -14,7 +25,7 @@ import { db, doc, setDoc, getDoc } from '@/utils/firebase';
 function a11yProps(index) {
   return {
     id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
+    "aria-controls": `simple-tabpanel-${index}`,
   };
 }
 
@@ -34,17 +45,17 @@ export default function ConfigurationScreen() {
 
   useEffect(() => {
     // Load from localStorage
-    if (typeof window !== 'undefined') {
-      const storedExpertise = localStorage.getItem('nttt_expertiseLevel');
+    if (typeof window !== "undefined") {
+      const storedExpertise = localStorage.getItem("nttt_expertiseLevel");
       if (storedExpertise) setExpertiseLevel(Number(storedExpertise));
 
-      const storedAqSongs = localStorage.getItem('nttt_aq_songs');
+      const storedAqSongs = localStorage.getItem("nttt_aq_songs");
       if (storedAqSongs) setAqSongs(Number(storedAqSongs));
 
-      const storedAqSeconds = localStorage.getItem('nttt_aq_seconds');
+      const storedAqSeconds = localStorage.getItem("nttt_aq_seconds");
       if (storedAqSeconds) setAqSeconds(Number(storedAqSeconds));
 
-      const storedLevels = localStorage.getItem('nttt_aq_levels');
+      const storedLevels = localStorage.getItem("nttt_aq_levels");
       if (storedLevels) {
         const lvls = JSON.parse(storedLevels);
         setAqLevel1(lvls.includes(1));
@@ -57,17 +68,17 @@ export default function ConfigurationScreen() {
   }, []);
 
   const saveLocalConfig = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('nttt_expertiseLevel', String(expertiseLevel));
-      localStorage.setItem('nttt_aq_songs', String(aqSongs));
-      localStorage.setItem('nttt_aq_seconds', String(aqSeconds));
+    if (typeof window !== "undefined") {
+      localStorage.setItem("nttt_expertiseLevel", String(expertiseLevel));
+      localStorage.setItem("nttt_aq_songs", String(aqSongs));
+      localStorage.setItem("nttt_aq_seconds", String(aqSeconds));
       const selectedLevels = [];
       if (aqLevel1) selectedLevels.push(1);
       if (aqLevel2) selectedLevels.push(2);
       if (aqLevel3) selectedLevels.push(3);
       if (aqLevel4) selectedLevels.push(4);
       if (aqLevel5) selectedLevels.push(5);
-      localStorage.setItem('nttt_aq_levels', JSON.stringify(selectedLevels));
+      localStorage.setItem("nttt_aq_levels", JSON.stringify(selectedLevels));
       console.log("Config saved locally");
     }
   };
@@ -82,16 +93,20 @@ export default function ConfigurationScreen() {
     if (aqLevel5) selectedLevels.push(5);
 
     const userRef = doc(db, "users", user.uid);
-    await setDoc(userRef, {
-      globalConfig: {
-        expertiseLevel
+    await setDoc(
+      userRef,
+      {
+        globalConfig: {
+          expertiseLevel,
+        },
+        artistQuizConfig: {
+          songs: aqSongs,
+          seconds: aqSeconds,
+          levels: selectedLevels,
+        },
       },
-      artistQuizConfig: {
-        songs: aqSongs,
-        seconds: aqSeconds,
-        levels: selectedLevels
-      }
-    }, { merge: true });
+      { merge: true },
+    );
     console.log("Config saved to Firebase");
   };
 
@@ -100,16 +115,24 @@ export default function ConfigurationScreen() {
   };
 
   return (
-    <Box sx={{ p: 3, maxWidth: 600, margin: 'auto' }}>
+    <Box sx={{ p: 3, maxWidth: 600, margin: "auto" }}>
       <Paper sx={{ p: 3 }}>
-        <Typography variant="h5" gutterBottom>Configuration</Typography>
-        <Tabs value={tabIndex} onChange={handleChangeTab} aria-label="config tabs">
+        <Typography variant="h5" gutterBottom>
+          Configuration
+        </Typography>
+        <Tabs
+          value={tabIndex}
+          onChange={handleChangeTab}
+          aria-label="config tabs"
+        >
           <Tab label="Global Config" {...a11yProps(0)} />
           <Tab label="Artist Quiz Config" {...a11yProps(1)} />
         </Tabs>
         {tabIndex === 0 && (
           <Box sx={{ mt: 3 }}>
-            <Typography gutterBottom>Expertise Level: {expertiseLevel}</Typography>
+            <Typography gutterBottom>
+              Expertise Level: {expertiseLevel}
+            </Typography>
             <Slider
               value={expertiseLevel}
               min={1}
@@ -137,31 +160,60 @@ export default function ConfigurationScreen() {
               fullWidth
               sx={{ mb: 2 }}
             />
-            <Typography variant="body1" gutterBottom>Levels (Check all that apply):</Typography>
+            <Typography variant="body1" gutterBottom>
+              Levels (Check all that apply):
+            </Typography>
             <FormControlLabel
-              control={<Checkbox checked={aqLevel1} onChange={(e) => setAqLevel1(e.target.checked)} />}
+              control={
+                <Checkbox
+                  checked={aqLevel1}
+                  onChange={(e) => setAqLevel1(e.target.checked)}
+                />
+              }
               label="Level 1"
             />
             <FormControlLabel
-              control={<Checkbox checked={aqLevel2} onChange={(e) => setAqLevel2(e.target.checked)} />}
+              control={
+                <Checkbox
+                  checked={aqLevel2}
+                  onChange={(e) => setAqLevel2(e.target.checked)}
+                />
+              }
               label="Level 2"
             />
             <FormControlLabel
-              control={<Checkbox checked={aqLevel3} onChange={(e) => setAqLevel3(e.target.checked)} />}
+              control={
+                <Checkbox
+                  checked={aqLevel3}
+                  onChange={(e) => setAqLevel3(e.target.checked)}
+                />
+              }
               label="Level 3"
             />
             <FormControlLabel
-              control={<Checkbox checked={aqLevel4} onChange={(e) => setAqLevel4(e.target.checked)} />}
+              control={
+                <Checkbox
+                  checked={aqLevel4}
+                  onChange={(e) => setAqLevel4(e.target.checked)}
+                />
+              }
               label="Level 4"
             />
             <FormControlLabel
-              control={<Checkbox checked={aqLevel5} onChange={(e) => setAqLevel5(e.target.checked)} />}
+              control={
+                <Checkbox
+                  checked={aqLevel5}
+                  onChange={(e) => setAqLevel5(e.target.checked)}
+                />
+              }
               label="Level 5"
             />
           </Box>
         )}
         <Box sx={{ mt: 3 }}>
-          <Button variant="contained" onClick={saveLocalConfig}>Save Locally</Button>
+          <Button variant="contained" onClick={saveLocalConfig}>
+            Save Locally
+          </Button>
           {user && (
             <Button variant="contained" sx={{ ml: 2 }} onClick={saveToFirebase}>
               Save to Firebase
@@ -174,4 +226,3 @@ export default function ConfigurationScreen() {
 }
 
 ConfigurationScreen.propTypes = {};
-

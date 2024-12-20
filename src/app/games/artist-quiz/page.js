@@ -11,7 +11,11 @@ export default function ArtistQuizPage() {
 
   return (
     <Box className={styles.container}>
-      <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)} centered>
+      <Tabs
+        value={activeTab}
+        onChange={(_, newValue) => setActiveTab(newValue)}
+        centered
+      >
         <Tab label="Configuration" />
         <Tab label="Play Game" />
       </Tabs>
