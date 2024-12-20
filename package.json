@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --no-cache",
     "format": "prettier --write ."
   },
   "dependencies": {
@@ -15,7 +15,6 @@
     "@mui/material": "^6.2.1",
     "firebase": "^11.1.0",
     "howler": "^2.2.4",
-    "next": "15.1.0",
     "prettier": "^3.4.2",
     "prop-types": "^15.8.1",
     "react": "^19.0.0",
@@ -24,8 +23,6 @@
     "wavesurfer.js": "^7.8.11"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "eslint": "^9",
-    "eslint-config-next": "15.1.0"
+    "next": "^15.1.2"
   }
 }

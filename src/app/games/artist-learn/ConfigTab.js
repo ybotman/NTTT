@@ -3,7 +3,6 @@
 //--------
 
 "use client";
-
 import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
@@ -112,7 +111,7 @@ export default function ConfigTab({ onSongsFetched }) {
     return () => {
       isMountedRef.current = false;
     };
-  }, []);
+  }, [config.styles, updateConfig, validateInputs]);
 
   const markConfigChanged = () => {
     setConfigChanged(true);

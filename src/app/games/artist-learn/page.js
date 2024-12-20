@@ -3,7 +3,7 @@
 //--------
 
 "use client";
-
+import Image from "next/image"; //
 import React, { useState } from "react";
 import { Box, Typography, Button } from "@mui/material";
 import { useTheme } from "@/layout"; // Access dark mode state & toggle
@@ -105,15 +105,16 @@ export default function ArtistLearnPage() {
             mb: 2,
           }}
         >
-          <img
+          <Image
             src="/IconLearnOrch.webp"
             alt="Play Button"
             onClick={handlePlayClick}
+            layout="intrinsic" // Adjusted for intrinsic sizing
+            width={100} // Exact width
+            height={100} // Exact height
             style={{
               cursor: "pointer",
               borderRadius: "50%",
-              width: 100,
-              height: 100,
               objectFit: "cover",
               boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
               transition: "transform 0.2s",
@@ -121,8 +122,9 @@ export default function ArtistLearnPage() {
             onMouseOver={(e) =>
               (e.currentTarget.style.transform = "scale(1.05)")
             }
-            onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} // Reset on mouse out
           />
+
           <Typography
             variant="h6"
             sx={{

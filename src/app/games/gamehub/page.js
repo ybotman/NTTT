@@ -4,6 +4,7 @@
 
 "use client";
 import React, { useContext } from "react";
+import Image from "next/image"; //
 import { Box, Typography, Grid, Paper, Button } from "@mui/material";
 import Link from "next/link";
 import { AuthContext } from "@/contexts/AuthContext";
@@ -101,31 +102,21 @@ export default function GameHubPage() {
               <Link href={game.path}>
                 <Box
                   sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    cursor: game.path === "#" ? "default" : "pointer",
-                    opacity: game.path === "#" ? 0.5 : 1,
-                    "&:hover": {
-                      transform: game.path === "#" ? "none" : "scale(1.05)",
-                    },
-                    transition: "transform 0.2s ease",
+                    width: "150px", // Set container width
+                    height: "150px", // Set container height
+                    position: "relative",
                   }}
                 >
-                  <img
+                  <Image
                     src={game.icon}
                     alt={game.name}
+                    layout="fill"
+                    objectFit="cover" // Ensure the image covers the container
                     style={{
-                      width: "150px",
-                      height: "150px",
-                      marginBottom: "10px",
                       borderRadius: "8px",
                       boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
                     }}
                   />
-                  <Typography variant="body1" textAlign="center">
-                    {game.name}
-                  </Typography>
                 </Box>
               </Link>
             </Grid>

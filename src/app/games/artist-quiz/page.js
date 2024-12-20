@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Box, Tabs, Tab } from "@mui/material";
 import ConfigTab from "./ConfigTab";
 import PlayTab from "./PlayTab";
-import styles from "../styles.module.css";
+import styles from "./styles.module.css";
 
 export default function ArtistQuizPage() {
   const [activeTab, setActiveTab] = useState(0);
