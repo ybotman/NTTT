@@ -1,7 +1,8 @@
 "use client";
 import React, { useContext } from "react";
 import Image from "next/image";
-import { Box, Typography, Grid, Paper } from "@mui/material";
+import { Box, Typography, Paper, Button } from "@mui/material";
+import Grid from "@mui/material/Grid2"; // Import Grid2
 import Link from "next/link";
 import { AuthContext } from "@/contexts/AuthContext";
 import { auth, signInAnonymously, signOut } from "@/utils/firebase";
@@ -92,43 +93,48 @@ export default function GameHubPage() {
       >
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h4">Game Hub</Typography>
-          {!loadingUser &&
-            (user ? (
-              <Typography
-                onClick={handleLogout}
-                sx={{
-                  cursor: "pointer",
-                  fontSize: "1rem",
-                  color: "blue",
-                  "&:hover": { textDecoration: "underline" },
-                }}
-              >
-                Logout
-              </Typography>
-            ) : (
-              <Typography
-                onClick={handleLogin}
-                sx={{
-                  cursor: "pointer",
-                  fontSize: "1rem",
-                  color: "blue",
-                  "&:hover": { textDecoration: "underline" },
-                }}
-              >
-                Login
-              </Typography>
-            ))}
+          <Button
+            variant="outlined"
+            sx={{ color: "white", borderColor: "white" }}
+          >
+            Settings
+          </Button>
         </Box>
+        {!loadingUser &&
+          (user ? (
+            <Typography
+              onClick={handleLogout}
+              sx={{
+                cursor: "pointer",
+                fontSize: "1rem",
+                color: "blue",
+                "&:hover": { textDecoration: "underline" },
+              }}
+            >
+              Logout
+            </Typography>
+          ) : (
+            <Typography
+              onClick={handleLogin}
+              sx={{
+                cursor: "pointer",
+                fontSize: "1rem",
+                color: "blue",
+                "&:hover": { textDecoration: "underline" },
+              }}
+            >
+              Login
+            </Typography>
+          ))}
       </Paper>
       {/* Games Grid */}
       <Paper sx={{ p: 3, backgroundColor: "black", color: "White" }}>
         <Grid container spacing={3}>
           {games.map((game, index) => (
-            <Grid item xs={6} md={3} key={index}>
-              <Link href={game.path} passHref>
-                <Box
-                  component="a"
-                  sx={{
+            <Grid xs={6} md={3} key={index}>
+              <Link href={game.path}>
+                <div
+                  style={{
                     display: "flex",
                     flexDirection: "column", // Ensure text is below the icon
                     alignItems: "center",
@@ -136,10 +142,6 @@ export default function GameHubPage() {
                     opacity: game.isActive ? 1 : 0.5,
                     transition: "transform 0.2s ease",
                     textDecoration: "none",
-                    "&:hover": {
-                      transform: game.isActive ? "scale(1.1)" : "none",
-                      filter: game.isActive ? "brightness(1.5)" : "none", // Simmer effect
-                    },
                   }}
                 >
                   <Box
@@ -148,6 +150,10 @@ export default function GameHubPage() {
                       height: "150px", // Set container height
                       position: "relative",
                       marginBottom: "10px",
+                      "&:hover": {
+                        transform: game.isActive ? "scale(1.1)" : "none",
+                        filter: game.isActive ? "brightness(1.5)" : "none", // Simmer effect
+                      },
                     }}
                   >
                     <Image
@@ -171,7 +177,7 @@ export default function GameHubPage() {
                   >
                     {game.name}
                   </Typography>
-                </Box>
+                </div>
               </Link>
             </Grid>
           ))}
