@@ -7,7 +7,7 @@ Core Features 1. Song Playback and Quiz Flow
 • Songs must have a non-blank artist name (ArtistMaster) and the artist must be active and of level 1 or 2.
 • The user listens to a short snippet of the song starting at a random point (between 0-90 seconds) and must identify the correct artist from 4 options (1 correct + 3 distractors). 2. Dynamic Configuration
 • Before starting, users can configure:
-• Time Limit: Ranges from 3 to 15 seconds per song.
+• Time Limit: Ranges from 3 to 15 seconds per song (from the Config section)
 • Number of Songs: Sets the total number of rounds in a session.
 • These parameters directly influence gameplay and scoring mechanics. 3. Scoring and Timer
 • Maximum Score:
@@ -18,7 +18,7 @@ Core Features 1. Song Playback and Quiz Flow
 • The decrement per interval is calculated dynamically based on the time limit and maximum score.
 • Example: For 5 seconds, the max score is 426, and the score decrement is ~8.52 points per 0.1 second. 4. Wrong Answer Penalty
 • Selecting an incorrect answer reduces the current score by 5%.
-• Multiple wrong answers can push the score into negative values. 5. Session Tracking
+• Multiple wrong answers can push the score to 0.  At 0, no score is give and we move the next song.
 • Each correct answer adds the remaining score to the session score.
 • The session score accumulates across multiple rounds, up to the configured number of songs. 6. Feedback
 • Immediate feedback is displayed after each selection:

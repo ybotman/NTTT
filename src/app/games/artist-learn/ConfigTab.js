@@ -253,7 +253,7 @@ export default function ConfigTab({ onSongsFetched }) {
               variant="body1"
               sx={{ color: "var(--foreground)", textAlign: "left" }}
             >
-              QTY
+              QTY of Songs
             </Typography>
           </Box>
 
@@ -272,7 +272,7 @@ export default function ConfigTab({ onSongsFetched }) {
               variant="body1"
               sx={{ color: "var(--foreground)", textAlign: "right" }}
             >
-              Duration
+              Clip Duration
             </Typography>
           </Box>
         </Box>

@@ -1,19 +1,15 @@
-//-----------------------------------------------------------------------------------------
-//src/app/games/gamehub/page.js
-//-----------------------------------------------------------------------------------------
-
 "use client";
 import React, { useContext } from "react";
-import Image from "next/image"; //
+import Image from "next/image";
 import { Box, Typography, Grid, Paper, Button } from "@mui/material";
 import Link from "next/link";
 import { AuthContext } from "@/contexts/AuthContext";
 import { auth, signInAnonymously, signOut } from "@/utils/firebase";
-import { useTheme } from "@/layout"; // Import the useTheme hook
+import { useTheme } from "@/layout";
 
 export default function GameHubPage() {
   const { user, loadingUser } = useContext(AuthContext);
-  const { theme, toggleTheme } = useTheme(); // Access theme and toggle
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogin = async () => {
     await signInAnonymously(auth);
@@ -26,23 +22,39 @@ export default function GameHubPage() {
   // Define games for the grid
   const games = [
     {
-      name: "Artist Learn",
+      name: "Learn the Orchestra",
       path: "/games/artist-learn",
-      icon: "/IconLearnSongs.webp",
+      icon: "/IconLearnOrch.webp",
+      isActive: true,
     },
-    { name: "Decade Learn", path: "#", icon: "/IconLearnDecade.webp" },
-    { name: "Style Learn", path: "#", icon: "/IconLearnStyles.webp" },
-    { name: "Singer Learn", path: "#", icon: "/IconLearnOrch.webp" },
-    { name: "Artist Quiz", path: "/games/artistquiz", icon: "/IconQuiz.webp" },
-    { name: "Decade Quiz", path: "#", icon: "/IconQuiz.webp" },
-    { name: "Style Quiz", path: "#", icon: "/IconQuiz.webp" },
-    { name: "Singer Quiz", path: "#", icon: "/IconQuiz.webp" },
+    { name: "Decade Learn", path: "#", icon: "/IconLearnDecade.webp", isActive: false },
+    { name: "Style Learn", path: "#", icon: "/IconLearnStyles.webp", isActive: false },
+    { name: "Singer Learn", path: "#", icon: "/IconLearnOrch.webp", isActive: false },
+    { name: "Artist Quiz", path: "/games/artistquiz", icon: "/IconQuiz.webp", isActive: false },
+    { name: "Decade Quiz", path: "#", icon: "/IconQuiz.webp", isActive: false },
+    { name: "Style Quiz", path: "#", icon: "/IconQuiz.webp", isActive: false },
+    { name: "Singer Quiz", path: "#", icon: "/IconQuiz.webp", isActive: false },
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box
+      sx={{
+        p: 3,
+        backgroundColor: "black", // Set a dark background
+        color: "white", // Ensure text is readable on a dark background
+        minHeight: "100vh",
+      }}
+    >
       {/* Header Section */}
-      <Paper sx={{ p: 3, mb: 3, position: "relative" }}>
+      <Paper
+        sx={{
+          p: 3,
+          mb: 3,
+          position: "relative",
+          backgroundColor: "black", // Dark background for header
+          color: "white",
+        }}
+      >
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h4">Game Hub</Typography>
           {!loadingUser &&
@@ -72,51 +84,53 @@ export default function GameHubPage() {
               </Typography>
             ))}
         </Box>
-        {/* Dark Mode Toggle Button */}
-        <Button
-          onClick={toggleTheme}
-          sx={{
-            position: "absolute",
-            top: "1rem",
-            right: "1rem",
-            padding: "0.5rem 1rem",
-            background: "var(--foreground)",
-            color: "var(--background)",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            "&:hover": {
-              opacity: 0.8,
-            },
-          }}
-        >
-          {theme === "light" ? "Dark Mode" : "Light Mode"}
-        </Button>
       </Paper>
-
       {/* Games Grid */}
-      <Paper sx={{ p: 3 }}>
+      <Paper sx={{ p: 3, backgroundColor: "black", color: "White" }}>
         <Grid container spacing={3}>
           {games.map((game, index) => (
             <Grid item xs={6} md={3} key={index}>
               <Link href={game.path}>
                 <Box
                   sx={{
-                    width: "150px", // Set container width
-                    height: "150px", // Set container height
-                    position: "relative",
+                    display: "flex",
+                    flexDirection: "column", // Ensure text is below the icon
+                    alignItems: "center",
+                    cursor: game.isActive ? "pointer" : "default",
+                    opacity: game.isActive ? 1 : 0.5,
+                    transition: "transform 0.2s ease",
+                    "&:hover": {
+                      transform: game.isActive ? "scale(1.1)" : "none",
+                      filter: game.isActive ? "brightness(1.5)" : "none", // Simmer effect
+                    },
                   }}
                 >
-                  <Image
-                    src={game.icon}
-                    alt={game.name}
-                    layout="fill"
-                    objectFit="cover" // Ensure the image covers the container
-                    style={{
-                      borderRadius: "8px",
-                      boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+                  <Box
+                    sx={{
+                      width: "150px", // Set container width
+                      height: "150px", // Set container height
+                      position: "relative",
+                      marginBottom: "10px",
                     }}
-                  />
+                  >
+                    <Image
+                      src={game.icon}
+                      alt={game.name}
+                      layout="fill"
+                      objectFit="cover"
+                      style={{
+                        borderRadius: "8px",
+                        boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+                      }}
+                    />
+                  </Box>
+                  <Typography
+                    variant="body1"
+                    textAlign="center"
+                    sx={{ color: game.isActive ? "white" : "gray" }}
+                  >
+                    {game.name}
+                  </Typography>
                 </Box>
               </Link>
             </Grid>
