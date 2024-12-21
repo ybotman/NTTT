@@ -3,7 +3,6 @@
 //------------------------------------------------------------
 "use client";
 import React, { useState, useContext, useEffect } from "react";
-import PropTypes from "prop-types";
 import { AuthContext } from "@/contexts/AuthContext";
 import {
   Box,
@@ -17,7 +16,7 @@ import {
   Tabs,
   Tab,
 } from "@mui/material";
-import { db, doc, setDoc, getDoc } from "@/utils/firebase";
+import { db, doc, setDoc } from "@/utils/firebase";
 
 // Default global config
 // global: {expertiseLevel: 3}

@@ -319,7 +319,6 @@ export default function ConfigTab({ onSongsFetched }) {
             </FormHelperText>
           )}
         </Box>
-
         <Box>
           <Typography variant="body1" className={styles.optionLabel}>
             Styles:
@@ -345,7 +344,6 @@ export default function ConfigTab({ onSongsFetched }) {
           })}
         </Box>
       </Box>
-
       <Typography variant="body1" sx={{ color: "var(--foreground)", mb: 1 }}>
         Select Artists (Optional):
       </Typography>
@@ -378,7 +376,6 @@ export default function ConfigTab({ onSongsFetched }) {
           mb: 2,
         }}
       />
-
       {(config.levels || []).length > 0 && selectedArtists.length > 0 && (
         <FormHelperText className={styles.errorText}>
           Both artists and levels are selected. Please clear one.

@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --no-cache",
+    "lint": "next lint",
     "format": "prettier --write ."
   },
   "dependencies": {
@@ -24,6 +24,8 @@
     "wavesurfer.js": "^7.8.11"
   },
   "devDependencies": {
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^15.1.2",
     "next": "^15.1.2"
   }
 }

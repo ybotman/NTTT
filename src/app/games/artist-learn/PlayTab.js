@@ -1,7 +1,3 @@
-//--------
-//src/app/games/artist-learn/PlayTab.js
-//--------
-
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
@@ -14,23 +10,28 @@ import {
   ListItemText,
   Stack,
   Button,
+  LinearProgress,
 } from "@mui/material";
 import WaveSurfer from "wavesurfer.js";
-import styles from "../styles.module.css"; // Assuming we have dark mode or styling classes
+import styles from "../styles.module.css";
 
 export default function PlayTab({ songs, config, onCancel }) {
   const wavesurferRef = useRef(null);
   const playTimeoutRef = useRef(null);
   const fadeIntervalRef = useRef(null);
   const listRef = useRef(null);
+  const countdownRef = useRef(null);
 
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState(0);
-  const [ready, setReady] = useState(false);
 
-  const PLAY_DURATION = Math.min(config.timeLimit ?? 15, 15);
+  const [ready, setReady] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+
+  const setDuration = useState(0);
+  const PLAY_DURATION = config.timeLimit ?? 15;
   const FADE_DURATION = 0.75;
+  
 
   const cleanupWaveSurfer = useCallback(() => {
     if (fadeIntervalRef.current) {
@@ -45,8 +46,13 @@ export default function PlayTab({ songs, config, onCancel }) {
       clearTimeout(playTimeoutRef.current);
       playTimeoutRef.current = null;
     }
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
     setReady(false);
     setDuration(0);
+    setTimeLeft(0);
   }, []);
 
   const fadeVolume = useCallback((fromVol, toVol, durationSec, callback) => {
@@ -85,16 +91,34 @@ export default function PlayTab({ songs, config, onCancel }) {
     }
   }, [cleanupWaveSurfer, currentIndex, songs.length]);
 
+  // Start the fade-in & fade-out sequence and the countdown
   const startPlaybackWithFade = useCallback(() => {
     if (!wavesurferRef.current) return;
     wavesurferRef.current.setVolume(0);
+
+    // Initialize countdown from PLAY_DURATION
+    setTimeLeft(PLAY_DURATION);
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+    }
+    // *** Count down every 0.1s instead of 1s
+    countdownRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 0.1) {
+          clearInterval(countdownRef.current);
+          countdownRef.current = null;
+          return 0;
+        }
+        return prev - 0.1;
+      });
+    }, 100);
+
+    // Fade in
     fadeVolume(0, 1, FADE_DURATION, () => {
-      playTimeoutRef.current = setTimeout(
-        () => {
-          fadeVolume(1, 0, FADE_DURATION, handleNextSong);
-        },
-        (PLAY_DURATION - FADE_DURATION) * 1000,
-      );
+      // Then wait the remainder of PLAY_DURATION to fade out
+      playTimeoutRef.current = setTimeout(() => {
+        fadeVolume(1, 0, FADE_DURATION, handleNextSong);
+      }, (PLAY_DURATION - FADE_DURATION) * 1000);
     });
   }, [fadeVolume, FADE_DURATION, PLAY_DURATION, handleNextSong]);
 
@@ -122,12 +146,15 @@ export default function PlayTab({ songs, config, onCancel }) {
       setReady(true);
       const dur = ws.getDuration();
       setDuration(dur);
+      console.log(`Song duration (seconds): ${dur}`);
 
+      // Seek to a random start point (up to 75% in)
       const maxStart = dur * 0.75;
       const randomStart = Math.random() * maxStart;
       ws.seekTo(randomStart / dur);
 
-      ws.play()
+      ws
+        .play()
         .then(() => {
           startPlaybackWithFade();
         })
@@ -153,11 +180,11 @@ export default function PlayTab({ songs, config, onCancel }) {
   ]);
 
   const playSongAtIndex = useCallback((idx) => {
-    // Stop current playback, start new from clicked song
     setCurrentIndex(idx);
     setIsPlaying(true);
   }, []);
 
+  // Load song on change
   useEffect(() => {
     if (isPlaying && currentIndex >= 0 && currentIndex < songs.length) {
       loadCurrentSong();
@@ -173,6 +200,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     cleanupWaveSurfer,
   ]);
 
+  // Automatically start if songs are available and none playing
   useEffect(() => {
     if (songs.length > 0 && !isPlaying && currentIndex === -1) {
       setCurrentIndex(0);
@@ -180,13 +208,15 @@ export default function PlayTab({ songs, config, onCancel }) {
     }
   }, [songs, isPlaying, currentIndex]);
 
+  // Auto-scroll to current item
   useEffect(() => {
     if (listRef.current && currentIndex >= 0) {
       const listItem = listRef.current.querySelector(
-        `[data-idx="${currentIndex}"]`,
+        `[data-idx="${currentIndex}"]`
       );
-      if (listItem)
+      if (listItem) {
         listItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
     }
   }, [currentIndex]);
 
@@ -206,6 +236,10 @@ export default function PlayTab({ songs, config, onCancel }) {
     return metaParts.length > 0 ? metaParts.join(" | ") : "";
   };
 
+  // Calculate progress for LinearProgress (0 -> 100)
+  const progressValue =
+    timeLeft > 0 ? (timeLeft / PLAY_DURATION) * 100 : 0;
+
   return (
     <Box
       className={styles.container}
@@ -215,6 +249,20 @@ export default function PlayTab({ songs, config, onCancel }) {
         color: "var(--foreground)",
       }}
     >
+      {/* Display time countdown */}
+      {isPlaying && (
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body1" sx={{ mb: 1 }}>
+            Time Remaining: {timeLeft.toFixed(1)}s
+          </Typography>
+          <LinearProgress
+            variant="determinate"
+            value={progressValue}
+            sx={{ height: "8px", borderRadius: "4px" }}
+          />
+        </Box>
+      )}
+
       <Typography
         variant="h5"
         className={styles.h5}
@@ -231,7 +279,6 @@ export default function PlayTab({ songs, config, onCancel }) {
             ref={listRef}
             className={styles.listContainer}
             sx={{
-              // Use as much vertical space as possible (minus header & buttons)
               maxHeight: "calc(100vh - 200px)",
               overflowY: "auto",
               border: "1px solid var(--border-color)",
@@ -241,11 +288,12 @@ export default function PlayTab({ songs, config, onCancel }) {
           >
             <List>
               {songs.map((song, idx) => {
-                const title = song.Title || song.SongTitle || "Unknown Title";
-                const artist = song.ArtistMaster || "Unknown Artist";
+                const title =
+                  song.Title || song.SongTitle || "Unknown Title";
+                const artist =
+                  song.ArtistMaster || "Unknown Artist";
                 const meta = renderMetadata(song);
                 const isCurrent = idx === currentIndex;
-
                 return (
                   <ListItem
                     key={song.SongID || idx}
@@ -276,7 +324,10 @@ export default function PlayTab({ songs, config, onCancel }) {
                             <Typography
                               component="div"
                               variant="caption"
-                              sx={{ color: "var(--foreground)", opacity: 0.8 }}
+                              sx={{
+                                color: "var(--foreground)",
+                                opacity: 0.8,
+                              }}
                             >
                               {meta}
                             </Typography>
@@ -311,7 +362,6 @@ export default function PlayTab({ songs, config, onCancel }) {
                 Next
               </Button>
             )}
-            {/* Stop button removed */}
             <Button
               variant="outlined"
               className={`${styles.button} ${styles.outlined}`}
