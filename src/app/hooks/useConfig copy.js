@@ -1,14 +1,11 @@
+//--------------------
+//src/app/games/artist-learn/useConfig.js
 //---------------------
-// useConfig.js (Hook)
-//---------------------
-"use client";
-import { useState, useEffect, useRef } from "react";
-import PropTypes from "prop-types";
 
-export default function useConfig(gameName) {
-  // Remove or limit console logging to prevent spam:
-  // console.log("hooks/useConfig", gameName);
+import { useState, useEffect } from "react";
 
+export default function usxeConfig(gameName) {
+  console.log("hooks/useConfig", gameName);
   const defaultConfig = {
     numSongs: 10,
     timeLimit: 15,
@@ -19,16 +16,13 @@ export default function useConfig(gameName) {
   const [config, setConfig] = useState(defaultConfig);
   const [isDisabled, setIsDisabled] = useState(false);
 
-  const didLoadRef = useRef(false);
-
   useEffect(() => {
-    if (typeof window !== "undefined" && !didLoadRef.current) {
-      didLoadRef.current = true;
+    if (typeof window !== "undefined") {
       const savedConfig = localStorage.getItem(`${gameName}_config`);
       if (savedConfig) {
         try {
           const parsed = JSON.parse(savedConfig) || {};
-          // Merge styles to ensure no keys disappear
+          // Deep merge styles to ensure no keys disappear
           const mergedStyles = {
             ...defaultConfig.styles,
             ...(parsed.styles || {}),
@@ -47,25 +41,15 @@ export default function useConfig(gameName) {
         setConfig(defaultConfig);
       }
     }
-  }, [gameName, defaultConfig]);
+  }, [gameName]);
 
   const updateConfig = (key, value) => {
-    // Consolidate updates in one function
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
 
-  // Optionally save config on unmount or on demand:
-  useEffect(() => {
-    return () => {
-      if (typeof window !== "undefined") {
-        localStorage.setItem(`${gameName}_config`, JSON.stringify(config));
-      }
-    };
-  }, [config, gameName]);
+  const saveConfig = () => {
+    localStorage.setItem(`${gameName}_config`, JSON.stringify(config));
+  };
 
-  return { config, updateConfig, isDisabled };
+  return { config, updateConfig, saveConfig, isDisabled };
 }
-
-useConfig.propTypes = {
-  gameName: PropTypes.string,
-};

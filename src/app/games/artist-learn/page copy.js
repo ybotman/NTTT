@@ -11,7 +11,6 @@ import styles from "../styles.module.css";
 import ConfigTab from "./ConfigTab";
 import PlayTab from "./PlayTab";
 import useConfig from "./useConfig";
-import { useRouter } from "next/navigation"; // Import useRouter for navigation
 
 export default function ArtistLearnPage() {
   const [songs, setSongs] = useState([]);
@@ -19,7 +18,6 @@ export default function ArtistLearnPage() {
   const [showPlayTab, setShowPlayTab] = useState(false);
 
   const { theme, toggleTheme } = useTheme(); // Get current theme and toggle
-  const router = useRouter(); // Initialize router
 
   const handleSongsFetched = (fetchedSongs) => {
     setSongs(fetchedSongs);
@@ -36,11 +34,6 @@ export default function ArtistLearnPage() {
 
   const handleClosePlayTab = () => {
     setShowPlayTab(false);
-  };
-
-  // New handler for Game Hub navigation
-  const handleGameHubClick = () => {
-    router.push("/games/gamehub");
   };
 
   return (
@@ -92,53 +85,6 @@ export default function ArtistLearnPage() {
         >
           {theme === "light" ? "Dark Mode" : "Light Mode"}
         </Button>
-      </Box>
-
-      {/* Game Hub Button */}
-      <Box sx={{ position: "absolute", top: "1rem", left: "1rem" }}>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            mb: 2,
-            cursor: "pointer",
-            transition: "transform 0.2s",
-            "&:hover": {
-              transform: "scale(1.05)",
-            },
-          }}
-          onClick={handleGameHubClick} // Attach click handler
-        >
-          <Image
-            src="/icons/IconGameHub.jpg" // Updated icon path
-            alt="Game Hub"
-            width={100} // Exact width
-            height={100} // Exact height
-            style={{
-              borderRadius: "50%",
-              objectFit: "cover",
-              boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
-            }}
-          />
-
-          <Typography
-            variant="h6"
-            sx={{
-              mt: 1,
-              fontWeight: "bold",
-              color: "var(--accent)",
-              animation: "shimmer 2s infinite",
-              "@keyframes shimmer": {
-                "0%": { opacity: 1 },
-                "50%": { opacity: 0.5 },
-                "100%": { opacity: 1 },
-              },
-            }}
-          >
-            Game Hub
-          </Typography>
-        </Box>
       </Box>
 
       {/* Header Section with Play Button and Title */}
@@ -206,7 +152,7 @@ export default function ArtistLearnPage() {
             color: "var(--foreground)",
           }}
         >
-         Mastering Orchestras and Miestros
+          Artist Learn Game
         </Typography>
       </Box>
 
