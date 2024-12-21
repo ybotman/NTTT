@@ -14,6 +14,8 @@ import {
   ListItemText,
   Stack,
   Button,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import WaveSurfer from "wavesurfer.js";
 import styles from "./styles.module.css";
@@ -23,6 +25,7 @@ import { shuffleArray, getDistractors } from "@/utils/dataFetching";
 // Constants
 const INTERVAL_MS = 100; // 0.1 second interval
 const MAX_PLAY_DURATION = 10; // 10 seconds snippet
+const WRONG_PENALTY = 0.05; // 5% penalty per wrong guess
 
 export default function PlayTab({ songs, config, onCancel }) {
   const wavesurferRef = useRef(null);
@@ -33,16 +36,17 @@ export default function PlayTab({ songs, config, onCancel }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentSong, setCurrentSong] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [metadataLoaded, setMetadataLoaded] = useState(false);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [score, setScore] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [wrongAnswers, setWrongAnswers] = useState([]); // Track which answers are guessed wrong
   const [roundOver, setRoundOver] = useState(false);
   const [sessionScore, setSessionScore] = useState(0);
   const [randomStart, setRandomStart] = useState(0);
-  
-  const [ready, setReady] = useState(false); // Indicates WaveSurfer is ready
+
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const timeLimit = config.timeLimit ?? 15;
   const numSongs = config.numSongs ?? 10;
@@ -50,50 +54,25 @@ export default function PlayTab({ songs, config, onCancel }) {
   const maxScore = calculateMaxScore(timeLimit);
   const decrementPerInterval = calculateDecrementPerInterval(maxScore, timeLimit);
 
-  const fadeVolume = useCallback((fromVol, toVol, durationSec, callback) => {
-    if (!wavesurferRef.current) return;
-    const steps = 15;
-    const stepTime = (durationSec * 1000) / steps;
-    let currentStep = 0;
-    const volumeStep = (toVol - fromVol) / steps;
-    let currentVol = fromVol;
-
-    if (fadeIntervalRef.current) {
-      clearInterval(fadeIntervalRef.current);
-    }
-
-    fadeIntervalRef.current = setInterval(() => {
-      currentStep++;
-      currentVol += volumeStep;
-      if (wavesurferRef.current) {
-        wavesurferRef.current.setVolume(Math.min(Math.max(currentVol, 0), 1));
-      }
-
-      if (currentStep >= steps) {
-        clearInterval(fadeIntervalRef.current);
-        fadeIntervalRef.current = null;
-        if (callback) callback();
-      }
-    }, stepTime);
-  }, []);
-
+  // Initialize the round
   const loadRound = useCallback(() => {
     if (currentIndex >= songs.length || currentIndex < 0) {
-      // No more songs
+      // No more songs, session might end
       return;
     }
     const song = songs[currentIndex];
     setCurrentSong(song);
-    setMetadataLoaded(false);
     setTimeElapsed(0);
     setSelectedAnswer(null);
+    setWrongAnswers([]);
     setRoundOver(false);
     setIsPlaying(false);
-    setReady(false);
 
+    // Random snippet start
     const startT = Math.floor(Math.random() * 90);
     setRandomStart(startT);
 
+    // Reset score for new round
     setScore(maxScore);
   }, [songs, currentIndex, maxScore]);
 
@@ -102,26 +81,6 @@ export default function PlayTab({ songs, config, onCancel }) {
       loadRound();
     }
   }, [songs, loadRound]);
-
-  const startScoringIntervals = useCallback(() => {
-    decrementIntervalRef.current = setInterval(() => {
-      setScore((prev) => {
-        const next = prev - decrementPerInterval;
-        return next <= 0 ? 0 : next;
-      });
-    }, INTERVAL_MS);
-
-    timeIntervalRef.current = setInterval(() => {
-      setTimeElapsed((prev) => {
-        const next = prev + 0.1;
-        if (next >= MAX_PLAY_DURATION) {
-          stopAudio();
-          endRoundDueToTime();
-        }
-        return next;
-      });
-    }, INTERVAL_MS);
-  }, [decrementPerInterval]);
 
   const clearIntervals = useCallback(() => {
     if (decrementIntervalRef.current) {
@@ -142,30 +101,82 @@ export default function PlayTab({ songs, config, onCancel }) {
     clearIntervals();
   }, [clearIntervals]);
 
-  const endRoundDueToTime = () => {
+  const endRoundDueToTime = useCallback(() => {
+    // Time ended
     setRoundOver(true);
     setSessionScore((prev) => prev + Math.max(score, 0));
-  };
+    setSnackbarMessage(`Time's up! Correct artist: ${currentSong?.ArtistMaster || "Unknown"}`);
+    setOpenSnackbar(true);
+  }, [currentSong, score]);
+
+  // Start intervals for scoring/time
+  const beginScoring = useCallback(() => {
+    decrementIntervalRef.current = setInterval(() => {
+      setScore((prev) => {
+        const next = prev - decrementPerInterval;
+        return next <= 0 ? 0 : next;
+      });
+    }, INTERVAL_MS);
+
+    timeIntervalRef.current = setInterval(() => {
+      setTimeElapsed((prev) => {
+        const next = prev + 0.1;
+        if (next >= MAX_PLAY_DURATION) {
+          stopAudio();
+          endRoundDueToTime();
+        }
+        return next;
+      });
+    }, INTERVAL_MS);
+  }, [decrementPerInterval, endRoundDueToTime, stopAudio]);
+
+  // Audio initialization
+  const fadeInVolume = useCallback((ws, durationSec, callback) => {
+    const steps = 15;
+    const stepTime = (durationSec * 1000) / steps;
+    let currentStep = 0;
+    const volumeStep = 1.0 / steps;
+    let currentVol = 0;
+
+    if (fadeIntervalRef.current) {
+      clearInterval(fadeIntervalRef.current);
+    }
+
+    fadeIntervalRef.current = setInterval(() => {
+      currentStep++;
+      currentVol += volumeStep;
+      ws.setVolume(Math.min(currentVol, 1));
+      if (currentStep >= steps) {
+        clearInterval(fadeIntervalRef.current);
+        fadeIntervalRef.current = null;
+        if (callback) callback();
+      }
+    }, stepTime);
+  }, []);
 
   const handleAnswerSelect = (answer) => {
-    if (roundOver || selectedAnswer !== null) return;
+    if (roundOver) return; // Round ended
+    if (selectedAnswer === answer) return; // Already chosen
     setSelectedAnswer(answer);
 
-    const correctArtist = currentSong.ArtistMaster.trim().toLowerCase();
-    const userAnswer = answer.trim().toLowerCase();
-    if (userAnswer === correctArtist) {
-      // Correct
+    const correct = currentSong.ArtistMaster.trim().toLowerCase() === answer.trim().toLowerCase();
+    if (correct) {
+      // Correct guess
       stopAudio();
       setRoundOver(true);
       setSessionScore((prev) => prev + Math.max(score, 0));
+      setSnackbarMessage(`Correct! Artist: ${currentSong.ArtistMaster}`);
+      setOpenSnackbar(true);
     } else {
-      // Wrong, reduce score by 5%
+      // Wrong guess
+      setWrongAnswers((prev) => [...prev, answer]); 
       setScore((prev) => {
-        const newScore = Math.max(prev - prev * 0.05, 0);
+        const newScore = Math.max(prev - prev * WRONG_PENALTY, 0);
         if (newScore <= 0) {
           stopAudio();
           setRoundOver(true);
-          setSessionScore((p) => p);
+          setSnackbarMessage(`Score is 0. Correct was: ${currentSong.ArtistMaster}`);
+          setOpenSnackbar(true);
         }
         return newScore;
       });
@@ -184,14 +195,17 @@ export default function PlayTab({ songs, config, onCancel }) {
   const handleNextSong = () => {
     const nextIndex = currentIndex + 1;
     if (nextIndex >= numSongs || nextIndex >= songs.length) {
-      console.log("Session Over. Total Score:", sessionScore);
+      // session ends
+      console.log("Session Over. Total Score:", sessionScore + Math.max(score, 0));
       onCancel();
       return;
     }
     setCurrentIndex(nextIndex);
+    setOpenSnackbar(false);
     loadRound();
   };
 
+  // Setup WaveSurfer
   useEffect(() => {
     if (!currentSong) return;
 
@@ -202,29 +216,26 @@ export default function PlayTab({ songs, config, onCancel }) {
       barWidth: 0,
       height: 0,
       backend: "WebAudio",
+      volume: 0,
     });
 
     ws.on("ready", () => {
-      setReady(true);
       const dur = ws.getDuration();
       const maxStart = dur * 0.75;
       const startPos = Math.min(randomStart, maxStart);
       ws.seekTo(startPos / dur);
 
-      // Set volume to 0 initially
-      ws.setVolume(0.0);
-
-      ws.play().then(() => {
-        // After starting play, fade in volume and start scoring/timing
-        fadeVolume(0, 1, 0.75, () => {
-          // Once faded in, start intervals
-          setIsPlaying(true);
-          startScoringIntervals();
+      ws.play()
+        .then(() => {
+          fadeInVolume(ws, 0.75, () => {
+            setIsPlaying(true);
+            beginScoring();
+          });
+        })
+        .catch((err) => {
+          console.error("Error playing audio:", err);
+          handleNextSong();
         });
-      }).catch((err) => {
-        console.error("Error playing audio:", err);
-        handleNextSong();
-      });
     });
 
     ws.on("error", (err) => {
@@ -241,15 +252,11 @@ export default function PlayTab({ songs, config, onCancel }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSong]);
 
+  // Build distractors for each new song
   useEffect(() => {
     if (!currentSong) return;
-    const allArtists = songs
-      .map((s) => s.ArtistMaster)
-      .filter((a) => a && a.trim() !== "");
-
-    const uniqueArtists = Array.from(new Set(allArtists))
-      .map((artistName) => ({ artist: artistName }));
-
+    const allArtists = songs.map((s) => s.ArtistMaster).filter((a) => a && a.trim() !== "");
+    const uniqueArtists = Array.from(new Set(allArtists)).map((artistName) => ({ artist: artistName }));
     const correctArtist = currentSong.ArtistMaster;
     const distractors = getDistractors(correctArtist, uniqueArtists);
     const finalAnswers = shuffleArray([correctArtist, ...distractors]);
@@ -266,59 +273,49 @@ export default function PlayTab({ songs, config, onCancel }) {
         p: 2,
       }}
     >
-      <Typography
-        variant="h5"
-        className={styles.h5}
-        sx={{ marginBottom: "1rem", textAlign:"center", fontWeight:"bold" }}
-      >
+      <Typography variant="h5" sx={{ marginBottom: "1rem", textAlign:"center", fontWeight:"bold" }}>
         Identify the Artist
       </Typography>
 
-      {songs.length === 0 || !currentSong ? (
+      {(!currentSong || songs.length === 0) ? (
         <Typography>No songs. Adjust configuration and try again.</Typography>
       ) : (
         <>
-          <Typography variant="h6" sx={{mb:2, textAlign:'center'}}>
-            Time: {timeElapsed.toFixed(1)}s of {timeLimit}s | Score: {Math.floor(score)} / {Math.floor(maxScore)}
+          <Typography variant="h6" sx={{ mb: 2, textAlign:'center' }}>
+            Time: {timeElapsed.toFixed(1)}s of {timeLimit}s | Score: {Math.floor(score)}/{Math.floor(maxScore)}
           </Typography>
 
-          <Typography variant="body1" sx={{ mb:2, textAlign:"center"}}>
-            Choose the correct artist:
+          <Typography variant="body1" sx={{ mb:2, textAlign:"center" }}>
+            Pick the correct artist:
           </Typography>
 
-          <List sx={{
-            mb:2,
-            maxWidth:"400px",
-            margin:"auto"
-          }}>
+          <List sx={{ mb:2, maxWidth:"400px", margin:"auto" }}>
             {answers.map((ans) => {
               const correct = currentSong.ArtistMaster.trim().toLowerCase() === ans.trim().toLowerCase();
               const chosen = selectedAnswer === ans;
+              const isWrong = wrongAnswers.includes(ans);
+
+              // Button styling logic
+              let borderStyle = "1px solid var(--border-color)";
+              if (roundOver && chosen && correct) borderStyle = "2px solid green";
+              else if (chosen && correct) borderStyle = "2px solid green";
+              else if (isWrong) borderStyle = "2px solid red";
+
               return (
                 <ListItem
                   key={ans}
                   button="true"
                   onClick={() => handleAnswerSelect(ans)}
+                  disabled={roundOver || isWrong || (chosen && correct)}
                   sx={{
                     mb:1,
-                    border: chosen
-                      ? correct
-                        ? "2px solid green"
-                        : "2px solid red"
-                      : "1px solid var(--border-color)",
+                    border: borderStyle,
                     borderRadius:"4px",
-                    '&:hover': {
-                      background:"var(--input-bg)"
-                    }
+                    "&:hover": { background:"var(--input-bg)" },
                   }}
-                  disabled={roundOver}
                 >
                   <ListItemText
-                    primary={
-                      <Typography sx={{ color:"var(--foreground)" }}>
-                        {ans}
-                      </Typography>
-                    }
+                    primary={<Typography sx={{ color:"var(--foreground)" }}>{ans}</Typography>}
                   />
                 </ListItem>
               );
@@ -326,9 +323,11 @@ export default function PlayTab({ songs, config, onCancel }) {
           </List>
 
           {roundOver && (
-            <Box sx={{mt:3, textAlign:"center"}}>
+            <Box sx={{ mt:3, textAlign:"center" }}>
               <Typography variant="h5" gutterBottom>
-                {score <= 0 ? "No Score This Round" : `${getPerformanceMessage()} Score: ${Math.floor(score)}`}
+                {score <= 0 
+                  ? `No Score This Round. Correct: ${currentSong.ArtistMaster}`
+                  : `${getPerformanceMessage()} Score: ${Math.floor(score)}`}
               </Typography>
               <Typography variant="body1" gutterBottom>
                 Session Total: {Math.floor(sessionScore)}
@@ -337,7 +336,7 @@ export default function PlayTab({ songs, config, onCancel }) {
                 variant="contained"
                 color="secondary"
                 onClick={handleNextSong}
-                sx={{mr:2}}
+                sx={{ mr:2 }}
               >
                 Next
               </Button>
@@ -359,6 +358,22 @@ export default function PlayTab({ songs, config, onCancel }) {
           )}
         </>
       )}
+
+      {/* Snackbar for correct answer or time-out message */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={4000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity="info"
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
