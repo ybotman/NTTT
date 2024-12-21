@@ -133,20 +133,19 @@ export default function GameHubPage() {
                       marginBottom: "10px",
                     }}
                   >
-<Image
-  src="/IconLearnStyles.webp"
-  alt="Styles Icon"
-  fill
-  sizes="(max-width: 600px) 100vw,
+                    <Image
+                      src="/IconLearnStyles.webp"
+                      alt="Styles Icon"
+                      fill
+                      sizes="(max-width: 600px) 100vw,
          (max-width: 1200px) 50vw,
          33vw"
-  style={{
-    objectFit: "cover",
-    borderRadius: "8px",
-    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
-  }}
-/>
-
+                      style={{
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                        boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+                      }}
+                    />
                   </Box>
                   <Typography
                     variant="body1"
