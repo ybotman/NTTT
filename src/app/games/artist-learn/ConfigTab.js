@@ -3,7 +3,8 @@
 //--------
 
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   Box,
   FormControlLabel,
@@ -29,7 +30,11 @@ export default function ConfigTab({ onSongsFetched }) {
 
   const isMountedRef = useRef(false);
 
-  const validateInputs = () => {
+  /**
+   * Use useCallback so validateInputs won't get a new reference
+   * every render, preventing the effect from re-triggering unnecessarily.
+   */
+  const validateInputs = useCallback(() => {
     const numSongs = config.numSongs ?? 10;
     if (numSongs < 3 || numSongs > 15) {
       return "Number of Songs must be between 3 and 15.";
@@ -40,9 +45,7 @@ export default function ConfigTab({ onSongsFetched }) {
       return "Time Limit must be between 3 and 15 seconds.";
     }
 
-    const stylesSelected = Object.keys(config.styles || {}).filter(
-      (k) => config.styles[k],
-    );
+    const stylesSelected = Object.keys(config.styles || {}).filter((k) => config.styles[k]);
     if (stylesSelected.length === 0) {
       return "At least one style must be selected.";
     }
@@ -58,17 +61,17 @@ export default function ConfigTab({ onSongsFetched }) {
     }
 
     return "";
-  };
+  }, [config.numSongs, config.timeLimit, config.levels, config.styles, selectedArtists]);
 
   useEffect(() => {
     isMountedRef.current = true;
     (async () => {
       try {
-        const styleData = await fetch("/songData/StyleMaster.json").then(
-          (res) => res.json(),
-        );
+        // Fetch style data once on mount
+        const styleData = await fetch("/songData/StyleMaster.json").then((res) => res.json());
         if (isMountedRef.current) {
           setPrimaryStyles(styleData.primaryStyles || []);
+          // Only set default style if needed
           if (!config.styles || Object.keys(config.styles).length === 0) {
             updateConfig("styles", { Tango: true });
             setConfigChanged(true);
@@ -81,9 +84,8 @@ export default function ConfigTab({ onSongsFetched }) {
 
     (async () => {
       try {
-        const artistData = await fetch("/songData/ArtistMaster.json").then(
-          (res) => res.json(),
-        );
+        // Fetch artist data once on mount
+        const artistData = await fetch("/songData/ArtistMaster.json").then((res) => res.json());
         const activeArtists = artistData
           .filter((artist) => artist.active === "true")
           .sort((a, b) => {
@@ -96,12 +98,13 @@ export default function ConfigTab({ onSongsFetched }) {
             label: `${artist.artist} (Level ${artist.level})`,
             value: artist.artist,
           }));
-        if (isMountedRef.current) setArtistOptions(activeArtists);
-
-        // After loading initial data, validate once
-        const initialValidation = validateInputs();
-        if (initialValidation) {
-          setValidationMessage(initialValidation);
+        if (isMountedRef.current) {
+          setArtistOptions(activeArtists);
+          // Validate once after data loaded
+          const initialValidation = validateInputs();
+          if (initialValidation) {
+            setValidationMessage(initialValidation);
+          }
         }
       } catch (error) {
         console.error("Error fetching ArtistMaster.json:", error);
@@ -111,7 +114,8 @@ export default function ConfigTab({ onSongsFetched }) {
     return () => {
       isMountedRef.current = false;
     };
-  }, [config.styles, updateConfig, validateInputs]);
+    // Remove config.styles from dependencies if not needed
+  }, [validateInputs, updateConfig]);
 
   const markConfigChanged = () => {
     setConfigChanged(true);
@@ -119,9 +123,7 @@ export default function ConfigTab({ onSongsFetched }) {
 
   const handleLevelChange = (level, checked) => {
     if (selectedArtists.length > 0) {
-      setValidationMessage(
-        "Levels not available when artists are selected. Clear artists first.",
-      );
+      setValidationMessage("Levels not available when artists are selected. Clear artists first.");
       return;
     }
 
@@ -162,6 +164,7 @@ export default function ConfigTab({ onSongsFetched }) {
     markConfigChanged();
   };
 
+  // Only fetch songs if config changed and validated
   useEffect(() => {
     if (!configChanged) return;
     let mounted = true;
@@ -178,9 +181,7 @@ export default function ConfigTab({ onSongsFetched }) {
     const fetchSongsData = async () => {
       const numSongs = config.numSongs ?? 10;
       const artistLevels = config.levels || [];
-      const activeStyles = Object.keys(config.styles || {}).filter(
-        (key) => config.styles[key],
-      );
+      const activeStyles = Object.keys(config.styles || {}).filter((key) => config.styles[key]);
 
       try {
         const { songs } = await fetchFilteredSongs(
@@ -191,7 +192,7 @@ export default function ConfigTab({ onSongsFetched }) {
           "N",
           "N",
           "N",
-          numSongs,
+          numSongs
         );
         if (mounted && onSongsFetched) {
           onSongsFetched(songs);
@@ -211,7 +212,7 @@ export default function ConfigTab({ onSongsFetched }) {
     return () => {
       mounted = false;
     };
-  }, [configChanged, config, selectedArtists, onSongsFetched]);
+  }, [configChanged, validateInputs, config, selectedArtists, onSongsFetched]);
 
   const levelsDisabled = selectedArtists.length > 0;
 
@@ -222,62 +223,45 @@ export default function ConfigTab({ onSongsFetched }) {
           {validationMessage}
         </FormHelperText>
       )}
-      <Typography variant="h6" className={styles.title}>
+      <Typography variant="h6" className={styles.title} sx={{ mb: 2 }}>
         Configuration:
       </Typography>
-      <Box
-        className={styles.fieldsContainer}
-        sx={{ display: "flex", alignItems: "center", gap: 4, width: "100%" }}
-      >
-        <Box
-          className={styles.fieldsContainer}
-          sx={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 4,
-            width: "100%",
-          }}
-        >
-          <Box sx={{ flex: 1 }}>
-            <Slider
-              value={config.numSongs ?? 10}
-              onChange={handleNumSongsChange}
-              step={1}
-              min={3}
-              max={15}
-              disabled={isDisabled}
-              valueLabelDisplay="on"
-              sx={{ color: "var(--foreground)" }}
-            />
-            <Typography
-              variant="body1"
-              sx={{ color: "var(--foreground)", textAlign: "left" }}
-            >
-              QTY of Songs
-            </Typography>
-          </Box>
 
-          <Box sx={{ flex: 1 }}>
-            <Slider
-              value={config.timeLimit ?? 15}
-              onChange={handleTimeLimitChange}
-              step={1}
-              min={3}
-              max={15}
-              disabled={isDisabled}
-              valueLabelDisplay="on"
-              sx={{ color: "var(--foreground)" }}
-            />
-            <Typography
-              variant="body1"
-              sx={{ color: "var(--foreground)", textAlign: "right" }}
-            >
-              Clip Duration
-            </Typography>
-          </Box>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 4, width: "100%", mb: 3 }}>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="body1" sx={{ color: "var(--foreground)", mb:1 }}>
+            Number of Songs
+          </Typography>
+          <Slider
+            value={config.numSongs ?? 10}
+            onChange={handleNumSongsChange}
+            step={1}
+            min={3}
+            max={15}
+            disabled={isDisabled}
+            valueLabelDisplay="auto"
+            sx={{ color: "var(--foreground)" }}
+          />
+        </Box>
+
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="body1" sx={{ color: "var(--foreground)", mb:1, textAlign:"right" }}>
+            Time Limit (Seconds)
+          </Typography>
+          <Slider
+            value={config.timeLimit ?? 15}
+            onChange={handleTimeLimitChange}
+            step={1}
+            min={3}
+            max={15}
+            disabled={isDisabled}
+            valueLabelDisplay="auto"
+            sx={{ color: "var(--foreground)" }}
+          />
         </Box>
       </Box>
-      <Box className={styles.optionsContainer}>
+
+      <Box className={styles.optionsContainer} sx={{ display: "flex", gap: 4, mb: 3 }}>
         <Box>
           <Typography variant="body1" className={styles.optionLabel}>
             Levels:
@@ -302,6 +286,7 @@ export default function ConfigTab({ onSongsFetched }) {
             </FormHelperText>
           )}
         </Box>
+
         <Box>
           <Typography variant="body1" className={styles.optionLabel}>
             Styles:
@@ -314,9 +299,7 @@ export default function ConfigTab({ onSongsFetched }) {
                 control={
                   <Checkbox
                     checked={config.styles?.[styleName] ?? false}
-                    onChange={(e) =>
-                      handleStyleChange(styleName, e.target.checked)
-                    }
+                    onChange={(e) => handleStyleChange(styleName, e.target.checked)}
                     disabled={isDisabled}
                     className={styles.checkbox}
                   />
@@ -327,6 +310,10 @@ export default function ConfigTab({ onSongsFetched }) {
           })}
         </Box>
       </Box>
+
+      <Typography variant="body1" sx={{ color: "var(--foreground)", mb:1 }}>
+        Select Artists (Optional):
+      </Typography>
       <Autocomplete
         multiple
         options={artistOptions}
@@ -334,28 +321,26 @@ export default function ConfigTab({ onSongsFetched }) {
         onChange={handleArtistsChange}
         isOptionEqualToValue={(option, value) => option.value === value.value}
         renderInput={(params) => (
-          <Box>
-            <Typography variant="body1" sx={{ color: "var(--foreground)" }}>
-              Select Artists:
-            </Typography>
-            <TextField
-              {...params}
-              margin="dense"
-              disabled={isDisabled || (config.levels || []).length > 0}
-              sx={{
-                backgroundColor: "var(--input-bg)",
-                color: "var(--input-text)",
-                "& .MuiFormLabel-root": { color: "var(--foreground)" },
-                "& .MuiInputBase-root": { color: "var(--input-text)" },
-              }}
-            />
-          </Box>
+          <TextField
+            {...params}
+            label="Select Artists"
+            placeholder="Artists"
+            margin="dense"
+            disabled={isDisabled || (config.levels || []).length > 0}
+            sx={{
+              backgroundColor: "var(--input-bg)",
+              color: "var(--input-text)",
+              "& .MuiFormLabel-root": { color: "var(--foreground)" },
+              "& .MuiInputBase-root": { color: "var(--input-text)" },
+            }}
+          />
         )}
         sx={{
           "& .MuiAutocomplete-listbox": {
             backgroundColor: "var(--dropdown-bg)",
             color: "var(--input-text)",
           },
+          mb: 2,
         }}
       />
 

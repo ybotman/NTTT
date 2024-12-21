@@ -49,7 +49,9 @@ export default function ConfigTab({ onSongsFetched }) {
     }
 
     // 1 style needed
-    const stylesSelected = Object.keys(config.styles || {}).filter((k) => config.styles[k]);
+    const stylesSelected = Object.keys(config.styles || {}).filter(
+      (k) => config.styles[k],
+    );
     if (stylesSelected.length === 0) {
       return "At least one style must be selected.";
     }
@@ -63,7 +65,7 @@ export default function ConfigTab({ onSongsFetched }) {
     }
 
     // If they have BOTH (≥ 1 level) AND (≥ 3 artists),
-    // we can either forbid that or allow it. 
+    // we can either forbid that or allow it.
     // If you want to disallow both at once, uncomment next lines:
     /*
     if (levelsCount > 0 && artistsCount >= 3) {
@@ -79,7 +81,9 @@ export default function ConfigTab({ onSongsFetched }) {
     // Fetch style data
     (async () => {
       try {
-        const styleData = await fetch("/songData/StyleMaster.json").then((res) => res.json());
+        const styleData = await fetch("/songData/StyleMaster.json").then(
+          (res) => res.json(),
+        );
         if (isMountedRef.current) {
           setPrimaryStyles(styleData.primaryStyles || []);
           if (!config.styles || Object.keys(config.styles).length === 0) {
@@ -95,7 +99,9 @@ export default function ConfigTab({ onSongsFetched }) {
     // Fetch artist data
     (async () => {
       try {
-        const artistData = await fetch("/songData/ArtistMaster.json").then((res) => res.json());
+        const artistData = await fetch("/songData/ArtistMaster.json").then(
+          (res) => res.json(),
+        );
         const activeArtists = artistData
           .filter((artist) => artist.active === "true")
           .sort((a, b) => {
@@ -132,11 +138,13 @@ export default function ConfigTab({ onSongsFetched }) {
   };
 
   const handleLevelChange = (level, checked) => {
-    // If we want to disallow mixing levels with any artists, 
+    // If we want to disallow mixing levels with any artists,
     // (not required by new rule, but previously it was)
     // keep or remove next lines:
     if (selectedArtists.length > 0) {
-      setValidationMessage("Levels not available when artists are selected. Clear artists first.");
+      setValidationMessage(
+        "Levels not available when artists are selected. Clear artists first.",
+      );
       return;
     }
 
@@ -169,7 +177,7 @@ export default function ConfigTab({ onSongsFetched }) {
   };
 
   const handleArtistsChange = (event, values) => {
-    // If we want to disallow mixing levels with any artists, 
+    // If we want to disallow mixing levels with any artists,
     // keep next lines, else remove them:
     if (values.length > 0 && (config.levels || []).length > 0) {
       updateConfig("levels", []);
@@ -195,7 +203,9 @@ export default function ConfigTab({ onSongsFetched }) {
     const fetchSongsData = async () => {
       const numSongs = config.numSongs ?? 10;
       const artistLevels = config.levels || [];
-      const activeStyles = Object.keys(config.styles || {}).filter((key) => config.styles[key]);
+      const activeStyles = Object.keys(config.styles || {}).filter(
+        (key) => config.styles[key],
+      );
 
       try {
         const { songs } = await fetchFilteredSongs(
@@ -206,7 +216,7 @@ export default function ConfigTab({ onSongsFetched }) {
           "N",
           "N",
           "N",
-          numSongs
+          numSongs,
         );
         if (mounted && onSongsFetched) {
           onSongsFetched(songs);
@@ -242,9 +252,20 @@ export default function ConfigTab({ onSongsFetched }) {
         Configuration:
       </Typography>
 
-      <Box sx={{ display: "flex", alignItems: "center", gap: 4, width: "100%", mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+          width: "100%",
+          mb: 3,
+        }}
+      >
         <Box sx={{ flex: 1 }}>
-          <Typography variant="body1" sx={{ color: "var(--foreground)", mb:1 }}>
+          <Typography
+            variant="body1"
+            sx={{ color: "var(--foreground)", mb: 1 }}
+          >
             Number of Songs
           </Typography>
           <Slider
@@ -262,7 +283,7 @@ export default function ConfigTab({ onSongsFetched }) {
         <Box sx={{ flex: 1 }}>
           <Typography
             variant="body1"
-            sx={{ color: "var(--foreground)", mb:1, textAlign:"right" }}
+            sx={{ color: "var(--foreground)", mb: 1, textAlign: "right" }}
           >
             Time Limit (Seconds)
           </Typography>
@@ -279,7 +300,10 @@ export default function ConfigTab({ onSongsFetched }) {
         </Box>
       </Box>
 
-      <Box className={styles.optionsContainer} sx={{ display: "flex", gap: 4, mb: 3 }}>
+      <Box
+        className={styles.optionsContainer}
+        sx={{ display: "flex", gap: 4, mb: 3 }}
+      >
         <Box>
           <Typography variant="body1" className={styles.optionLabel}>
             Levels:
@@ -317,7 +341,9 @@ export default function ConfigTab({ onSongsFetched }) {
                 control={
                   <Checkbox
                     checked={config.styles?.[styleName] ?? false}
-                    onChange={(e) => handleStyleChange(styleName, e.target.checked)}
+                    onChange={(e) =>
+                      handleStyleChange(styleName, e.target.checked)
+                    }
                     disabled={isDisabled}
                     className={styles.checkbox}
                   />
@@ -329,7 +355,7 @@ export default function ConfigTab({ onSongsFetched }) {
         </Box>
       </Box>
 
-      <Typography variant="body1" sx={{ color: "var(--foreground)", mb:1 }}>
+      <Typography variant="body1" sx={{ color: "var(--foreground)", mb: 1 }}>
         Select Artists (Optional):
       </Typography>
       <Autocomplete
@@ -365,7 +391,8 @@ export default function ConfigTab({ onSongsFetched }) {
       {/* If user tries to pick both levels + many artists, optionally block or not */}
       {(config.levels || []).length > 0 && selectedArtists.length >= 3 && (
         <FormHelperText className={styles.errorText}>
-          Levels are selected and you have 3 or more artists. Please clear one group if not allowed.
+          Levels are selected and you have 3 or more artists. Please clear one
+          group if not allowed.
         </FormHelperText>
       )}
     </Box>

@@ -18,7 +18,7 @@ Core Features 1. Song Playback and Quiz Flow
 • The decrement per interval is calculated dynamically based on the time limit and maximum score.
 • Example: For 5 seconds, the max score is 426, and the score decrement is ~8.52 points per 0.1 second. 4. Wrong Answer Penalty
 • Selecting an incorrect answer reduces the current score by 5%.
-• Multiple wrong answers can push the score to 0.  At 0, no score is give and we move the next song.
+• Multiple wrong answers can push the score to 0. At 0, no score is give and we move the next song.
 • Each correct answer adds the remaining score to the session score.
 • The session score accumulates across multiple rounds, up to the configured number of songs. 6. Feedback
 • Immediate feedback is displayed after each selection:

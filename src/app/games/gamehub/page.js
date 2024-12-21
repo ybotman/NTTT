@@ -27,10 +27,30 @@ export default function GameHubPage() {
       icon: "/IconLearnOrch.webp",
       isActive: true,
     },
-    { name: "Learn the Decade", path: "/games/decade-learn", icon: "/IconLearnDecade.webp", isActive: false },
-    { name: "Learn the Style", path: "/games/style-learn", icon: "/IconLearnStyles.webp", isActive: false },
-    { name: "Learn the Singer", path: "/games/style-learn", icon: "/IconLearnOrch.webp", isActive: false },
-    { name: "Orchestra Quiz", path: "/games/artist-quiz", icon: "/IconQuiz.webp", isActive: true },
+    {
+      name: "Learn the Decade",
+      path: "/games/decade-learn",
+      icon: "/IconLearnDecade.webp",
+      isActive: false,
+    },
+    {
+      name: "Learn the Style",
+      path: "/games/style-learn",
+      icon: "/IconLearnStyles.webp",
+      isActive: false,
+    },
+    {
+      name: "Learn the Singer",
+      path: "/games/style-learn",
+      icon: "/IconLearnSinger.webp",
+      isActive: false,
+    },
+    {
+      name: "Orchestra Quiz",
+      path: "/games/artist-quiz",
+      icon: "/IconQuiz.webp",
+      isActive: true,
+    },
     { name: "Decade Quiz", path: "#", icon: "/IconQuiz.webp", isActive: false },
     { name: "Style Quiz", path: "#", icon: "/IconQuiz.webp", isActive: false },
     { name: "Singer Quiz", path: "#", icon: "/IconQuiz.webp", isActive: false },
@@ -113,16 +133,20 @@ export default function GameHubPage() {
                       marginBottom: "10px",
                     }}
                   >
-                    <Image
-                      src={game.icon}
-                      alt={game.name}
-                      layout="fill"
-                      objectFit="cover"
-                      style={{
-                        borderRadius: "8px",
-                        boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
-                      }}
-                    />
+<Image
+  src="/IconLearnStyles.webp"
+  alt="Styles Icon"
+  fill
+  sizes="(max-width: 600px) 100vw,
+         (max-width: 1200px) 50vw,
+         33vw"
+  style={{
+    objectFit: "cover",
+    borderRadius: "8px",
+    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+  }}
+/>
+
                   </Box>
                   <Typography
                     variant="body1"

@@ -19,7 +19,10 @@ import {
 } from "@mui/material";
 import WaveSurfer from "wavesurfer.js";
 import styles from "./styles.module.css";
-import { calculateMaxScore, calculateDecrementPerInterval } from "@/utils/scoring";
+import {
+  calculateMaxScore,
+  calculateDecrementPerInterval,
+} from "@/utils/scoring";
 import { shuffleArray, getDistractors } from "@/utils/dataFetching";
 
 // Constants
@@ -52,7 +55,10 @@ export default function PlayTab({ songs, config, onCancel }) {
   const numSongs = config.numSongs ?? 10;
 
   const maxScore = calculateMaxScore(timeLimit);
-  const decrementPerInterval = calculateDecrementPerInterval(maxScore, timeLimit);
+  const decrementPerInterval = calculateDecrementPerInterval(
+    maxScore,
+    timeLimit,
+  );
 
   // Initialize the round
   const loadRound = useCallback(() => {
@@ -105,7 +111,9 @@ export default function PlayTab({ songs, config, onCancel }) {
     // Time ended
     setRoundOver(true);
     setSessionScore((prev) => prev + Math.max(score, 0));
-    setSnackbarMessage(`Time's up! Correct artist: ${currentSong?.ArtistMaster || "Unknown"}`);
+    setSnackbarMessage(
+      `Time's up! Correct artist: ${currentSong?.ArtistMaster || "Unknown"}`,
+    );
     setOpenSnackbar(true);
   }, [currentSong, score]);
 
@@ -159,7 +167,9 @@ export default function PlayTab({ songs, config, onCancel }) {
     if (selectedAnswer === answer) return; // Already chosen
     setSelectedAnswer(answer);
 
-    const correct = currentSong.ArtistMaster.trim().toLowerCase() === answer.trim().toLowerCase();
+    const correct =
+      currentSong.ArtistMaster.trim().toLowerCase() ===
+      answer.trim().toLowerCase();
     if (correct) {
       // Correct guess
       stopAudio();
@@ -169,13 +179,15 @@ export default function PlayTab({ songs, config, onCancel }) {
       setOpenSnackbar(true);
     } else {
       // Wrong guess
-      setWrongAnswers((prev) => [...prev, answer]); 
+      setWrongAnswers((prev) => [...prev, answer]);
       setScore((prev) => {
         const newScore = Math.max(prev - prev * WRONG_PENALTY, 0);
         if (newScore <= 0) {
           stopAudio();
           setRoundOver(true);
-          setSnackbarMessage(`Score is 0. Correct was: ${currentSong.ArtistMaster}`);
+          setSnackbarMessage(
+            `Score is 0. Correct was: ${currentSong.ArtistMaster}`,
+          );
           setOpenSnackbar(true);
         }
         return newScore;
@@ -196,7 +208,10 @@ export default function PlayTab({ songs, config, onCancel }) {
     const nextIndex = currentIndex + 1;
     if (nextIndex >= numSongs || nextIndex >= songs.length) {
       // session ends
-      console.log("Session Over. Total Score:", sessionScore + Math.max(score, 0));
+      console.log(
+        "Session Over. Total Score:",
+        sessionScore + Math.max(score, 0),
+      );
       onCancel();
       return;
     }
@@ -249,14 +264,18 @@ export default function PlayTab({ songs, config, onCancel }) {
     return () => {
       if (ws) ws.destroy();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSong]);
 
   // Build distractors for each new song
   useEffect(() => {
     if (!currentSong) return;
-    const allArtists = songs.map((s) => s.ArtistMaster).filter((a) => a && a.trim() !== "");
-    const uniqueArtists = Array.from(new Set(allArtists)).map((artistName) => ({ artist: artistName }));
+    const allArtists = songs
+      .map((s) => s.ArtistMaster)
+      .filter((a) => a && a.trim() !== "");
+    const uniqueArtists = Array.from(new Set(allArtists)).map((artistName) => ({
+      artist: artistName,
+    }));
     const correctArtist = currentSong.ArtistMaster;
     const distractors = getDistractors(correctArtist, uniqueArtists);
     const finalAnswers = shuffleArray([correctArtist, ...distractors]);
@@ -273,31 +292,38 @@ export default function PlayTab({ songs, config, onCancel }) {
         p: 2,
       }}
     >
-      <Typography variant="h5" sx={{ marginBottom: "1rem", textAlign:"center", fontWeight:"bold" }}>
+      <Typography
+        variant="h5"
+        sx={{ marginBottom: "1rem", textAlign: "center", fontWeight: "bold" }}
+      >
         Identify the Artist
       </Typography>
 
-      {(!currentSong || songs.length === 0) ? (
+      {!currentSong || songs.length === 0 ? (
         <Typography>No songs. Adjust configuration and try again.</Typography>
       ) : (
         <>
-          <Typography variant="h6" sx={{ mb: 2, textAlign:'center' }}>
-            Time: {timeElapsed.toFixed(1)}s of {timeLimit}s | Score: {Math.floor(score)}/{Math.floor(maxScore)}
+          <Typography variant="h6" sx={{ mb: 2, textAlign: "center" }}>
+            Time: {timeElapsed.toFixed(1)}s of {timeLimit}s | Score:{" "}
+            {Math.floor(score)}/{Math.floor(maxScore)}
           </Typography>
 
-          <Typography variant="body1" sx={{ mb:2, textAlign:"center" }}>
+          <Typography variant="body1" sx={{ mb: 2, textAlign: "center" }}>
             Pick the correct artist:
           </Typography>
 
-          <List sx={{ mb:2, maxWidth:"400px", margin:"auto" }}>
+          <List sx={{ mb: 2, maxWidth: "400px", margin: "auto" }}>
             {answers.map((ans) => {
-              const correct = currentSong.ArtistMaster.trim().toLowerCase() === ans.trim().toLowerCase();
+              const correct =
+                currentSong.ArtistMaster.trim().toLowerCase() ===
+                ans.trim().toLowerCase();
               const chosen = selectedAnswer === ans;
               const isWrong = wrongAnswers.includes(ans);
 
               // Button styling logic
               let borderStyle = "1px solid var(--border-color)";
-              if (roundOver && chosen && correct) borderStyle = "2px solid green";
+              if (roundOver && chosen && correct)
+                borderStyle = "2px solid green";
               else if (chosen && correct) borderStyle = "2px solid green";
               else if (isWrong) borderStyle = "2px solid red";
 
@@ -308,14 +334,18 @@ export default function PlayTab({ songs, config, onCancel }) {
                   onClick={() => handleAnswerSelect(ans)}
                   disabled={roundOver || isWrong || (chosen && correct)}
                   sx={{
-                    mb:1,
+                    mb: 1,
                     border: borderStyle,
-                    borderRadius:"4px",
-                    "&:hover": { background:"var(--input-bg)" },
+                    borderRadius: "4px",
+                    "&:hover": { background: "var(--input-bg)" },
                   }}
                 >
                   <ListItemText
-                    primary={<Typography sx={{ color:"var(--foreground)" }}>{ans}</Typography>}
+                    primary={
+                      <Typography sx={{ color: "var(--foreground)" }}>
+                        {ans}
+                      </Typography>
+                    }
                   />
                 </ListItem>
               );
@@ -323,9 +353,9 @@ export default function PlayTab({ songs, config, onCancel }) {
           </List>
 
           {roundOver && (
-            <Box sx={{ mt:3, textAlign:"center" }}>
+            <Box sx={{ mt: 3, textAlign: "center" }}>
               <Typography variant="h5" gutterBottom>
-                {score <= 0 
+                {score <= 0
                   ? `No Score This Round. Correct: ${currentSong.ArtistMaster}`
                   : `${getPerformanceMessage()} Score: ${Math.floor(score)}`}
               </Typography>
@@ -336,7 +366,7 @@ export default function PlayTab({ songs, config, onCancel }) {
                 variant="contained"
                 color="secondary"
                 onClick={handleNextSong}
-                sx={{ mr:2 }}
+                sx={{ mr: 2 }}
               >
                 Next
               </Button>
@@ -394,7 +424,7 @@ PlayTab.propTypes = {
       Cancion: PropTypes.string,
       Singer: PropTypes.string,
       level: PropTypes.number,
-    })
+    }),
   ).isRequired,
   config: PropTypes.shape({
     numSongs: PropTypes.number,

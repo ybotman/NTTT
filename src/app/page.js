@@ -1,32 +1,22 @@
-//------------------------------------------------------------
-// src/app/page.js (Main landing page)
-//------------------------------------------------------------
-"use client";
-import React from "react";
 import Link from "next/link";
-import { Box, Button, Typography, Paper } from "@mui/material";
+import { Button } from "@mui/material";
 
-export default function HomePage() {
+export default function SomeComponent() {
   return (
-    <Box sx={{ p: 3 }}>
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h3" gutterBottom>
-          Name That Tango Tune
-        </Typography>
-        <Typography variant="body1" gutterBottom>
-          Welcome to the ultimate tango music quiz suite!
-        </Typography>
-        <Box sx={{ mt: 2 }}>
-          <Link href="/games/gamehub">
-            <Button variant="contained">Enter Game Hub</Button>
-          </Link>
-        </Box>
-        <Box sx={{ mt: 2 }}>
-          <Link href="/config">
-            <Button variant="outlined">Configuration</Button>
-          </Link>
-        </Box>
-      </Paper>
-    </Box>
+    <Button
+      variant="contained"
+      component={Link}
+      href="/games/gamehub"
+      sx={{
+        borderColor: "var(--foreground)",
+        color: "var(--foreground)",
+        "&:hover": {
+          background: "var(--foreground)",
+          color: "var(--background)",
+        },
+      }}
+    >
+      Go to GameHub
+    </Button>
   );
 }

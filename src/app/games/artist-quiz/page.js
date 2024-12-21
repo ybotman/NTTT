@@ -7,7 +7,7 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Box, Typography, Button } from "@mui/material";
 import Image from "next/image";
-import { useTheme } from "@/layout"; 
+import { useTheme } from "@/layout";
 import styles from "./styles.module.css";
 import useConfig from "./useConfig";
 import ConfigTab from "./ConfigTab";
@@ -82,13 +82,31 @@ export default function ArtistQuizPage() {
             p: 2,
           }}
         >
-          <PlayTab songs={songs} config={config} onCancel={handleClosePlayTab} />
+          <PlayTab
+            songs={songs}
+            config={config}
+            onCancel={handleClosePlayTab}
+          />
         </Box>
       )}
 
       {/* Header Section with Play Button and Title */}
-      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          mb: 4,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
           <Image
             src="/IconLearnOrch.webp"
             alt="Play Button"
@@ -102,7 +120,9 @@ export default function ArtistQuizPage() {
               boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
               transition: "transform 0.2s",
             }}
-            onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.transform = "scale(1.05)")
+            }
             onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
           />
 
@@ -143,4 +163,3 @@ export default function ArtistQuizPage() {
 }
 
 ArtistQuizPage.propTypes = {};
-
