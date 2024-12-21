@@ -1,7 +1,7 @@
 "use client";
 import React, { useContext } from "react";
 import Image from "next/image";
-import { Box, Typography, Grid, Paper, Button } from "@mui/material";
+import { Box, Typography, Grid, Paper } from "@mui/material";
 import Link from "next/link";
 import { AuthContext } from "@/contexts/AuthContext";
 import { auth, signInAnonymously, signOut } from "@/utils/firebase";
@@ -24,36 +24,51 @@ export default function GameHubPage() {
     {
       name: "Learn the Orchestra",
       path: "/games/artist-learn",
-      icon: "/IconLearnOrch.webp",
+      icon: "icons/IconLearnOrch.webp",
       isActive: true,
     },
     {
       name: "Learn the Decade",
       path: "/games/decade-learn",
-      icon: "/IconLearnDecade.webp",
+      icon: "icons/IconLearnDecade.webp",
       isActive: false,
     },
     {
       name: "Learn the Style",
       path: "/games/style-learn",
-      icon: "/IconLearnStyles.webp",
+      icon: "icons/IconLearnStyles.webp",
       isActive: false,
     },
     {
       name: "Learn the Singer",
       path: "/games/style-learn",
-      icon: "/IconLearnSinger.webp",
+      icon: "icons/IconLearnSinger.webp",
       isActive: false,
     },
     {
       name: "Orchestra Quiz",
       path: "/games/artist-quiz",
-      icon: "/IconQuiz.webp",
+      icon: "icons/IconQuiz.webp",
       isActive: true,
     },
-    { name: "Decade Quiz", path: "#", icon: "/IconQuiz.webp", isActive: false },
-    { name: "Style Quiz", path: "#", icon: "/IconQuiz.webp", isActive: false },
-    { name: "Singer Quiz", path: "#", icon: "/IconQuiz.webp", isActive: false },
+    {
+      name: "Decade Quiz",
+      path: "/games/decade-quiz",
+      icon: "icons/IconLearn.webp",
+      isActive: false,
+    },
+    {
+      name: "Style Quiz",
+      path: "/games/style-quiz",
+      icon: "icons/IconAlternative.webp",
+      isActive: false,
+    },
+    {
+      name: "Singer Quiz",
+      path: "/games/singer-quiz",
+      icon: "icons/IconSinger.webp",
+      isActive: false,
+    },
   ];
 
   return (
@@ -110,8 +125,9 @@ export default function GameHubPage() {
         <Grid container spacing={3}>
           {games.map((game, index) => (
             <Grid item xs={6} md={3} key={index}>
-              <Link href={game.path}>
+              <Link href={game.path} passHref>
                 <Box
+                  component="a"
                   sx={{
                     display: "flex",
                     flexDirection: "column", // Ensure text is below the icon
@@ -119,6 +135,7 @@ export default function GameHubPage() {
                     cursor: game.isActive ? "pointer" : "default",
                     opacity: game.isActive ? 1 : 0.5,
                     transition: "transform 0.2s ease",
+                    textDecoration: "none",
                     "&:hover": {
                       transform: game.isActive ? "scale(1.1)" : "none",
                       filter: game.isActive ? "brightness(1.5)" : "none", // Simmer effect
@@ -134,12 +151,12 @@ export default function GameHubPage() {
                     }}
                   >
                     <Image
-                      src="/IconLearnStyles.webp"
-                      alt="Styles Icon"
+                      src={`/${game.icon}`} // Dynamically use the icon path
+                      alt={`${game.name} Icon`} // Dynamic alt text for better accessibility
                       fill
                       sizes="(max-width: 600px) 100vw,
-         (max-width: 1200px) 50vw,
-         33vw"
+                             (max-width: 1200px) 50vw,
+                             33vw"
                       style={{
                         objectFit: "cover",
                         borderRadius: "8px",

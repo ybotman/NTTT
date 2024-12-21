@@ -1,22 +1,15 @@
-import Link from "next/link";
-import { Button } from "@mui/material";
+"use client";
 
-export default function SomeComponent() {
-  return (
-    <Button
-      variant="contained"
-      component={Link}
-      href="/games/gamehub"
-      sx={{
-        borderColor: "var(--foreground)",
-        color: "var(--foreground)",
-        "&:hover": {
-          background: "var(--foreground)",
-          color: "var(--background)",
-        },
-      }}
-    >
-      Go to GameHub
-    </Button>
-  );
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+export default function Route2Hub() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Automatically redirect to /games/gamehub
+    router.push("/games/gamehub");
+  }, [router]);
+
+  return null; // No need to render anything since we are redirecting
 }
