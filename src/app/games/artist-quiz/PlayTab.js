@@ -28,6 +28,7 @@ export default function PlayTab({ songs, config, onCancel }) {
   const wavesurferRef = useRef(null);
   const decrementIntervalRef = useRef(null);
   const timeIntervalRef = useRef(null);
+  const fadeIntervalRef = useRef(null);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentSong, setCurrentSong] = useState(null);
@@ -40,20 +41,47 @@ export default function PlayTab({ songs, config, onCancel }) {
   const [roundOver, setRoundOver] = useState(false);
   const [sessionScore, setSessionScore] = useState(0);
   const [randomStart, setRandomStart] = useState(0);
+  
+  const [ready, setReady] = useState(false); // Indicates WaveSurfer is ready
 
   const timeLimit = config.timeLimit ?? 15;
   const numSongs = config.numSongs ?? 10;
 
-  // Compute max score dynamically from timeLimit
   const maxScore = calculateMaxScore(timeLimit);
   const decrementPerInterval = calculateDecrementPerInterval(maxScore, timeLimit);
-  
+
+  const fadeVolume = useCallback((fromVol, toVol, durationSec, callback) => {
+    if (!wavesurferRef.current) return;
+    const steps = 15;
+    const stepTime = (durationSec * 1000) / steps;
+    let currentStep = 0;
+    const volumeStep = (toVol - fromVol) / steps;
+    let currentVol = fromVol;
+
+    if (fadeIntervalRef.current) {
+      clearInterval(fadeIntervalRef.current);
+    }
+
+    fadeIntervalRef.current = setInterval(() => {
+      currentStep++;
+      currentVol += volumeStep;
+      if (wavesurferRef.current) {
+        wavesurferRef.current.setVolume(Math.min(Math.max(currentVol, 0), 1));
+      }
+
+      if (currentStep >= steps) {
+        clearInterval(fadeIntervalRef.current);
+        fadeIntervalRef.current = null;
+        if (callback) callback();
+      }
+    }, stepTime);
+  }, []);
+
   const loadRound = useCallback(() => {
     if (currentIndex >= songs.length || currentIndex < 0) {
       // No more songs
       return;
     }
-
     const song = songs[currentIndex];
     setCurrentSong(song);
     setMetadataLoaded(false);
@@ -61,12 +89,11 @@ export default function PlayTab({ songs, config, onCancel }) {
     setSelectedAnswer(null);
     setRoundOver(false);
     setIsPlaying(false);
+    setReady(false);
 
-    // Random start time (0 - 90s)
     const startT = Math.floor(Math.random() * 90);
     setRandomStart(startT);
 
-    // Reset score to max at start
     setScore(maxScore);
   }, [songs, currentIndex, maxScore]);
 
@@ -76,19 +103,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     }
   }, [songs, loadRound]);
 
-  const handleMetadataLoaded = () => {
-    setMetadataLoaded(true);
-    startAudio();
-  };
-
-  const startAudio = () => {
-    if (!wavesurferRef.current) return;
-    // Seek to random start
-    // We already load the random start after ws ready
-    wavesurferRef.current.setVolume(0.0);
-    setIsPlaying(true);
-
-    // Start intervals for scoring and timing
+  const startScoringIntervals = useCallback(() => {
     decrementIntervalRef.current = setInterval(() => {
       setScore((prev) => {
         const next = prev - decrementPerInterval;
@@ -106,15 +121,7 @@ export default function PlayTab({ songs, config, onCancel }) {
         return next;
       });
     }, INTERVAL_MS);
-  };
-
-  const stopAudio = useCallback(() => {
-    if (wavesurferRef.current) {
-      wavesurferRef.current.pause();
-    }
-    setIsPlaying(false);
-    clearIntervals();
-  }, []);
+  }, [decrementPerInterval]);
 
   const clearIntervals = useCallback(() => {
     if (decrementIntervalRef.current) {
@@ -127,11 +134,16 @@ export default function PlayTab({ songs, config, onCancel }) {
     }
   }, []);
 
+  const stopAudio = useCallback(() => {
+    if (wavesurferRef.current) {
+      wavesurferRef.current.stop();
+    }
+    setIsPlaying(false);
+    clearIntervals();
+  }, [clearIntervals]);
+
   const endRoundDueToTime = () => {
-    // Time ended, user didn't pick correct answer
-    // Score might be zero or close to it.
     setRoundOver(true);
-    // Add whatever score is left (could be zero)
     setSessionScore((prev) => prev + Math.max(score, 0));
   };
 
@@ -145,17 +157,18 @@ export default function PlayTab({ songs, config, onCancel }) {
       // Correct
       stopAudio();
       setRoundOver(true);
-      // Add the remaining score to session
       setSessionScore((prev) => prev + Math.max(score, 0));
     } else {
       // Wrong, reduce score by 5%
-      setScore((prev) => Math.max(prev - prev * 0.05, 0));
-      if (score <= 0) {
-        // If score hits zero, end round
-        stopAudio();
-        setRoundOver(true);
-        setSessionScore((prev) => prev); // no increase if zero
-      }
+      setScore((prev) => {
+        const newScore = Math.max(prev - prev * 0.05, 0);
+        if (newScore <= 0) {
+          stopAudio();
+          setRoundOver(true);
+          setSessionScore((p) => p);
+        }
+        return newScore;
+      });
     }
   };
 
@@ -169,11 +182,8 @@ export default function PlayTab({ songs, config, onCancel }) {
   };
 
   const handleNextSong = () => {
-    // Move to next song
     const nextIndex = currentIndex + 1;
     if (nextIndex >= numSongs || nextIndex >= songs.length) {
-      // Session ends
-      // Show final session summary. We can show a message or rely on user closing tab.
       console.log("Session Over. Total Score:", sessionScore);
       onCancel();
       return;
@@ -182,10 +192,9 @@ export default function PlayTab({ songs, config, onCancel }) {
     loadRound();
   };
 
-  // Load the wavesurfer after currentSong set
   useEffect(() => {
     if (!currentSong) return;
-    // Setup wavesurfer
+
     const ws = WaveSurfer.create({
       container: document.createElement("div"),
       waveColor: "transparent",
@@ -196,16 +205,26 @@ export default function PlayTab({ songs, config, onCancel }) {
     });
 
     ws.on("ready", () => {
-      setMetadataLoaded(true);
+      setReady(true);
       const dur = ws.getDuration();
       const maxStart = dur * 0.75;
       const startPos = Math.min(randomStart, maxStart);
       ws.seekTo(startPos / dur);
-      ws.play().catch((err) => {
+
+      // Set volume to 0 initially
+      ws.setVolume(0.0);
+
+      ws.play().then(() => {
+        // After starting play, fade in volume and start scoring/timing
+        fadeVolume(0, 1, 0.75, () => {
+          // Once faded in, start intervals
+          setIsPlaying(true);
+          startScoringIntervals();
+        });
+      }).catch((err) => {
         console.error("Error playing audio:", err);
         handleNextSong();
       });
-      startAudio();
     });
 
     ws.on("error", (err) => {
@@ -222,13 +241,8 @@ export default function PlayTab({ songs, config, onCancel }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSong]);
 
-  // Prepare answers on currentSong change
   useEffect(() => {
     if (!currentSong) return;
-    // We have currentSong, get distractors
-    // Suppose we have a global array of valid artists from prefetch (not shown)
-    // If needed, fetch from a global store or from the songs themselves
-    // For now, we assume `songs` all have `ArtistMaster`.
     const allArtists = songs
       .map((s) => s.ArtistMaster)
       .filter((a) => a && a.trim() !== "");

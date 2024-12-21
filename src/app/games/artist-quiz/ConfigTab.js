@@ -16,7 +16,7 @@ import {
   Slider,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import useConfig from "./useConfig";
+import useConfig from "@/hooks/useConfig";
 import { fetchFilteredSongs } from "@/utils/dataFetching";
 import styles from "./styles.module.css";
 
@@ -30,6 +30,13 @@ export default function ConfigTab({ onSongsFetched }) {
 
   const isMountedRef = useRef(false);
 
+  /**
+   * Validate inputs for:
+   * 1) 3 <= numSongs <= 15
+   * 2) 3 <= timeLimit <= 15
+   * 3) At least 1 style selected
+   * 4) EITHER (levels.length > 0) OR (selectedArtists.length >= 3)
+   */
   const validateInputs = () => {
     const numSongs = config.numSongs ?? 10;
     if (numSongs < 3 || numSongs > 15) {
@@ -41,26 +48,35 @@ export default function ConfigTab({ onSongsFetched }) {
       return "Time Limit must be between 3 and 15 seconds.";
     }
 
+    // 1 style needed
     const stylesSelected = Object.keys(config.styles || {}).filter((k) => config.styles[k]);
     if (stylesSelected.length === 0) {
       return "At least one style must be selected.";
     }
 
-    const levelsSelected = (config.levels || []).length > 0;
-    const artistsSelected = selectedArtists.length > 0;
-    if (!levelsSelected && !artistsSelected) {
-      return "You must select either at least one Artist or at least one Level.";
+    // New requirement:
+    // Must have EITHER some levels selected OR >= 3 artists
+    const levelsCount = (config.levels || []).length;
+    const artistsCount = selectedArtists.length;
+    if (levelsCount === 0 && artistsCount < 3) {
+      return "Select either a level or at least 3 artists.";
     }
 
-    if (artistsSelected && levelsSelected) {
-      return "Cannot select both Artists and Levels. Clear one of them.";
+    // If they have BOTH (≥ 1 level) AND (≥ 3 artists),
+    // we can either forbid that or allow it. 
+    // If you want to disallow both at once, uncomment next lines:
+    /*
+    if (levelsCount > 0 && artistsCount >= 3) {
+      return "Cannot select both levels and ≥3 artists. Clear one or adjust your selection.";
     }
+    */
 
     return "";
   };
 
   useEffect(() => {
     isMountedRef.current = true;
+    // Fetch style data
     (async () => {
       try {
         const styleData = await fetch("/songData/StyleMaster.json").then((res) => res.json());
@@ -76,6 +92,7 @@ export default function ConfigTab({ onSongsFetched }) {
       }
     })();
 
+    // Fetch artist data
     (async () => {
       try {
         const artistData = await fetch("/songData/ArtistMaster.json").then((res) => res.json());
@@ -115,6 +132,9 @@ export default function ConfigTab({ onSongsFetched }) {
   };
 
   const handleLevelChange = (level, checked) => {
+    // If we want to disallow mixing levels with any artists, 
+    // (not required by new rule, but previously it was)
+    // keep or remove next lines:
     if (selectedArtists.length > 0) {
       setValidationMessage("Levels not available when artists are selected. Clear artists first.");
       return;
@@ -149,6 +169,8 @@ export default function ConfigTab({ onSongsFetched }) {
   };
 
   const handleArtistsChange = (event, values) => {
+    // If we want to disallow mixing levels with any artists, 
+    // keep next lines, else remove them:
     if (values.length > 0 && (config.levels || []).length > 0) {
       updateConfig("levels", []);
       setValidationMessage("Clearing levels because artists are selected.");
@@ -184,7 +206,7 @@ export default function ConfigTab({ onSongsFetched }) {
           "N",
           "N",
           "N",
-          numSongs,
+          numSongs
         );
         if (mounted && onSongsFetched) {
           onSongsFetched(songs);
@@ -222,7 +244,9 @@ export default function ConfigTab({ onSongsFetched }) {
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 4, width: "100%", mb: 3 }}>
         <Box sx={{ flex: 1 }}>
-          <Typography variant="body1" sx={{ color: "var(--foreground)", mb:1 }}>Number of Songs</Typography>
+          <Typography variant="body1" sx={{ color: "var(--foreground)", mb:1 }}>
+            Number of Songs
+          </Typography>
           <Slider
             value={config.numSongs ?? 10}
             onChange={handleNumSongsChange}
@@ -236,7 +260,12 @@ export default function ConfigTab({ onSongsFetched }) {
         </Box>
 
         <Box sx={{ flex: 1 }}>
-          <Typography variant="body1" sx={{ color: "var(--foreground)", mb:1, textAlign:"right" }}>Time Limit (Seconds)</Typography>
+          <Typography
+            variant="body1"
+            sx={{ color: "var(--foreground)", mb:1, textAlign:"right" }}
+          >
+            Time Limit (Seconds)
+          </Typography>
           <Slider
             value={config.timeLimit ?? 15}
             onChange={handleTimeLimitChange}
@@ -300,41 +329,43 @@ export default function ConfigTab({ onSongsFetched }) {
         </Box>
       </Box>
 
-      <Typography variant="body1" sx={{ color: "var(--foreground)", mb:1 }}>Select Artists (Optional):</Typography>
-  <Autocomplete
-  multiple
-  options={artistOptions}
-  value={selectedArtists}
-  onChange={handleArtistsChange}
-  isOptionEqualToValue={(option, value) => option.value === value.value}
-  renderInput={(params) => (
-    <TextField
-      {...params}
-      label="Select Artists"
-      placeholder="Artists"
-      margin="dense"
-      disabled={isDisabled || (config.levels || []).length > 0}
-      sx={{
-        backgroundColor: "var(--input-bg)",
-        color: "var(--input-text)",
-        "& .MuiFormLabel-root": { color: "var(--foreground)" },
-        "& .MuiInputBase-root": { color: "var(--input-text)" },
-      }}
-    />
-  )}
-  sx={{
-    "& .MuiAutocomplete-listbox": {
-      backgroundColor: "var(--dropdown-bg)",
-      color: "var(--input-text)",
-    },
-    mb: 2,
-  }}
-/>
+      <Typography variant="body1" sx={{ color: "var(--foreground)", mb:1 }}>
+        Select Artists (Optional):
+      </Typography>
+      <Autocomplete
+        multiple
+        options={artistOptions}
+        value={selectedArtists}
+        onChange={handleArtistsChange}
+        isOptionEqualToValue={(option, value) => option.value === value.value}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Select Artists"
+            placeholder="Artists"
+            margin="dense"
+            disabled={isDisabled || (config.levels || []).length > 0}
+            sx={{
+              backgroundColor: "var(--input-bg)",
+              color: "var(--input-text)",
+              "& .MuiFormLabel-root": { color: "var(--foreground)" },
+              "& .MuiInputBase-root": { color: "var(--input-text)" },
+            }}
+          />
+        )}
+        sx={{
+          "& .MuiAutocomplete-listbox": {
+            backgroundColor: "var(--dropdown-bg)",
+            color: "var(--input-text)",
+          },
+          mb: 2,
+        }}
+      />
 
-
-      {(config.levels || []).length > 0 && selectedArtists.length > 0 && (
+      {/* If user tries to pick both levels + many artists, optionally block or not */}
+      {(config.levels || []).length > 0 && selectedArtists.length >= 3 && (
         <FormHelperText className={styles.errorText}>
-          Both artists and levels are selected. Please clear one.
+          Levels are selected and you have 3 or more artists. Please clear one group if not allowed.
         </FormHelperText>
       )}
     </Box>
