@@ -1,7 +1,6 @@
 //--------
 //src/app/games/artist-learn/ConfigTab.js
 //--------
-
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
@@ -19,6 +18,11 @@ import PropTypes from "prop-types";
 import useConfig from "@/hooks/useConfig";
 import { fetchFilteredSongs } from "@/utils/dataFetching";
 import styles from "../styles.module.css";
+import SongsSlider from "@/components/ui/SongsSlider";
+//import SecondsSlider from "@/components/ui/SecondsSlider";
+//import LevelsSelector from "@/components/ui/LevelsSelector";
+//import StylesSelector from "@/components/ui/StylesSelector";
+//import ArtistsSelector from "@/components/ui/ArtistsSelector";
 
 export default function ConfigTab({ onSongsFetched }) {
   const { config, updateConfig, isDisabled } = useConfig("artistLearn"); // Updated to "artistLearn"

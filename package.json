@@ -18,6 +18,7 @@
     "firebase": "^11.1.0",
     "howler": "^2.2.4",
     "prettier": "^3.4.2",
+    "primereact": "^10.8.5",
     "prop-types": "^15.8.1",
     "react": "^19.0.0",
     "react-audio-player": "^0.17.0",
