@@ -78,7 +78,6 @@ export default function ArtistLearnPage() {
           />
         </Box>
       )}
-
       {/* Dark Mode Toggle Button */}
       <Box sx={{ position: "absolute", top: "1rem", right: "1rem" }}>
         <Button
@@ -98,7 +97,6 @@ export default function ArtistLearnPage() {
           {theme === "light" ? "Dark Mode" : "Light Mode"}
         </Button>
       </Box>
-
       {/* Game Hub Button */}
       <Box sx={{ position: "absolute", top: "1rem", left: "1rem" }}>
         <Box
@@ -126,7 +124,6 @@ export default function ArtistLearnPage() {
               boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
             }}
           />
-
           <Typography
             variant="h6"
             sx={{
@@ -145,7 +142,6 @@ export default function ArtistLearnPage() {
           </Typography>
         </Box>
       </Box>
-
       {/* Header Section with Play Button and Title */}
       <Box
         sx={{
@@ -185,7 +181,6 @@ export default function ArtistLearnPage() {
               (e.currentTarget.style.transform = "scale(1)")
             } // Reset on mouse out
           />
-
           <Typography
             variant="h6"
             sx={{
@@ -203,7 +198,6 @@ export default function ArtistLearnPage() {
             Play
           </Typography>
         </Box>
-
         {/* Game Title */}
         <Typography
           variant="h5"
@@ -216,7 +210,6 @@ export default function ArtistLearnPage() {
           Mastering Orchestras and Miestros
         </Typography>
       </Box>
-
       {/* Configuration Tab - passes a callback to receive fetched songs */}
       <ConfigTab onSongsFetched={handleSongsFetched} />
     </Box>

@@ -1,6 +1,7 @@
-//---------------------
-// useConfig.js (Hook)
-//---------------------
+//--------
+//useConfig.js (Hook)
+//--------
+
 "use client";
 import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";

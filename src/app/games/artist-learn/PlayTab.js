@@ -1,3 +1,7 @@
+//--------
+//src/app/games/artist-learn/PlayTab.js
+//--------
+
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
@@ -28,10 +32,14 @@ export default function PlayTab({ songs, config, onCancel }) {
   const [ready, setReady] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
 
-
   const PLAY_DURATION = config.timeLimit ?? 15;
   const FADE_DURATION = 0.75;
-  console.log("Config:", config);
+  console.log("PlayTab - Config:", config);
+  console.log("PlayTab - PLAY_DURATION:", PLAY_DURATION);
+
+  useEffect(() => {
+    console.log("PlayTab - Received Config:", config);
+  }, [config]);
 
   const cleanupWaveSurfer = useCallback(() => {
     if (fadeIntervalRef.current) {
@@ -131,7 +139,7 @@ export default function PlayTab({ songs, config, onCancel }) {
       return;
     }
 
-    console.log("Playing Song:", currentSong);
+    console.log("PlayTab - Playing Song:", currentSong);
 
     const ws = WaveSurfer.create({
       container: document.createElement("div"),
@@ -146,7 +154,7 @@ export default function PlayTab({ songs, config, onCancel }) {
       setReady(true);
       const dur = ws.getDuration();
       setDuration(dur);
-      console.log(`Song duration (seconds): ${dur}`);
+      console.log(`PlayTab - Song duration (seconds): ${dur}`);
 
       // Seek to a random start point (up to 75% in)
       const maxStart = dur * 0.75;
@@ -159,13 +167,13 @@ export default function PlayTab({ songs, config, onCancel }) {
           startPlaybackWithFade();
         })
         .catch((err) => {
-          console.error("Error playing audio:", err);
+          console.error("PlayTab - Error playing audio:", err);
           handleNextSong();
         });
     });
 
     ws.on("error", (err) => {
-      console.error("Wavesurfer error:", err);
+      console.error("PlayTab - Wavesurfer error:", err);
       handleNextSong();
     });
 
@@ -269,7 +277,6 @@ export default function PlayTab({ songs, config, onCancel }) {
       >
         Now Playing
       </Typography>
-
       {songs.length === 0 ? (
         <Typography>No songs. Adjust configuration and try again.</Typography>
       ) : (

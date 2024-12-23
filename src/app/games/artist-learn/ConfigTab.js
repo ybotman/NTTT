@@ -1,3 +1,7 @@
+//--------
+//src/app/games/artist-learn/ConfigTab.js
+//--------
+
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
@@ -17,7 +21,7 @@ import { fetchFilteredSongs } from "@/utils/dataFetching";
 import styles from "../styles.module.css";
 
 export default function ConfigTab({ onSongsFetched }) {
-  const { config, updateConfig, isDisabled } = useConfig("artistLearn");
+  const { config, updateConfig, isDisabled } = useConfig("artistLearn"); // Updated to "artistLearn"
   const [primaryStyles, setPrimaryStyles] = useState([]);
   const [artistOptions, setArtistOptions] = useState([]);
   const [selectedArtists, setSelectedArtists] = useState([]);
@@ -219,6 +223,7 @@ export default function ConfigTab({ onSongsFetched }) {
     setSelectedArtists(values);
     markConfigChanged();
   };
+
   // ---- Only fetch songs if config changed & validated ----
   useEffect(() => {
     if (!configChanged) return;
@@ -296,7 +301,6 @@ export default function ConfigTab({ onSongsFetched }) {
           </Typography>
           {renderNumSongsSlider()}
         </Box>
-
         <Box sx={{ flex: 1 }}>
           <Typography
             variant="body1"
