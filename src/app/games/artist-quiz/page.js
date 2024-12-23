@@ -4,20 +4,17 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import Image from "next/image";
-import { useTheme } from "@/layout";
 import styles from "./styles.module.css";
-import useConfig from "./useConfig";
 import ConfigTab from "./ConfigTab";
 import PlayTab from "./PlayTab";
+import useConfig from "@/hooks/useConfigTab";
 
 export default function ArtistQuizPage() {
   const [songs, setSongs] = useState([]);
   const { config } = useConfig("artistQuiz");
   const [showPlayTab, setShowPlayTab] = useState(false);
-
-  const { theme, toggleTheme } = useTheme();
 
   const handleSongsFetched = (fetchedSongs) => {
     setSongs(fetchedSongs);
@@ -47,26 +44,6 @@ export default function ArtistQuizPage() {
         p: 2,
       }}
     >
-      {/* Dark Mode Toggle */}
-      <Box sx={{ position: "absolute", top: "1rem", right: "1rem" }}>
-        <Button
-          onClick={toggleTheme}
-          sx={{
-            background: "var(--foreground)",
-            color: "var(--background)",
-            border: "none",
-            borderRadius: "4px",
-            padding: "0.5rem 1rem",
-            cursor: "pointer",
-            "&:hover": {
-              opacity: 0.8,
-            },
-          }}
-        >
-          {theme === "light" ? "Dark Mode" : "Light Mode"}
-        </Button>
-      </Box>
-
       {showPlayTab && (
         <Box
           sx={{

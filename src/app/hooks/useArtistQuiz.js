@@ -9,7 +9,7 @@ export default function useConfig(gameName) {
     styles: { Tango: true, Vals: false, Milonga: false },
   });
 
-  const [isDisabled, setIsDisabled] = useState(false);
+  //  const [isDisabled, setIsDisabled] = useState(false);
 
   useEffect(() => {
     const savedConfig = localStorage.getItem(`${gameName}_config`);
@@ -24,5 +24,5 @@ export default function useConfig(gameName) {
     localStorage.setItem(`${gameName}_config`, JSON.stringify(config));
   };
 
-  return { config, updateConfig, saveConfig, isDisabled };
+  return { config, updateConfig, saveConfig }; // isDisabled };
 }

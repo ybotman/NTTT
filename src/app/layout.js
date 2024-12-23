@@ -8,12 +8,14 @@ import "./globals.css";
 import PropTypes from "prop-types";
 import { ScoreProvider } from "@/contexts/ScoreContext";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { CssBaseline } from "@mui/material";
+import { CssBaseline, Box, IconButton } from "@mui/material";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// Create a ThemeContext to allow any page/component to access and toggle theme
+// Create a ThemeContext to allow any page/component to access + toggle theme
 const ThemeContext = createContext({
   theme: "light",
   toggleTheme: () => {},
@@ -26,15 +28,15 @@ export function useTheme() {
 export default function RootLayout({ children }) {
   const [theme, setTheme] = useState("light");
 
-  // Check system preference and update theme on mount
+  // Check system preference on mount
   useEffect(() => {
     const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: light)",
+      "(prefers-color-scheme: dark)",
     ).matches;
     setTheme(prefersDark ? "dark" : "light");
   }, []);
 
-  // Dynamically apply the theme to the HTML element
+  // Dynamically apply the theme to <html data-theme="...">
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
@@ -50,6 +52,30 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <ScoreProvider>
             <ThemeContext.Provider value={{ theme, toggleTheme }}>
+              {/* 
+                1) Our global theme toggle icon 
+                   Placed absolutely top-right, or you can choose a different styling 
+              */}
+              <Box
+                sx={{
+                  position: "fixed",
+                  top: 16,
+                  right: 16,
+                  zIndex: 9999,
+                }}
+              >
+                <IconButton
+                  onClick={toggleTheme}
+                  sx={{
+                    color: "var(--foreground)",
+                    backgroundColor: "var(--background)",
+                    "&:hover": { opacity: 0.8 },
+                  }}
+                >
+                  {theme === "light" ? <LightModeIcon /> : <DarkModeIcon />}
+                </IconButton>
+              </Box>
+
               {children}
             </ThemeContext.Provider>
           </ScoreProvider>

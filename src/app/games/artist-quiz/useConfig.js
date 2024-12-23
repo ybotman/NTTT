@@ -2,6 +2,7 @@
 //src/app/games/artist-learn/useConfig.js
 //---------------------
 
+/*
 import { useState, useEffect } from "react";
 
 export default function useConfig(gameName) {
@@ -14,7 +15,7 @@ export default function useConfig(gameName) {
 
   const [config, setConfig] = useState(defaultConfig);
   const [isDisabled, setIsDisabled] = useState(false);
-
+console.log("artist-learn/useConfig. - gameName:", gameName); 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedConfig = localStorage.getItem(`${gameName}_config`);
@@ -52,3 +53,4 @@ export default function useConfig(gameName) {
 
   return { config, updateConfig, saveConfig, isDisabled };
 }
+*/

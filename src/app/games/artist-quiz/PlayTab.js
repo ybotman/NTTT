@@ -12,7 +12,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  Stack,
   Button,
   Snackbar,
   Alert,
@@ -82,6 +81,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     setScore(maxScore);
   }, [songs, currentIndex, maxScore]);
 
+  console.log("isPlaying", isPlaying);
   useEffect(() => {
     if (songs.length > 0) {
       loadRound();

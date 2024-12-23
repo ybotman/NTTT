@@ -5,8 +5,8 @@
 "use client";
 import Image from "next/image"; //
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button } from "@mui/material";
-import { useTheme } from "@/layout"; // Access dark mode state & toggle
+import { Box, Typography } from "@mui/material";
+//import { useTheme } from "@/layout"; // Access dark mode state & toggle
 import styles from "../styles.module.css";
 import ConfigTab from "./ConfigTab";
 import PlayTab from "./PlayTab";
@@ -18,7 +18,7 @@ export default function ArtistLearnPage() {
   const { config } = useConfig("artistLearn"); // Ensure this matches ConfigTab
   const [showPlayTab, setShowPlayTab] = useState(false);
 
-  const { theme, toggleTheme } = useTheme(); // Get current theme and toggle
+  //const { theme, toggleTheme } = useTheme(); // Get current theme and toggle
   const router = useRouter(); // Initialize router
 
   const handleSongsFetched = (fetchedSongs) => {
@@ -77,25 +77,7 @@ export default function ArtistLearnPage() {
           />
         </Box>
       )}
-      {/* Dark Mode Toggle Button */}
-      <Box sx={{ position: "absolute", top: "1rem", right: "1rem" }}>
-        <Button
-          onClick={toggleTheme}
-          sx={{
-            background: "var(--foreground)",
-            color: "var(--background)",
-            border: "none",
-            borderRadius: "4px",
-            padding: "0.5rem 1rem",
-            cursor: "pointer",
-            "&:hover": {
-              opacity: 0.8,
-            },
-          }}
-        >
-          {theme === "light" ? "Dark Mode" : "Light Mode"}
-        </Button>
-      </Box>
+
       {/* Game Hub Button */}
       <Box sx={{ position: "absolute", top: "1rem", left: "1rem" }}>
         <Box

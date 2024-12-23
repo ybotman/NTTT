@@ -12,7 +12,7 @@ import {
   Slider,
 } from "@mui/material";
 import PropTypes from "prop-types";
-import useConfig from "@/hooks/useConfig";
+import useConfig from "@/hooks/useConfigTab";
 import { fetchFilteredSongs } from "@/utils/dataFetching";
 import styles from "./styles.module.css";
 
@@ -389,11 +389,22 @@ export default function ConfigTab({ onSongsFetched }) {
           />
         )}
         sx={{
-          "& .MuiAutocomplete-listbox": {
-            backgroundColor: "var(--dropdown-bg)",
+          '& input[type="text"]': {
+            backgroundColor: "var(--input-bg)",
             color: "var(--input-text)",
+            borderColor: "var(--border-color)",
+            "&:focus": {
+              borderColor: "var(--accent)",
+            },
+            "&:hover": {
+              borderColor: "var(--accent)",
+            },
+            "&:disabled": {
+              color: "var(--disabled-text)",
+              borderColor: "var(--border-color)",
+              cursor: "not-allowed",
+            },
           },
-          mb: 2,
         }}
       />
 

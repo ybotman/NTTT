@@ -7,7 +7,6 @@ import Link from "next/link";
 import { AuthContext } from "@/contexts/AuthContext";
 import { auth, signInAnonymously, signOut } from "@/utils/firebase";
 
-
 export default function GameHubPage() {
   const { user, loadingUser } = useContext(AuthContext);
 
