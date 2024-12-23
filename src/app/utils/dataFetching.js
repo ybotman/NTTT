@@ -38,8 +38,8 @@ export async function fetchFilteredSongs(
       fetch("/songData/ArtistMaster.json").then((r) => r.json()),
     ]);
 
-    console.log(`Fetched raw songs: ${djSongsData.songs.length}`);
-    console.log(`Fetched raw artists: ${artistData.length}`);
+    //console.log(`Fetched raw songs: ${djSongsData.songs.length}`);
+    //console.log(`Fetched raw artists: ${artistData.length}`);
 
     // Build artist level map
     const artistLevelMap = {};
@@ -65,7 +65,7 @@ export async function fetchFilteredSongs(
       };
     });
 
-    console.log(`Enriched songs count: ${enrichedSongs.length}`);
+    //console.log(`Enriched songs count: ${enrichedSongs.length}`);
 
     // Begin filtering
     let filtered = enrichedSongs;
@@ -126,8 +126,8 @@ export async function fetchFilteredSongs(
     const finalSongs = getRandomSongs(filtered, qty);
     const finalQty = finalSongs.length;
 
-    console.log(`Filtered ${filtered.length} songs before randomization.`);
-    console.log(`Returning ${finalQty} random songs based on criteria:`);
+    //console.log(`Filtered ${filtered.length} songs before randomization.`);
+    //console.log(`Returning ${finalQty} random songs based on criteria:`);
     console.log({
       artistMasters: validArtistMasters,
       artistLevels: validArtistLevels,

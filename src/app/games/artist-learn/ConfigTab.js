@@ -79,7 +79,6 @@ export default function ConfigTab({ onSongsFetched }) {
   });
 
   // ---- Fetch data only once on mount ----
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -140,21 +139,22 @@ export default function ConfigTab({ onSongsFetched }) {
     return () => {
       isMountedRef.current = false;
     };
-  }, []); // <--- empty dependency to run only once
+  }, []);
 
   const markConfigChanged = () => {
     setConfigChanged(true);
+    console.log("Config changed", config);
   };
 
   const handleNumSongsChange = (value) => {
     updateConfig("numSongs", value);
-    console.log("numSongs changed to", value);
+    console.log("-->numSongs changed to", value);
     markConfigChanged();
   };
 
   const handleTimeLimitChange = (value) => {
     updateConfig("timeLimit", value);
-    console.log("timeLimit changed to", value);
+    console.log("-->timeLimit changed to", value);
     markConfigChanged();
   };
 
@@ -203,7 +203,7 @@ export default function ConfigTab({ onSongsFetched }) {
       newLevels = newLevels.filter((l) => l !== level);
     }
     updateConfig("levels", newLevels);
-
+    console.log("-->levels changed to", newLevels);
     markConfigChanged();
   };
 
@@ -212,6 +212,7 @@ export default function ConfigTab({ onSongsFetched }) {
       ...config.styles,
       [styleName]: checked,
     });
+    console.log("-->styles changed to", config.styles);
     markConfigChanged();
   };
 
@@ -220,6 +221,7 @@ export default function ConfigTab({ onSongsFetched }) {
       updateConfig("levels", []);
       setValidationMessage("Clearing levels because artists are selected.");
     }
+    console.log("-->artists changed to", values);
     setSelectedArtists(values);
     markConfigChanged();
   };

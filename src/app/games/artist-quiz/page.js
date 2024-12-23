@@ -4,7 +4,6 @@
 "use client";
 
 import React, { useState } from "react";
-import PropTypes from "prop-types";
 import { Box, Typography, Button } from "@mui/material";
 import Image from "next/image";
 import { useTheme } from "@/layout";

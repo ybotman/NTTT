@@ -23,7 +23,6 @@ export default function ArtistLearnPage() {
 
   const handleSongsFetched = (fetchedSongs) => {
     setSongs(fetchedSongs);
-    console.log("Songs fetched and set for playback:", fetchedSongs);
   };
 
   const handlePlayClick = () => {
@@ -177,9 +176,7 @@ export default function ArtistLearnPage() {
             onMouseOver={(e) =>
               (e.currentTarget.style.transform = "scale(1.05)")
             }
-            onMouseOut={(e) =>
-              (e.currentTarget.style.transform = "scale(1)")
-            } // Reset on mouse out
+            onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} // Reset on mouse out
           />
           <Typography
             variant="h6"

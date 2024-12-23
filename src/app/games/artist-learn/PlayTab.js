@@ -25,21 +25,18 @@ export default function PlayTab({ songs, config, onCancel }) {
   const fadeIntervalRef = useRef(null);
   const listRef = useRef(null);
   const countdownRef = useRef(null);
+  const [duration, setDuration] = useState(0);
 
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState(0);
+
   const [ready, setReady] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
 
   const PLAY_DURATION = config.timeLimit ?? 15;
-  const FADE_DURATION = 0.75;
-  console.log("PlayTab - Config:", config);
-  console.log("PlayTab - PLAY_DURATION:", PLAY_DURATION);
+  const FADE_DURATION = 0.8;
 
-  useEffect(() => {
-    console.log("PlayTab - Received Config:", config);
-  }, [config]);
+  useEffect(() => {}, [config]);
 
   const cleanupWaveSurfer = useCallback(() => {
     if (fadeIntervalRef.current) {
@@ -124,9 +121,12 @@ export default function PlayTab({ songs, config, onCancel }) {
     // Fade in
     fadeVolume(0, 1, FADE_DURATION, () => {
       // Then wait the remainder of PLAY_DURATION to fade out
-      playTimeoutRef.current = setTimeout(() => {
-        fadeVolume(1, 0, FADE_DURATION, handleNextSong);
-      }, (PLAY_DURATION - FADE_DURATION) * 1000);
+      playTimeoutRef.current = setTimeout(
+        () => {
+          fadeVolume(1, 0, FADE_DURATION, handleNextSong);
+        },
+        (PLAY_DURATION - FADE_DURATION) * 1000,
+      );
     });
   }, [fadeVolume, FADE_DURATION, PLAY_DURATION, handleNextSong]);
 
@@ -161,8 +161,7 @@ export default function PlayTab({ songs, config, onCancel }) {
       const randomStart = Math.random() * maxStart;
       ws.seekTo(randomStart / dur);
 
-      ws
-        .play()
+      ws.play()
         .then(() => {
           startPlaybackWithFade();
         })
@@ -220,7 +219,7 @@ export default function PlayTab({ songs, config, onCancel }) {
   useEffect(() => {
     if (listRef.current && currentIndex >= 0) {
       const listItem = listRef.current.querySelector(
-        `[data-idx="${currentIndex}"]`
+        `[data-idx="${currentIndex}"]`,
       );
       if (listItem) {
         listItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -245,8 +244,7 @@ export default function PlayTab({ songs, config, onCancel }) {
   };
 
   // Calculate progress for LinearProgress (0 -> 100)
-  const progressValue =
-    timeLeft > 0 ? (timeLeft / PLAY_DURATION) * 100 : 0;
+  const progressValue = timeLeft > 0 ? (timeLeft / PLAY_DURATION) * 100 : 0;
 
   return (
     <Box
@@ -277,6 +275,11 @@ export default function PlayTab({ songs, config, onCancel }) {
       >
         Now Playing
       </Typography>
+      {duration > 0 && (
+        <Typography variant="body2">
+          Full Track Length: {Math.round(duration)}s
+        </Typography>
+      )}
       {songs.length === 0 ? (
         <Typography>No songs. Adjust configuration and try again.</Typography>
       ) : (
@@ -294,10 +297,8 @@ export default function PlayTab({ songs, config, onCancel }) {
           >
             <List>
               {songs.map((song, idx) => {
-                const title =
-                  song.Title || song.SongTitle || "Unknown Title";
-                const artist =
-                  song.ArtistMaster || "Unknown Artist";
+                const title = song.Title || song.SongTitle || "Unknown Title";
+                const artist = song.ArtistMaster || "Unknown Artist";
                 const meta = renderMetadata(song);
                 const isCurrent = idx === currentIndex;
                 return (
@@ -328,7 +329,7 @@ export default function PlayTab({ songs, config, onCancel }) {
                           </Typography>
                           {meta && (
                             <Typography
-                              component="div"
+                              component="span"
                               variant="caption"
                               sx={{
                                 color: "var(--foreground)",
