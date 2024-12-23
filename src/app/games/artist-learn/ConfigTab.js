@@ -1,7 +1,3 @@
-//--------
-//src/app/games/artist-learn/ConfigTab.js
-//--------
-
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
@@ -21,22 +17,18 @@ import { fetchFilteredSongs } from "@/utils/dataFetching";
 import styles from "../styles.module.css";
 
 export default function ConfigTab({ onSongsFetched }) {
-  const { config, updateConfig, isDisabled } = useConfig("artistQuiz");
+  const { config, updateConfig, isDisabled } = useConfig("artistLearn");
   const [primaryStyles, setPrimaryStyles] = useState([]);
   const [artistOptions, setArtistOptions] = useState([]);
   const [selectedArtists, setSelectedArtists] = useState([]);
   const [configChanged, setConfigChanged] = useState(false);
   const [validationMessage, setValidationMessage] = useState("");
-
   const isMountedRef = useRef(false);
+  const levelsDisabled = selectedArtists.length > 0;
 
-  /**
-   * Use useCallback so validateInputs won't get a new reference
-   * every render, preventing the effect from re-triggering unnecessarily.
-   */
   const validateInputs = useCallback(() => {
     const numSongs = config.numSongs ?? 10;
-    if (numSongs < 3 || numSongs > 15) {
+    if (numSongs < 3 || numSongs > 25) {
       return "Number of Songs must be between 3 and 15.";
     }
 
@@ -71,17 +63,29 @@ export default function ConfigTab({ onSongsFetched }) {
     selectedArtists,
   ]);
 
+  // ---- Generate dynamic marks for Sliders ----
+  const numSongsMarks = Array.from({ length: 13 }, (_, i) => {
+    const val = i + 3; // 3..15
+    return { value: val, label: String(val) };
+  });
+
+  const timeLimitMarks = Array.from({ length: 13 }, (_, i) => {
+    const val = i + 3; // 3..15
+    return { value: val, label: String(val) };
+  });
+
+  // ---- Fetch data only once on mount ----
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     isMountedRef.current = true;
+
     (async () => {
       try {
-        // Fetch style data once on mount
         const styleData = await fetch("/songData/StyleMaster.json").then(
           (res) => res.json(),
         );
         if (isMountedRef.current) {
           setPrimaryStyles(styleData.primaryStyles || []);
-          // Only set default style if needed
           if (!config.styles || Object.keys(config.styles).length === 0) {
             updateConfig("styles", { Tango: true });
             setConfigChanged(true);
@@ -94,25 +98,31 @@ export default function ConfigTab({ onSongsFetched }) {
 
     (async () => {
       try {
-        // Fetch artist data once on mount
         const artistData = await fetch("/songData/ArtistMaster.json").then(
           (res) => res.json(),
         );
         const activeArtists = artistData
           .filter((artist) => artist.active === "true")
           .sort((a, b) => {
+            // Convert level to a number
             const levelA = parseInt(a.level, 10);
             const levelB = parseInt(b.level, 10);
-            if (levelA !== levelB) return levelA - levelB;
+
+            // Sort by level first
+            if (levelA !== levelB) {
+              return levelA - levelB;
+            }
+
+            // If levels are equal, sort alphabetically by artist name
             return a.artist.localeCompare(b.artist);
           })
           .map((artist) => ({
             label: `${artist.artist} (Level ${artist.level})`,
             value: artist.artist,
           }));
+
         if (isMountedRef.current) {
           setArtistOptions(activeArtists);
-          // Validate once after data loaded
           const initialValidation = validateInputs();
           if (initialValidation) {
             setValidationMessage(initialValidation);
@@ -126,12 +136,53 @@ export default function ConfigTab({ onSongsFetched }) {
     return () => {
       isMountedRef.current = false;
     };
-    // Remove config.styles from dependencies if not needed
-  }, [validateInputs, updateConfig]);
+  }, []); // <--- empty dependency to run only once
 
   const markConfigChanged = () => {
     setConfigChanged(true);
   };
+
+  const handleNumSongsChange = (value) => {
+    updateConfig("numSongs", value);
+    console.log("numSongs changed to", value);
+    markConfigChanged();
+  };
+
+  const handleTimeLimitChange = (value) => {
+    updateConfig("timeLimit", value);
+    console.log("timeLimit changed to", value);
+    markConfigChanged();
+  };
+
+  // Use onChangeCommitted so we don’t spam requests on every thumb move
+  // (If you *must* use onChange, you’d likely add a debounce.)
+  const renderNumSongsSlider = () => (
+    <Slider
+      value={config.numSongs ?? 10}
+      min={3}
+      max={15}
+      step={1}
+      onChangeCommitted={(event, value) => handleNumSongsChange(value)}
+      disabled={isDisabled}
+      marks={numSongsMarks}
+      valueLabelDisplay="on"
+      sx={{ color: "var(--foreground)" }}
+    />
+  );
+
+  const renderTimeLimitSlider = () => (
+    <Slider
+      value={config.timeLimit ?? 15}
+      min={3}
+      max={15}
+      step={1}
+      onChangeCommitted={(event, value) => handleTimeLimitChange(value)}
+      disabled={isDisabled}
+      marks={timeLimitMarks}
+      valueLabelDisplay="on"
+      sx={{ color: "var(--foreground)" }}
+    />
+  );
 
   const handleLevelChange = (level, checked) => {
     if (selectedArtists.length > 0) {
@@ -148,6 +199,7 @@ export default function ConfigTab({ onSongsFetched }) {
       newLevels = newLevels.filter((l) => l !== level);
     }
     updateConfig("levels", newLevels);
+
     markConfigChanged();
   };
 
@@ -159,16 +211,6 @@ export default function ConfigTab({ onSongsFetched }) {
     markConfigChanged();
   };
 
-  const handleNumSongsChange = (event, value) => {
-    updateConfig("numSongs", value);
-    markConfigChanged();
-  };
-
-  const handleTimeLimitChange = (event, value) => {
-    updateConfig("timeLimit", value);
-    markConfigChanged();
-  };
-
   const handleArtistsChange = (event, values) => {
     if (values.length > 0 && (config.levels || []).length > 0) {
       updateConfig("levels", []);
@@ -177,8 +219,7 @@ export default function ConfigTab({ onSongsFetched }) {
     setSelectedArtists(values);
     markConfigChanged();
   };
-
-  // Only fetch songs if config changed and validated
+  // ---- Only fetch songs if config changed & validated ----
   useEffect(() => {
     if (!configChanged) return;
     let mounted = true;
@@ -230,8 +271,6 @@ export default function ConfigTab({ onSongsFetched }) {
     };
   }, [configChanged, validateInputs, config, selectedArtists, onSongsFetched]);
 
-  const levelsDisabled = selectedArtists.length > 0;
-
   return (
     <Box className={styles.configurationContainer}>
       {validationMessage && (
@@ -239,10 +278,6 @@ export default function ConfigTab({ onSongsFetched }) {
           {validationMessage}
         </FormHelperText>
       )}
-      <Typography variant="h6" className={styles.title} sx={{ mb: 2 }}>
-        Configuration:
-      </Typography>
-
       <Box
         sx={{
           display: "flex",
@@ -259,16 +294,7 @@ export default function ConfigTab({ onSongsFetched }) {
           >
             Number of Songs
           </Typography>
-          <Slider
-            value={config.numSongs ?? 10}
-            onChange={handleNumSongsChange}
-            step={1}
-            min={3}
-            max={15}
-            disabled={isDisabled}
-            valueLabelDisplay="auto"
-            sx={{ color: "var(--foreground)" }}
-          />
+          {renderNumSongsSlider()}
         </Box>
 
         <Box sx={{ flex: 1 }}>
@@ -278,19 +304,9 @@ export default function ConfigTab({ onSongsFetched }) {
           >
             Time Limit (Seconds)
           </Typography>
-          <Slider
-            value={config.timeLimit ?? 15}
-            onChange={handleTimeLimitChange}
-            step={1}
-            min={3}
-            max={15}
-            disabled={isDisabled}
-            valueLabelDisplay="auto"
-            sx={{ color: "var(--foreground)" }}
-          />
+          {renderTimeLimitSlider()}
         </Box>
       </Box>
-
       <Box
         className={styles.optionsContainer}
         sx={{ display: "flex", gap: 4, mb: 3 }}

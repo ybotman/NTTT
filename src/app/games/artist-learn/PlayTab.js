@@ -24,14 +24,14 @@ export default function PlayTab({ songs, config, onCancel }) {
 
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
-
+  const [duration, setDuration] = useState(0);
   const [ready, setReady] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
 
-  const setDuration = useState(0);
+
   const PLAY_DURATION = config.timeLimit ?? 15;
   const FADE_DURATION = 0.75;
-  
+  console.log("Config:", config);
 
   const cleanupWaveSurfer = useCallback(() => {
     if (fadeIntervalRef.current) {
@@ -262,7 +262,6 @@ export default function PlayTab({ songs, config, onCancel }) {
           />
         </Box>
       )}
-
       <Typography
         variant="h5"
         className={styles.h5}

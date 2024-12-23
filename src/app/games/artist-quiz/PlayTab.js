@@ -351,7 +351,6 @@ export default function PlayTab({ songs, config, onCancel }) {
               );
             })}
           </List>
-
           {roundOver && (
             <Box sx={{ mt: 3, textAlign: "center" }}>
               <Typography variant="h5" gutterBottom>
@@ -388,7 +387,6 @@ export default function PlayTab({ songs, config, onCancel }) {
           )}
         </>
       )}
-
       {/* Snackbar for correct answer or time-out message */}
       <Snackbar
         open={openSnackbar}

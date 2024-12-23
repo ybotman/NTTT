@@ -4,18 +4,18 @@
 
 "use client";
 import Image from "next/image"; //
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Typography, Button } from "@mui/material";
 import { useTheme } from "@/layout"; // Access dark mode state & toggle
 import styles from "../styles.module.css";
 import ConfigTab from "./ConfigTab";
 import PlayTab from "./PlayTab";
-import useConfig from "./useConfig";
+import useConfig from "@/hooks/useConfig";
 import { useRouter } from "next/navigation"; // Import useRouter for navigation
 
 export default function ArtistLearnPage() {
   const [songs, setSongs] = useState([]);
-  const { config } = useConfig("artistQuiz");
+  const { config } = useConfig("artistLearn"); // Ensure this matches ConfigTab
   const [showPlayTab, setShowPlayTab] = useState(false);
 
   const { theme, toggleTheme } = useTheme(); // Get current theme and toggle
@@ -42,6 +42,11 @@ export default function ArtistLearnPage() {
   const handleGameHubClick = () => {
     router.push("/games/gamehub");
   };
+
+  // **Add this useEffect to log config changes**
+  useEffect(() => {
+    console.log("ArtistLearnPage - Config Updated:", config);
+  }, [config]);
 
   return (
     <Box
@@ -176,7 +181,9 @@ export default function ArtistLearnPage() {
             onMouseOver={(e) =>
               (e.currentTarget.style.transform = "scale(1.05)")
             }
-            onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} // Reset on mouse out
+            onMouseOut={(e) =>
+              (e.currentTarget.style.transform = "scale(1)")
+            } // Reset on mouse out
           />
 
           <Typography
@@ -206,7 +213,7 @@ export default function ArtistLearnPage() {
             color: "var(--foreground)",
           }}
         >
-         Mastering Orchestras and Miestros
+          Mastering Orchestras and Miestros
         </Typography>
       </Box>
 

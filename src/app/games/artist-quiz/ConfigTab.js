@@ -1,10 +1,6 @@
-//--------
-//src/app/games/artist-quiz/ConfigTab.js
-//--------
-
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   Box,
   FormControlLabel,
@@ -31,13 +27,10 @@ export default function ConfigTab({ onSongsFetched }) {
   const isMountedRef = useRef(false);
 
   /**
-   * Validate inputs for:
-   * 1) 3 <= numSongs <= 15
-   * 2) 3 <= timeLimit <= 15
-   * 3) At least 1 style selected
-   * 4) EITHER (levels.length > 0) OR (selectedArtists.length >= 3)
+   * Wrap validateInputs in useCallback to avoid re-creating every render.
+   * Adjust dependencies to match fields used inside.
    */
-  const validateInputs = () => {
+  const validateInputs = useCallback(() => {
     const numSongs = config.numSongs ?? 10;
     if (numSongs < 3 || numSongs > 15) {
       return "Number of Songs must be between 3 and 15.";
@@ -56,7 +49,6 @@ export default function ConfigTab({ onSongsFetched }) {
       return "At least one style must be selected.";
     }
 
-    // New requirement:
     // Must have EITHER some levels selected OR >= 3 artists
     const levelsCount = (config.levels || []).length;
     const artistsCount = selectedArtists.length;
@@ -64,20 +56,18 @@ export default function ConfigTab({ onSongsFetched }) {
       return "Select either a level or at least 3 artists.";
     }
 
-    // If they have BOTH (≥ 1 level) AND (≥ 3 artists),
-    // we can either forbid that or allow it.
-    // If you want to disallow both at once, uncomment next lines:
-    /*
-    if (levelsCount > 0 && artistsCount >= 3) {
-      return "Cannot select both levels and ≥3 artists. Clear one or adjust your selection.";
-    }
-    */
-
     return "";
-  };
+  }, [
+    config.numSongs,
+    config.timeLimit,
+    config.styles,
+    config.levels,
+    selectedArtists,
+  ]);
 
   useEffect(() => {
     isMountedRef.current = true;
+
     // Fetch style data
     (async () => {
       try {
@@ -130,17 +120,16 @@ export default function ConfigTab({ onSongsFetched }) {
     return () => {
       isMountedRef.current = false;
     };
+    // Disabling exhaust-deps here since we only want this to run on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [validateInputs, updateConfig]);
 
   const markConfigChanged = () => {
     setConfigChanged(true);
   };
 
   const handleLevelChange = (level, checked) => {
-    // If we want to disallow mixing levels with any artists,
-    // (not required by new rule, but previously it was)
-    // keep or remove next lines:
+    // Optional logic to disallow levels + artists together
     if (selectedArtists.length > 0) {
       setValidationMessage(
         "Levels not available when artists are selected. Clear artists first.",
@@ -177,8 +166,7 @@ export default function ConfigTab({ onSongsFetched }) {
   };
 
   const handleArtistsChange = (event, values) => {
-    // If we want to disallow mixing levels with any artists,
-    // keep next lines, else remove them:
+    // Optional logic: Clear levels if user picks artists
     if (values.length > 0 && (config.levels || []).length > 0) {
       updateConfig("levels", []);
       setValidationMessage("Clearing levels because artists are selected.");
@@ -242,13 +230,20 @@ export default function ConfigTab({ onSongsFetched }) {
 
   return (
     <Box className={styles.configurationContainer}>
+      {/* Show any validation errors */}
       {validationMessage && (
         <FormHelperText className={styles.validationError}>
           {validationMessage}
         </FormHelperText>
       )}
 
-      <Typography variant="h6" className={styles.title} sx={{ mb: 2 }}>
+      {/* Use component="div" to avoid <p> wrapping nested blocks */}
+      <Typography
+        component="div"
+        variant="h6"
+        className={styles.title}
+        sx={{ mb: 2 }}
+      >
         Configuration:
       </Typography>
 
@@ -264,9 +259,10 @@ export default function ConfigTab({ onSongsFetched }) {
         <Box sx={{ flex: 1 }}>
           <Typography
             variant="body1"
+            component="div"
             sx={{ color: "var(--foreground)", mb: 1 }}
           >
-            Number of Songs
+            Number of Songs (Selected: {config.numSongs ?? 10})
           </Typography>
           <Slider
             value={config.numSongs ?? 10}
@@ -283,9 +279,10 @@ export default function ConfigTab({ onSongsFetched }) {
         <Box sx={{ flex: 1 }}>
           <Typography
             variant="body1"
+            component="div"
             sx={{ color: "var(--foreground)", mb: 1, textAlign: "right" }}
           >
-            Time Limit (Seconds)
+            Time Limit (Seconds) (Selected: {config.timeLimit ?? 15})
           </Typography>
           <Slider
             value={config.timeLimit ?? 15}
@@ -305,7 +302,11 @@ export default function ConfigTab({ onSongsFetched }) {
         sx={{ display: "flex", gap: 4, mb: 3 }}
       >
         <Box>
-          <Typography variant="body1" className={styles.optionLabel}>
+          <Typography
+            variant="body1"
+            component="div"
+            className={styles.optionLabel}
+          >
             Levels:
           </Typography>
           {[1, 2, 3, 4, 5].map((level) => (
@@ -330,7 +331,11 @@ export default function ConfigTab({ onSongsFetched }) {
         </Box>
 
         <Box>
-          <Typography variant="body1" className={styles.optionLabel}>
+          <Typography
+            variant="body1"
+            component="div"
+            className={styles.optionLabel}
+          >
             Styles:
           </Typography>
           {primaryStyles.map((styleObj) => {
@@ -355,8 +360,12 @@ export default function ConfigTab({ onSongsFetched }) {
         </Box>
       </Box>
 
-      <Typography variant="body1" sx={{ color: "var(--foreground)", mb: 1 }}>
-        Select Artists (Optional):
+      <Typography
+        variant="body1"
+        component="div"
+        sx={{ color: "var(--foreground)", mb: 1 }}
+      >
+        Select Artists (Optional)
       </Typography>
       <Autocomplete
         multiple
@@ -388,7 +397,6 @@ export default function ConfigTab({ onSongsFetched }) {
         }}
       />
 
-      {/* If user tries to pick both levels + many artists, optionally block or not */}
       {(config.levels || []).length > 0 && selectedArtists.length >= 3 && (
         <FormHelperText className={styles.errorText}>
           Levels are selected and you have 3 or more artists. Please clear one
