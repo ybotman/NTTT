@@ -1,24 +1,27 @@
-//--------
-//useConfig.js (Hook)
-//--------
-
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
 
-export default function useConfig(gameName) {
-  // Remove or limit console logging to prevent spam:
-  // console.log("hooks/useConfig", gameName);
+export default function useConfigTab(gameName) {
+  console.log("@/hooks/useConfigTab gameName", gameName);
 
-  const defaultConfig = {
-    numSongs: 10,
-    timeLimit: 15,
-    levels: [1, 2],
-    styles: { Tango: true, Vals: false, Milonga: false },
-  };
+  // 1) Wrap defaultConfig in useMemo to avoid re-creation each render
+  const defaultConfig = useMemo(
+    () => ({
+      numSongs: 10,
+      timeLimit: 15,
+      levels: [1, 2],
+      styles: { Tango: true, Vals: false, Milonga: false },
+    }),
+    [],
+  );
 
   const [config, setConfig] = useState(defaultConfig);
-  const [isDisabled, setIsDisabled] = useState(false);
+
+  // 2) If 'isDisabled' isn’t used anywhere, remove or comment out:
+  //    If you do intend to use it, keep it but handle it somewhere.
+  // const [isDisabled, setIsDisabled] = useState(false);
+  const isDisabled = false; // or remove entirely
 
   const didLoadRef = useRef(false);
 
@@ -51,7 +54,6 @@ export default function useConfig(gameName) {
   }, [gameName, defaultConfig]);
 
   const updateConfig = (key, value) => {
-    // Consolidate updates in one function
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -67,6 +69,6 @@ export default function useConfig(gameName) {
   return { config, updateConfig, isDisabled };
 }
 
-useConfig.propTypes = {
+useConfigTab.propTypes = {
   gameName: PropTypes.string,
 };

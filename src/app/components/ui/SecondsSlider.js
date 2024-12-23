@@ -50,7 +50,7 @@ SecondsSlider.propTypes = {
 SecondsSlider.defaultProps = {
   label: "Time Limit (Seconds)",
   min: 3,
-  max: 15,
+  max: 30,
   step: 1,
   disabled: false,
 };

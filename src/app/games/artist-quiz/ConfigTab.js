@@ -37,8 +37,8 @@ export default function ConfigTab({ onSongsFetched }) {
     }
 
     const timeLimit = config.timeLimit ?? 15;
-    if (timeLimit < 3 || timeLimit > 15) {
-      return "Time Limit must be between 3 and 15 seconds.";
+    if (timeLimit < 3 || timeLimit > 30) {
+      return "Time Limit must be between 3 and 30 seconds.";
     }
 
     // 1 style needed

@@ -6,11 +6,10 @@ import Grid from "@mui/material/Grid2"; // Import Grid2
 import Link from "next/link";
 import { AuthContext } from "@/contexts/AuthContext";
 import { auth, signInAnonymously, signOut } from "@/utils/firebase";
-import { useTheme } from "@/layout";
+
 
 export default function GameHubPage() {
   const { user, loadingUser } = useContext(AuthContext);
-  const { theme, toggleTheme } = useTheme();
 
   const handleLogin = async () => {
     await signInAnonymously(auth);
