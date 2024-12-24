@@ -89,15 +89,6 @@ export default function GameHubPage() {
           color: "white",
         }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h4">Game Hub</Typography>
-          <Button
-            variant="outlined"
-            sx={{ color: "white", borderColor: "white" }}
-          >
-            Settings
-          </Button>
-        </Box>
         {!loadingUser &&
           (user ? (
             <Typography
