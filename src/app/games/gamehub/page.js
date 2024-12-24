@@ -1,7 +1,7 @@
 "use client";
 import React, { useContext } from "react";
 import Image from "next/image";
-import { Box, Typography, Paper, Button } from "@mui/material";
+import { Box, Typography, Paper } from "@mui/material";
 import Grid from "@mui/material/Grid2"; // Import Grid2
 import Link from "next/link";
 import { AuthContext } from "@/contexts/AuthContext";
