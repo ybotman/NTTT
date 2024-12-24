@@ -2,9 +2,8 @@
 
 const nextConfig = {
   basePath: '/NTTT',   // <-- Add this
-  // If you're using next export, also consider:
-  //   output: 'export',
-  //   trailingSlash: true,
+  output: 'export',  // IMPORTANT for a static export build
+  trailingSlash: true // often helpful for GH Pages
 };
 
 export default nextConfig;
