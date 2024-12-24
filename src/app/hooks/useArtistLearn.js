@@ -11,17 +11,14 @@ export default function useArtistLearn(onSongsFetched) {
   const { config, updateConfig, isDisabled } = useConfigTab("artistLearn");
   const [primaryStyles, setPrimaryStyles] = useState([]);
   const [artistOptions, setArtistOptions] = useState([]);
-  // local mirror or optional
   const [selectedArtists, setSelectedArtists] = useState(config.artists || []);
   const [validationMessage, setValidationMessage] = useState("");
 
   const isMountedRef = useRef(false);
   const [configChanged, setConfigChanged] = useState(false);
 
-  // If user selects artists, we might want to disable levels
   const levelsDisabled = selectedArtists.length > 0;
 
-  // Validate
   const validateInputs = useCallback(() => {
     const numSongs = config.numSongs ?? 10;
     if (numSongs < 3 || numSongs > 25)
@@ -38,7 +35,7 @@ export default function useArtistLearn(onSongsFetched) {
       return "At least one style must be selected.";
 
     const hasLevels = (config.levels || []).length > 0;
-    const hasArtists = (config.artists || []).length > 0; // or selectedArtists
+    const hasArtists = (config.artists || []).length > 0;
     if (!hasLevels && !hasArtists) {
       return "You must select at least one Artist or at least one Level.";
     }
@@ -54,11 +51,9 @@ export default function useArtistLearn(onSongsFetched) {
     config.artists,
   ]);
 
-  // 4) Fetch data once on mount (StyleMaster & ArtistMaster)
   useEffect(() => {
     isMountedRef.current = true;
 
-    // fetch style data
     (async () => {
       try {
         const styleData = await fetch("/songData/StyleMaster.json").then(
@@ -76,7 +71,6 @@ export default function useArtistLearn(onSongsFetched) {
       }
     })();
 
-    // fetch artist data
     (async () => {
       try {
         const artistData = await fetch("/songData/ArtistMaster.json").then(
@@ -87,8 +81,9 @@ export default function useArtistLearn(onSongsFetched) {
           .sort((a, b) => {
             const levelA = parseInt(a.level, 10);
             const levelB = parseInt(b.level, 10);
-            if (levelA !== levelB) return levelA - levelB;
-            return a.artist.localeCompare(b.artist);
+            return levelA !== levelB
+              ? levelA - levelB
+              : a.artist.localeCompare(b.artist);
           })
           .map((artist) => ({
             label: `${artist.artist} (Level ${artist.level})`,
@@ -110,70 +105,19 @@ export default function useArtistLearn(onSongsFetched) {
     return () => {
       isMountedRef.current = false;
     };
-  }, []); //[config.styles, updateConfig, validateInputs]);
-  // or do an empty array and disable the ESLint rule
+  }, [config.styles, updateConfig, validateInputs]);
 
-  // 5) Mark config changed => triggers re-fetch if valid
-  const markConfigChanged = () => {
-    setConfigChanged(true);
-    console.log("Config changed:", config);
-  };
-
-  // 6) Handlers for the UI to call
-  const handleNumSongsChange = (value) => {
-    updateConfig("numSongs", value);
-    console.log("-->numSongs changed to", value);
-    markConfigChanged();
-  };
-  const handleTimeLimitChange = (value) => {
-    updateConfig("timeLimit", value);
-    console.log("-->timeLimit changed to", value);
-    markConfigChanged();
-  };
-  const handleLevelsChange = (newLevels) => {
-    // same logic as in your code
-    if (selectedArtists.length > 0 && newLevels.length > 0) {
-      setValidationMessage(
-        "Levels not available when artists are selected. Clear artists first.",
-      );
-      return;
-    }
-    updateConfig("levels", newLevels);
-    console.log("-->levels changed to", newLevels);
-    markConfigChanged();
-  };
-  const handleStylesChange = (updatedStylesObj) => {
-    updateConfig("styles", updatedStylesObj);
-    console.log("-->styles changed to", updatedStylesObj);
-    markConfigChanged();
-  };
-  const handleArtistsChange = (newSelected) => {
-    // Clear levels if artists are selected
-    if (newSelected.length > 0 && (config.levels || []).length > 0) {
-      updateConfig("levels", []);
-      setValidationMessage("Clearing levels because artists are selected.");
-    }
-    setSelectedArtists(newSelected);
-
-    // Also store in config for consistency
-    updateConfig("artists", newSelected);
-
-    markConfigChanged();
-  };
-
-  // 7) Re-fetch songs if config changed & validated
   useEffect(() => {
     if (!configChanged) return;
-    let mounted = true;
 
+    let mounted = true;
     const validationErr = validateInputs();
     if (validationErr) {
       setValidationMessage(validationErr);
       setConfigChanged(false);
       return;
-    } else {
-      setValidationMessage("");
     }
+    setValidationMessage("");
 
     const fetchSongsData = async () => {
       const numSongs = config.numSongs ?? 10;
@@ -212,24 +156,44 @@ export default function useArtistLearn(onSongsFetched) {
     };
   }, [configChanged, validateInputs, config, selectedArtists, onSongsFetched]);
 
-  // 8) Return everything your UI needs
   return {
-    // from useConfigTab
     config,
     isDisabled,
-
-    // local states
     primaryStyles,
     artistOptions,
     selectedArtists,
     validationMessage,
     levelsDisabled,
-
-    // handlers
-    handleNumSongsChange,
-    handleTimeLimitChange,
-    handleLevelsChange,
-    handleStylesChange,
-    handleArtistsChange,
+    handleNumSongsChange: (value) => {
+      updateConfig("numSongs", value);
+      setConfigChanged(true);
+    },
+    handleTimeLimitChange: (value) => {
+      updateConfig("timeLimit", value);
+      setConfigChanged(true);
+    },
+    handleLevelsChange: (newLevels) => {
+      if (selectedArtists.length > 0 && newLevels.length > 0) {
+        setValidationMessage(
+          "Levels not available when artists are selected. Clear artists first.",
+        );
+        return;
+      }
+      updateConfig("levels", newLevels);
+      setConfigChanged(true);
+    },
+    handleStylesChange: (updatedStylesObj) => {
+      updateConfig("styles", updatedStylesObj);
+      setConfigChanged(true);
+    },
+    handleArtistsChange: (newSelected) => {
+      if (newSelected.length > 0 && (config.levels || []).length > 0) {
+        updateConfig("levels", []);
+        setValidationMessage("Clearing levels because artists are selected.");
+      }
+      setSelectedArtists(newSelected);
+      updateConfig("artists", newSelected);
+      setConfigChanged(true);
+    },
   };
 }
