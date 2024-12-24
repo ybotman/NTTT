@@ -18,7 +18,8 @@ module.exports = {
   },
   rules: {
     // "react-hooks/exhaustive-deps": "off",
-    //  "no-undef": "off",
-    //  "no-unused-vars": "off",
+    "no-undef": "off",
+    "no-unused-vars": "off",
+    "react-hooks/exhaustive-deps": "off",
   },
 };
