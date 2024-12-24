@@ -13,11 +13,10 @@ export default function useArtistLearn(onSongsFetched) {
   const [artistOptions, setArtistOptions] = useState([]);
   const [selectedArtists, setSelectedArtists] = useState(config.artists || []);
   const [validationMessage, setValidationMessage] = useState("");
-
   const isMountedRef = useRef(false);
   const [configChanged, setConfigChanged] = useState(false);
-
   const levelsDisabled = selectedArtists.length > 0;
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
   const validateInputs = useCallback(() => {
     const numSongs = config.numSongs ?? 10;
@@ -56,9 +55,9 @@ export default function useArtistLearn(onSongsFetched) {
 
     (async () => {
       try {
-        const styleData = await fetch("/songData/StyleMaster.json").then(
-          (res) => res.json(),
-        );
+        const styleData = await fetch(
+          `${basePath}/songData/StyleMaster.json`,
+        ).then((res) => res.json());
         if (isMountedRef.current) {
           setPrimaryStyles(styleData.primaryStyles || []);
           if (!config.styles || Object.keys(config.styles).length === 0) {
@@ -73,9 +72,11 @@ export default function useArtistLearn(onSongsFetched) {
 
     (async () => {
       try {
-        const artistData = await fetch("/songData/ArtistMaster.json").then(
-          (res) => res.json(),
-        );
+        const artistData = await fetch(
+          `${basePath}/songData/ArtistMaster.json`,
+        ).then((res) => res.json());
+        console.log("ArtistMaster await path:", `${basePath}/songData/ArtistMaster.json`, "returns qty: ", artistData.length);
+        
         const activeArtists = artistData
           .filter((artist) => artist.active === "true")
           .sort((a, b) => {
@@ -154,7 +155,8 @@ export default function useArtistLearn(onSongsFetched) {
     return () => {
       mounted = false;
     };
-  }, [configChanged, validateInputs, config, selectedArtists, onSongsFetched]);
+  //}, []);
+     }, [configChanged, validateInputs, config, selectedArtists, onSongsFetched]);
 
   return {
     config,

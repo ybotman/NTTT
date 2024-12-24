@@ -9,6 +9,7 @@ import { auth, signInAnonymously, signOut } from "@/utils/firebase";
 
 export default function GameHubPage() {
   const { user, loadingUser } = useContext(AuthContext);
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
   const handleLogin = async () => {
     await signInAnonymously(auth);
@@ -23,49 +24,49 @@ export default function GameHubPage() {
     {
       name: "Learn the Orchestra",
       path: "/games/artist-learn",
-      icon: "/icons/IconLearnOrch.webp",
+      icon: "icons/IconLearnOrch.webp",
       isActive: true,
     },
     {
       name: "Learn the Decade",
       path: "/games/decade-learn",
-      icon: "/icons/IconLearnDecade.webp",
+      icon: "icons/IconLearnDecade.webp",
       isActive: false,
     },
     {
       name: "Learn the Style",
       path: "/games/style-learn",
-      icon: "/icons/IconLearnStyles.webp",
+      icon: "icons/IconLearnStyles.webp",
       isActive: false,
     },
     {
       name: "Learn the Singer",
       path: "/games/style-learn",
-      icon: "/icons/IconLearnSinger.webp",
+      icon: "icons/IconLearnSinger.webp",
       isActive: false,
     },
     {
       name: "Orchestra Quiz",
       path: "/games/artist-quiz",
-      icon: "/icons/IconQuiz.webp",
+      icon: "icons/IconQuiz.webp",
       isActive: true,
     },
     {
       name: "Decade Quiz",
       path: "/games/decade-quiz",
-      icon: "/icons/IconLearn.webp",
+      icon: "icons/IconLearn.webp",
       isActive: false,
     },
     {
       name: "Style Quiz",
       path: "/games/style-quiz",
-      icon: "/icons/IconAlternative.webp",
+      icon: "icons/IconAlternative.webp",
       isActive: false,
     },
     {
       name: "Singer Quiz",
       path: "/games/singer-quiz",
-      icon: "/icons/IconSinger.webp",
+      icon: "icons/IconSinger.webp",
       isActive: false,
     },
   ];
@@ -146,7 +147,7 @@ export default function GameHubPage() {
                     }}
                   >
                     <Image
-                      src={`/${game.icon}`} // Dynamically use the icon path
+                      src={`${basePath}/${game.icon}`} // Dynamically use the icon path
                       alt={`${game.name} Icon`} // Dynamic alt text for better accessibility
                       fill
                       sizes="(max-width: 600px) 100vw,

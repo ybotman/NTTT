@@ -14,7 +14,6 @@ import SecondsSlider from "@/components/ui/SecondsSlider";
 import LevelsSelector from "@/components/ui/LevelsSelector";
 import StylesSelector from "@/components/ui/StylesSelector";
 import ArtistsSelector from "@/components/ui/ArtistsSelector";
-
 import useArtistLearn from "@/hooks/useArtistLearn";
 
 export default function ConfigTab({ onSongsFetched }) {
@@ -101,7 +100,7 @@ export default function ConfigTab({ onSongsFetched }) {
         </Box>
       </Box>
 
-      {/* Artists (Optional) */}
+      {/* Artists */}
       <ArtistsSelector
         label="Select Artists (Optional)"
         availableArtists={artistOptions}

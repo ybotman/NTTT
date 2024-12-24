@@ -1,12 +1,14 @@
 /** @type {import('next').NextConfig} */
 
+const isProd = process.env.NODE_ENV === "production";
+
 const nextConfig = {
-  basePath: "/NTTT", // <-- Add this
-  output: "export", // IMPORTANT for a static export build
-  trailingSlash: true, // often helpful for GH Pages
+  output: "export",
+  trailingSlash: true,
   images: {
     unoptimized: true,
   },
+  basePath: isProd ? "/NTTT" : "",
 };
 
 export default nextConfig;

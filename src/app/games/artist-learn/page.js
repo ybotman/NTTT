@@ -6,20 +6,18 @@
 import Image from "next/image"; //
 import React, { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
-//import { useTheme } from "@/layout"; // Access dark mode state & toggle
 import styles from "../styles.module.css";
 import ConfigTab from "./ConfigTab";
 import PlayTab from "./PlayTab";
 import useConfig from "@/hooks/useConfigTab";
-import { useRouter } from "next/navigation"; // Import useRouter for navigation
+import { useRouter } from "next/navigation";
 
 export default function ArtistLearnPage() {
   const [songs, setSongs] = useState([]);
-  const { config } = useConfig("artistLearn"); // Ensure this matches ConfigTab
+  const { config } = useConfig("artistLearn");
   const [showPlayTab, setShowPlayTab] = useState(false);
-
-  //const { theme, toggleTheme } = useTheme(); // Get current theme and toggle
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
   const handleSongsFetched = (fetchedSongs) => {
     setSongs(fetchedSongs);
@@ -95,7 +93,7 @@ export default function ArtistLearnPage() {
           onClick={handleGameHubClick} // Attach click handler
         >
           <Image
-            src="/icons/IconGameHub.jpg" // Updated icon path
+            src={`${basePath}/icons/IconGameHub.jpg`}
             alt="Game Hub"
             width={100} // Exact width
             height={100} // Exact height
@@ -142,7 +140,7 @@ export default function ArtistLearnPage() {
           }}
         >
           <Image
-            src="/IconLearnOrch.webp"
+            src={`${basePath}/icons/IconLearnOrch.webp`}
             alt="Play Button"
             onClick={handlePlayClick}
             layout="intrinsic" // Adjusted for intrinsic sizing
