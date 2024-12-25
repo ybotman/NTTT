@@ -2,17 +2,12 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import useConfigTab from "@/hooks/useConfigTab";
-import { fetchFilteredSongs } from "@/utils/dataFetching";
 import PropTypes from "prop-types";
 
-// This custom hook manages the specific logic for ArtistLearn:
-//  * It fetches style + artist data once
-//  * It provides validation logic for config
-//  * It no longer auto-fetches final songs -- that’s done on "Play" click
 export default function useArtistLearn() {
   const { config, updateConfig, isDisabled } = useConfigTab("artistLearn");
 
-  // Basic data from static .json
+  // Data from the static JSON
   const [primaryStyles, setPrimaryStyles] = useState([]);
   const [artistOptions, setArtistOptions] = useState([]);
   const [selectedArtists, setSelectedArtists] = useState(config.artists || []);
@@ -20,35 +15,39 @@ export default function useArtistLearn() {
   // Validation
   const [validationMessage, setValidationMessage] = useState("");
 
-  // For toggling if Levels should be disabled when Artists are chosen
+  // Toggling if Levels should be disabled when Artists are chosen
   const levelsDisabled = selectedArtists.length > 0;
 
-  // Refs
-  const isMountedRef = useRef(false);
+  // This ref ensures we only fetch data ONCE even if dev mode double-mounts
+  const hasFetchedDataRef = useRef(false);
+
+  useEffect(() => {
+    console.log(" - Current Config:", config);
+  }, [config]);
 
   // 1) Validate user’s config
   const validateInputs = useCallback(
-    (c) => {
-      const theConfig = c || config;
-      const numSongs = theConfig.numSongs ?? 10;
+    (theConfig) => {
+      const c = theConfig || config;
+      const numSongs = c.numSongs ?? 10;
       if (numSongs < 3 || numSongs > 25) {
         return "Number of Songs must be between 3 and 25.";
       }
 
-      const timeLimit = theConfig.timeLimit ?? 15;
+      const timeLimit = c.timeLimit ?? 15;
       if (timeLimit < 3 || timeLimit > 30) {
         return "Time Limit must be between 3 and 30 seconds.";
       }
 
-      const stylesSelected = Object.keys(theConfig.styles || {}).filter(
-        (k) => theConfig.styles[k],
+      const stylesSelected = Object.keys(c.styles || {}).filter(
+        (k) => c.styles[k],
       );
       if (stylesSelected.length === 0) {
         return "At least one style must be selected.";
       }
 
-      const hasLevels = (theConfig.levels || []).length > 0;
-      const hasArtists = (theConfig.artists || []).length > 0;
+      const hasLevels = (c.levels || []).length > 0;
+      const hasArtists = (c.artists || []).length > 0;
 
       if (!hasLevels && !hasArtists) {
         return "You must select at least one Artist or one Level.";
@@ -61,38 +60,39 @@ export default function useArtistLearn() {
     [config],
   );
 
-  // 2) On first mount, fetch style + artist data from local .json
+  // 2) Single-time fetch of StyleMaster and ArtistMaster
   useEffect(() => {
-    isMountedRef.current = true;
+    // if we already fetched, skip
+    if (hasFetchedDataRef.current) return;
+
+    // Mark that we've fetched so we don't do it again
+    hasFetchedDataRef.current = true;
 
     // ----- Fetch Styles
-    (async () => {
+    const fetchStyles = async () => {
       try {
+        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
         const styleData = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/songData/StyleMaster.json`,
+          `${basePath}/songData/StyleMaster.json`,
         ).then((res) => res.json());
+        setPrimaryStyles(styleData.primaryStyles || []);
 
-        if (isMountedRef.current) {
-          setPrimaryStyles(styleData.primaryStyles || []);
-          // If user’s config styles is empty, set default "Tango"
-          if (!config.styles || Object.keys(config.styles).length === 0) {
-            updateConfig("styles", { Tango: true });
-          }
+        // If user’s config.styles is empty, set default "Tango"
+        if (!config.styles || Object.keys(config.styles).length === 0) {
+          updateConfig("styles", { Tango: true });
         }
       } catch (err) {
         console.error("Error fetching StyleMaster.json:", err);
       }
-    })();
+    };
 
     // ----- Fetch Artist Master
-    (async () => {
+    const fetchArtists = async () => {
       try {
+        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
         const artistData = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/songData/ArtistMaster.json`,
+          `${basePath}/songData/ArtistMaster.json`,
         ).then((res) => res.json());
-
-        console.log("ArtistMaster fetched, total length:", artistData.length);
-
         const activeArtists = artistData
           .filter((artist) => artist.active === "true")
           .sort((a, b) => {
@@ -107,31 +107,31 @@ export default function useArtistLearn() {
             value: artist.artist,
           }));
 
-        if (isMountedRef.current) {
-          setArtistOptions(activeArtists);
-        }
+        setArtistOptions(activeArtists);
       } catch (err) {
         console.error("Error fetching ArtistMaster.json:", err);
       }
-    })();
-
-    return () => {
-      isMountedRef.current = false;
     };
+
+    // Kick off both fetches
+    fetchStyles();
+    fetchArtists();
   }, [config.styles, updateConfig]);
 
-  // 3) Watch config changes and re-validate
+  // 3) Revalidate config on every change
   useEffect(() => {
     const error = validateInputs(config);
     setValidationMessage(error);
   }, [config, validateInputs]);
 
-  // 4) Handlers to update config state
+  // 4) Handlers to update config
   const handleNumSongsChange = (value) => {
+    updateConfig("numSongs", value);
     updateConfig("numSongs", value);
   };
 
   const handleTimeLimitChange = (value) => {
+    updateConfig("timeLimit", value);
     updateConfig("timeLimit", value);
   };
 
@@ -179,5 +179,5 @@ export default function useArtistLearn() {
 }
 
 useArtistLearn.propTypes = {
-  // no props needed, it uses useConfigTab internally
+  // no external props needed
 };

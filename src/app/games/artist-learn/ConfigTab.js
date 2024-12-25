@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Box, FormHelperText } from "@mui/material";
-import PropTypes from "prop-types";
+
 import styles from "../styles.module.css";
 
 import SongsSlider from "@/components/ui/SongsSlider";

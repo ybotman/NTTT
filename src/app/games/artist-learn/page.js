@@ -30,11 +30,6 @@ export default function ArtistLearnPage() {
   const router = useRouter();
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
-  // -- If you want to see config changes in real-time, add console logs
-  useEffect(() => {
-    console.log("ArtistLearnPage - Current Config:", config);
-  }, [config]);
-
   // ---- Handler to manually fetch songs using the final config
   const fetchSongsForPlay = useCallback(async () => {
     // 1) Validate local config first
