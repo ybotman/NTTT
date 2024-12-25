@@ -1,24 +1,17 @@
-
-//------------------------------------------------------------
-// //src/app/games/gamehub/page.js
-//------------------------------------------------------------
-
+// src/app/games/gamehub/page.js
 
 "use client";
 import React, { useContext } from "react";
 import Image from "next/image";
 import { Box, Typography, Paper } from "@mui/material";
-import Grid from "@mui/material/Grid2"; 
+import Grid from "@mui/material/Grid2"; // Import Grid2
 import Link from "next/link";
 import { AuthContext } from "@/contexts/AuthContext";
 import { auth, signInAnonymously, signOut } from "@/utils/firebase";
-import { useTheme } from "@/layout"; 
-
 
 export default function GameHubPage() {
   const { user, loadingUser } = useContext(AuthContext);
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-  const { theme } = useTheme(); 
 
   const handleLogin = async () => {
     await signInAnonymously(auth);
@@ -79,8 +72,6 @@ export default function GameHubPage() {
       isActive: false,
     },
   ];
-
-  
 
   return (
     <Box

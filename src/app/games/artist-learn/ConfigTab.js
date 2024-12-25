@@ -1,7 +1,3 @@
-//-------------------------
-// src/app/games/artist-learn/ConfigTab.js
-//-------------------------
-
 "use client";
 
 import React from "react";
@@ -16,8 +12,8 @@ import StylesSelector from "@/components/ui/StylesSelector";
 import ArtistsSelector from "@/components/ui/ArtistsSelector";
 import useArtistLearn from "@/hooks/useArtistLearn";
 
-export default function ConfigTab({ onSongsFetched }) {
-  // 1) Use the custom hook instead of "useConfig"
+export default function ConfigTab() {
+  // 1) Use the custom hook instead of onSongsFetched
   const {
     config,
     isDisabled,
@@ -33,11 +29,11 @@ export default function ConfigTab({ onSongsFetched }) {
     handleLevelsChange,
     handleStylesChange,
     handleArtistsChange,
-  } = useArtistLearn(onSongsFetched);
+  } = useArtistLearn(); // no callback
 
   return (
     <Box className={styles.configurationContainer}>
-      {/* Show validation errors */}
+      {/* Show validation errors if any */}
       {validationMessage && (
         <FormHelperText className={styles.validationError}>
           {validationMessage}
@@ -100,7 +96,7 @@ export default function ConfigTab({ onSongsFetched }) {
         </Box>
       </Box>
 
-      {/* Artists */}
+      {/* Artists (Optional) */}
       <ArtistsSelector
         label="Select Artists (Optional)"
         availableArtists={artistOptions}
@@ -121,9 +117,7 @@ export default function ConfigTab({ onSongsFetched }) {
 }
 
 ConfigTab.propTypes = {
-  onSongsFetched: PropTypes.func,
+  // No more onSongsFetched prop
 };
 
-ConfigTab.defaultProps = {
-  onSongsFetched: null,
-};
+ConfigTab.defaultProps = {};

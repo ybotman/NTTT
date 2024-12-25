@@ -1,49 +1,97 @@
-//--------
-//src/app/games/artist-learn/page.js
-//--------
-
 "use client";
-import Image from "next/image"; //
-import React, { useEffect, useState } from "react";
+import Image from "next/image";
+import React, { useEffect, useState, useCallback } from "react";
 import { Box, Typography } from "@mui/material";
 import styles from "../styles.module.css";
 import ConfigTab from "./ConfigTab";
 import PlayTab from "./PlayTab";
 import useConfig from "@/hooks/useConfigTab";
+import useArtistLearn from "@/hooks/useArtistLearn";
 import { useRouter } from "next/navigation";
+import { fetchFilteredSongs } from "@/utils/dataFetching";
+
+import PropTypes from "prop-types";
 
 export default function ArtistLearnPage() {
   const [songs, setSongs] = useState([]);
-  const { config } = useConfig("artistLearn");
   const [showPlayTab, setShowPlayTab] = useState(false);
+
+  // 1) The main config from the user
+  const { config } = useConfig("artistLearn");
+
+  // 2) The artist-learn hook that contains style/artist data & validation
+  const {
+    validationMessage,
+    setValidationMessage,
+    validateInputs,
+    selectedArtists,
+  } = useArtistLearn(); // We don’t pass onSongsFetched; we’re no longer auto-fetching
+
   const router = useRouter();
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
-  const handleSongsFetched = (fetchedSongs) => {
-    setSongs(fetchedSongs);
-  };
+  // -- If you want to see config changes in real-time, add console logs
+  useEffect(() => {
+    console.log("ArtistLearnPage - Current Config:", config);
+  }, [config]);
 
-  const handlePlayClick = () => {
-    if (songs.length === 0) {
-      console.warn("No songs available. Please adjust configuration.");
+  // ---- Handler to manually fetch songs using the final config
+  const fetchSongsForPlay = useCallback(async () => {
+    // 1) Validate local config first
+    const error = validateInputs(config);
+    if (error) {
+      setValidationMessage(error);
+      console.warn("Validation error:", error);
+      return null;
+    }
+
+    // 2) Build fetch logic
+    const numSongs = config.numSongs ?? 10;
+    const artistLevels = config.levels || [];
+    const activeStyles = Object.keys(config.styles || {}).filter(
+      (key) => config.styles[key],
+    );
+    const chosenArtists = (config.artists || []).map((a) => a.value);
+
+    try {
+      const { songs: fetchedSongs } = await fetchFilteredSongs(
+        chosenArtists,
+        artistLevels,
+        [],
+        activeStyles,
+        "N",
+        "N",
+        "N",
+        numSongs,
+      );
+      return fetchedSongs;
+    } catch (err) {
+      console.error("Error fetching songs for Play:", err);
+      return null;
+    }
+  }, [config, setValidationMessage, validateInputs]);
+
+  // ---- On Play Click
+  const handlePlayClick = async () => {
+    const fetchedSongs = await fetchSongsForPlay();
+    if (!fetchedSongs || fetchedSongs.length === 0) {
+      console.warn("No songs returned. Adjust config.");
       return;
     }
+    // If songs exist, proceed
+    setSongs(fetchedSongs);
     setShowPlayTab(true);
   };
 
+  // ---- “Close” or “Cancel” from Play tab
   const handleClosePlayTab = () => {
     setShowPlayTab(false);
   };
 
-  // New handler for Game Hub navigation
+  // ---- Return to game hub
   const handleGameHubClick = () => {
     router.push("/games/gamehub");
   };
-
-  // **Add this useEffect to log config changes**
-  useEffect(() => {
-    console.log("ArtistLearnPage - Config Updated:", config);
-  }, [config]);
 
   return (
     <Box
@@ -54,6 +102,7 @@ export default function ArtistLearnPage() {
         minHeight: "100vh",
       }}
     >
+      {/* Overlays the PlayTab if showPlayTab is true */}
       {showPlayTab && (
         <Box
           sx={{
@@ -76,7 +125,7 @@ export default function ArtistLearnPage() {
         </Box>
       )}
 
-      {/* Game Hub Button */}
+      {/* Game Hub Button (Top-Left) */}
       <Box sx={{ position: "absolute", top: "1rem", left: "1rem" }}>
         <Box
           sx={{
@@ -90,13 +139,13 @@ export default function ArtistLearnPage() {
               transform: "scale(1.05)",
             },
           }}
-          onClick={handleGameHubClick} // Attach click handler
+          onClick={handleGameHubClick}
         >
           <Image
             src={`${basePath}/icons/IconGameHub.jpg`}
             alt="Game Hub"
-            width={100} // Exact width
-            height={100} // Exact height
+            width={100}
+            height={100}
             style={{
               borderRadius: "50%",
               objectFit: "cover",
@@ -121,7 +170,8 @@ export default function ArtistLearnPage() {
           </Typography>
         </Box>
       </Box>
-      {/* Header Section with Play Button and Title */}
+
+      {/* Header Section with the “Play” button and Title */}
       <Box
         sx={{
           display: "flex",
@@ -130,7 +180,7 @@ export default function ArtistLearnPage() {
           mb: 4,
         }}
       >
-        {/* Play Button */}
+        {/* “Play” button */}
         <Box
           sx={{
             display: "flex",
@@ -143,9 +193,9 @@ export default function ArtistLearnPage() {
             src={`${basePath}/icons/IconLearnOrch.webp`}
             alt="Play Button"
             onClick={handlePlayClick}
-            layout="intrinsic" // Adjusted for intrinsic sizing
-            width={100} // Exact width
-            height={100} // Exact height
+            layout="intrinsic"
+            width={100}
+            height={100}
             style={{
               cursor: "pointer",
               borderRadius: "50%",
@@ -156,7 +206,7 @@ export default function ArtistLearnPage() {
             onMouseOver={(e) =>
               (e.currentTarget.style.transform = "scale(1.05)")
             }
-            onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} // Reset on mouse out
+            onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
           />
           <Typography
             variant="h6"
@@ -175,6 +225,7 @@ export default function ArtistLearnPage() {
             Play
           </Typography>
         </Box>
+
         {/* Game Title */}
         <Typography
           variant="h5"
@@ -184,11 +235,25 @@ export default function ArtistLearnPage() {
             color: "var(--foreground)",
           }}
         >
-          Mastering Orchestras and Miestros
+          Mastering Orchestras and Maestros
         </Typography>
       </Box>
-      {/* Configuration Tab - passes a callback to receive fetched songs */}
-      <ConfigTab onSongsFetched={handleSongsFetched} />
+
+      {/* Configuration Tab (No longer auto-fetching songs) */}
+      <ConfigTab />
+      {/* If you want to show a validation error on screen, you can do so here: */}
+      {validationMessage && (
+        <Typography
+          variant="body2"
+          sx={{ color: "red", marginTop: "1rem", textAlign: "center" }}
+        >
+          {validationMessage}
+        </Typography>
+      )}
     </Box>
   );
 }
+
+ArtistLearnPage.propTypes = {
+  // Not strictly necessary, but you can define any props if you pass them here
+};
