@@ -135,46 +135,6 @@ export async function fetchFilteredSongs(
 }
 
 /**
- * Fetch songs and artists data and enrich with necessary fields.
- */
-export async function fetchSongsAndArtistsXXX() {
-  try {
-    const [djSongsData, artistData] = await Promise.all([
-      fetch(`${basePath}/songData/djSongs.json`).then((r) => r.json()),
-      fetch(`${basePath}/songData/ArtistMaster.json`).then((r) => r.json()),
-    ]);
-
-    console.log("Fetched raw songs:", djSongsData.songs.length);
-    console.log("Fetched raw artists:", artistData.length);
-
-    const artistLevelMap = {};
-    artistData.forEach((artist) => {
-      if (artist.active === "true") {
-        artistLevelMap[artist.artist.toLowerCase()] = parseInt(
-          artist.level,
-          10,
-        );
-      }
-    });
-
-    // Enrich with level
-    const enrichedSongs = djSongsData.songs
-      .map((song) => {
-        const artistName = song.ArtistMaster?.trim().toLowerCase();
-        if (!artistName || !artistLevelMap[artistName]) return null;
-        return { ...song, level: artistLevelMap[artistName] };
-      })
-      .filter(Boolean);
-
-    console.log(`Valid and leveled songs: ${enrichedSongs.length}`);
-    return { validSongs: enrichedSongs, validArtists: artistData };
-  } catch (error) {
-    console.error("Error fetching songs and artists:", error);
-    return { validSongs: [], validArtists: [] };
-  }
-}
-
-/**
  * Returns a randomly selected subset of the input array of songs.
  */
 export function getRandomSongs(songs, qty = 10) {

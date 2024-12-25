@@ -1,15 +1,24 @@
+
+//------------------------------------------------------------
+// //src/app/games/gamehub/page.js
+//------------------------------------------------------------
+
+
 "use client";
 import React, { useContext } from "react";
 import Image from "next/image";
 import { Box, Typography, Paper } from "@mui/material";
-import Grid from "@mui/material/Grid2"; // Import Grid2
+import Grid from "@mui/material/Grid2"; 
 import Link from "next/link";
 import { AuthContext } from "@/contexts/AuthContext";
 import { auth, signInAnonymously, signOut } from "@/utils/firebase";
+import { useTheme } from "@/layout"; 
+
 
 export default function GameHubPage() {
   const { user, loadingUser } = useContext(AuthContext);
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+  const { theme } = useTheme(); 
 
   const handleLogin = async () => {
     await signInAnonymously(auth);
@@ -71,13 +80,16 @@ export default function GameHubPage() {
     },
   ];
 
+  
+
   return (
     <Box
       sx={{
         p: 3,
-        backgroundColor: "black", // Set a dark background
-        color: "white", // Ensure text is readable on a dark background
+        backgroundColor: "var(--background)", // Dynamic theme background
+        color: "var(--foreground)", // Dynamic theme text color
         minHeight: "100vh",
+        transition: "background-color 0.3s, color 0.3s",
       }}
     >
       {/* Header Section */}
@@ -85,9 +97,8 @@ export default function GameHubPage() {
         sx={{
           p: 3,
           mb: 3,
-          position: "relative",
-          backgroundColor: "black", // Dark background for header
-          color: "white",
+          backgroundColor: "var(--background)", // Dynamic theme
+          color: "var(--foreground)", // Dynamic theme
         }}
       >
         {!loadingUser &&
@@ -97,7 +108,7 @@ export default function GameHubPage() {
               sx={{
                 cursor: "pointer",
                 fontSize: "1rem",
-                color: "blue",
+                color: "var(--accent)",
                 "&:hover": { textDecoration: "underline" },
               }}
             >
@@ -109,7 +120,7 @@ export default function GameHubPage() {
               sx={{
                 cursor: "pointer",
                 fontSize: "1rem",
-                color: "blue",
+                color: "var(--accent)",
                 "&:hover": { textDecoration: "underline" },
               }}
             >
@@ -117,8 +128,15 @@ export default function GameHubPage() {
             </Typography>
           ))}
       </Paper>
+
       {/* Games Grid */}
-      <Paper sx={{ p: 3, backgroundColor: "black", color: "White" }}>
+      <Paper
+        sx={{
+          p: 3,
+          backgroundColor: "var(--background)", // Dynamic theme
+          color: "var(--foreground)", // Dynamic theme
+        }}
+      >
         <Grid container spacing={3}>
           {games.map((game, index) => (
             <Grid xs={6} md={3} key={index}>
@@ -126,7 +144,7 @@ export default function GameHubPage() {
                 <div
                   style={{
                     display: "flex",
-                    flexDirection: "column", // Ensure text is below the icon
+                    flexDirection: "column",
                     alignItems: "center",
                     cursor: game.isActive ? "pointer" : "default",
                     opacity: game.isActive ? 1 : 0.5,
@@ -136,19 +154,19 @@ export default function GameHubPage() {
                 >
                   <Box
                     sx={{
-                      width: "150px", // Set container width
-                      height: "150px", // Set container height
+                      width: "85px",
+                      height: "85px",
                       position: "relative",
                       marginBottom: "10px",
                       "&:hover": {
                         transform: game.isActive ? "scale(1.1)" : "none",
-                        filter: game.isActive ? "brightness(1.5)" : "none", // Simmer effect
+                        filter: game.isActive ? "brightness(1.5)" : "none",
                       },
                     }}
                   >
                     <Image
-                      src={`${basePath}/${game.icon}`} // Dynamically use the icon path
-                      alt={`${game.name} Icon`} // Dynamic alt text for better accessibility
+                      src={`${basePath}/${game.icon}`}
+                      alt={`${game.name} Icon`}
                       fill
                       sizes="(max-width: 600px) 100vw,
                              (max-width: 1200px) 50vw,
@@ -163,7 +181,7 @@ export default function GameHubPage() {
                   <Typography
                     variant="body1"
                     textAlign="center"
-                    sx={{ color: game.isActive ? "white" : "gray" }}
+                    sx={{ color: game.isActive ? "var(--foreground)" : "gray" }}
                   >
                     {game.name}
                   </Typography>
