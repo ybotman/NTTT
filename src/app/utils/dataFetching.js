@@ -2,25 +2,21 @@
 // src/utils/dataFetching.js
 //------------------------------------------------------------
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 /**
  * Fetch songs and artists data, enrich with artist levels, and then filter them
  * based on provided criteria.
  *
- * All parameters are optional. If empty or '', that filter is not applied.
- *
- * @param {string[]} artistMasters - Array of ArtistMaster names to filter by (optional, match ANY if provided)
- * @param {number[]} artistLevels - Array of artist levels (1-5) to filter by (optional, match ANY if provided)
- * @param {string[]} composers - Array of composers to filter by (optional, match ANY if provided)
- * @param {string[]} styles - Array of styles to filter by (optional, match ANY if provided)
- * @param {string} candombe - 'N' or 'Y' if provided, or '' to skip this filter
- * @param {string} alternative - 'N' or 'Y' if provided, or '' to skip this filter
- * @param {string} cancion - 'N' or 'Y' if provided, or '' to skip this filter
- * @param {number} qty - The number of songs to randomly select from the filtered set (default: 10)
- *
+ * @param {string[]} artistMasters - Array of ArtistMaster names to filter by
+ * @param {number[]} artistLevels - Array of artist levels (1-5)
+ * @param {string[]} composers - Array of composers
+ * @param {string[]} styles - Array of styles
+ * @param {string} candombe - 'N' or 'Y' or ''
+ * @param {string} alternative - 'N' or 'Y' or ''
+ * @param {string} cancion - 'N' or 'Y' or ''
+ * @param {number} qty - How many songs to randomly select (default: 10)
  * @returns {Promise<{ songs: Array, qty: number }>}
- * Returns a promise that resolves to an object with:
- *  - songs: An array of filtered and enriched songs.
- *  - qty: The number of songs found after random selection (<= the filtered length)
  */
 export async function fetchFilteredSongs(
   artistMasters = [],
@@ -33,15 +29,13 @@ export async function fetchFilteredSongs(
   qty = 10,
 ) {
   try {
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
     const [djSongsData, artistData] = await Promise.all([
-      fetch("/songData/djSongs.json").then((r) => r.json()),
-      fetch("/songData/ArtistMaster.json").then((r) => r.json()),
+      fetch(`${basePath}/songData/djSongs.json`).then((r) => r.json()),
+      fetch(`${basePath}/songData/ArtistMaster.json`).then((r) => r.json()),
     ]);
 
-    //console.log(`Fetched raw songs: ${djSongsData.songs.length}`);
-    //console.log(`Fetched raw artists: ${artistData.length}`);
-
-    // Build artist level map
+    // Build artistLevel map
     const artistLevelMap = {};
     artistData.forEach((artist) => {
       if (artist.active === "true") {
@@ -52,22 +46,17 @@ export async function fetchFilteredSongs(
       }
     });
 
-    // Enrich songs with level where possible
+    // Enrich songs with level
     const enrichedSongs = djSongsData.songs.map((song) => {
       const artistName = song.ArtistMaster?.trim().toLowerCase();
       const songLevel =
         artistName && artistLevelMap[artistName]
           ? artistLevelMap[artistName]
           : null;
-      return {
-        ...song,
-        level: songLevel,
-      };
+      return { ...song, level: songLevel };
     });
 
-    //console.log(`Enriched songs count: ${enrichedSongs.length}`);
-
-    // Begin filtering
+    // Filtering logic
     let filtered = enrichedSongs;
 
     // ArtistMaster filter
@@ -112,22 +101,20 @@ export async function fetchFilteredSongs(
       );
     }
 
-    // Candombe, Alternative, Cancion filters
-    if (candombe && candombe.trim() !== "") {
+    // Candombe, Alternative, Cancion
+    if (candombe) {
       filtered = filtered.filter((song) => song.Candombe === candombe);
     }
-    if (alternative && alternative.trim() !== "") {
+    if (alternative) {
       filtered = filtered.filter((song) => song.Alternative === alternative);
     }
-    if (cancion && cancion.trim() !== "") {
+    if (cancion) {
       filtered = filtered.filter((song) => song.Cancion === cancion);
     }
 
     const finalSongs = getRandomSongs(filtered, qty);
     const finalQty = finalSongs.length;
 
-    //console.log(`Filtered ${filtered.length} songs before randomization.`);
-    //console.log(`Returning ${finalQty} random songs based on criteria:`);
     console.log({
       artistMasters: validArtistMasters,
       artistLevels: validArtistLevels,
@@ -148,63 +135,7 @@ export async function fetchFilteredSongs(
 }
 
 /**
- * Fetch songs and artists data and enrich with necessary fields.
- * - Songs are enriched with artist levels and audio URLs.
- */
-export async function fetchSongsAndArtists() {
-  try {
-    // Fetch data for songs and artists concurrently
-    const [djSongsData, artistData] = await Promise.all([
-      fetch("/songData/djSongs.json").then((r) => r.json()),
-      fetch("/songData/ArtistMaster.json").then((r) => r.json()),
-    ]);
-
-    console.log("Fetched raw songs:", djSongsData.songs.length);
-    console.log("Fetched raw artists:", artistData.length);
-
-    const artistLevelMap = {};
-    artistData.forEach((artist) => {
-      if (artist.active === "true") {
-        artistLevelMap[artist.artist.toLowerCase()] = parseInt(
-          artist.level,
-          10,
-        );
-      }
-    });
-
-    // Enrich with level
-    const enrichedSongs = djSongsData.songs
-      .map((song) => {
-        const artistName = song.ArtistMaster?.trim().toLowerCase();
-
-        // Skip songs without a valid ArtistMaster
-        if (!artistName || !artistLevelMap[artistName]) {
-          return null;
-        }
-
-        return {
-          ...song,
-          level: artistLevelMap[artistName], // Enrich with level
-        };
-      })
-      .filter((song) => song);
-
-    console.log(`Valid and leveled songs: ${enrichedSongs.length}`);
-
-    return { validSongs: enrichedSongs, validArtists: artistData };
-  } catch (error) {
-    console.error("Error fetching songs and artists:", error);
-    return { validSongs: [], validArtists: [] };
-  }
-}
-
-/**
  * Returns a randomly selected subset of the input array of songs.
- * Uses shuffleArray to randomize and then slices the first `qty` elements.
- *
- * @param {Array} songs - The array of songs to select from.
- * @param {number} qty - The number of songs to return.
- * @returns {Array} A random subset of `songs` of size `qty` or less if `songs.length < qty`.
  */
 export function getRandomSongs(songs, qty = 10) {
   if (!Array.isArray(songs) || songs.length === 0) return [];
@@ -214,8 +145,6 @@ export function getRandomSongs(songs, qty = 10) {
 
 /**
  * Shuffle an array using Fisher-Yates algorithm.
- * @param {Array} array - The array to shuffle.
- * @returns {Array} Shuffled array.
  */
 export function shuffleArray(array) {
   const arr = [...array];
@@ -228,9 +157,6 @@ export function shuffleArray(array) {
 
 /**
  * Get 3 random distractor artists (names) excluding the correct artist.
- * @param {string} correctArtist - The name of the correct artist.
- * @param {Array} allArtists - The list of all valid artists.
- * @returns {Array} An array of 3 random distractors.
  */
 export function getDistractors(correctArtist, allArtists) {
   if (!correctArtist || !allArtists || !Array.isArray(allArtists)) {
@@ -248,5 +174,5 @@ export function getDistractors(correctArtist, allArtists) {
     })
     .map((artist) => artist.artist);
 
-  return shuffleArray(candidates).slice(0, 3); // Return 3 random distractors
+  return shuffleArray(candidates).slice(0, 3);
 }

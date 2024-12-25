@@ -15,6 +15,7 @@ export default function ArtistQuizPage() {
   const [songs, setSongs] = useState([]);
   const { config } = useConfig("artistQuiz");
   const [showPlayTab, setShowPlayTab] = useState(false);
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
   const handleSongsFetched = (fetchedSongs) => {
     setSongs(fetchedSongs);
@@ -33,6 +34,11 @@ export default function ArtistQuizPage() {
     setShowPlayTab(false);
   };
 
+  // New handler for Game Hub navigation
+  const handleGameHubClick = () => {
+    router.push("/games/gamehub");
+  };
+
   return (
     <Box
       className={styles.container}
@@ -40,8 +46,6 @@ export default function ArtistQuizPage() {
         color: "var(--foreground)",
         background: "var(--background)",
         minHeight: "100vh",
-        position: "relative",
-        p: 2,
       }}
     >
       {showPlayTab && (
@@ -66,6 +70,51 @@ export default function ArtistQuizPage() {
         </Box>
       )}
 
+      {/* Game Hub Button */}
+      <Box sx={{ position: "absolute", top: "1rem", left: "1rem" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            mb: 2,
+            cursor: "pointer",
+            transition: "transform 0.2s",
+            "&:hover": {
+              transform: "scale(1.05)",
+            },
+          }}
+          onClick={handleGameHubClick} // Attach click handler
+        >
+          <Image
+            src={`${basePath}/icons/IconGameHub.jpg`}
+            alt="Game Hub"
+            width={100}
+            height={100}
+            style={{
+              borderRadius: "50%",
+              objectFit: "cover",
+              boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
+            }}
+          />
+          <Typography
+            variant="h6"
+            sx={{
+              mt: 1,
+              fontWeight: "bold",
+              color: "var(--accent)",
+              animation: "shimmer 2s infinite",
+              "@keyframes shimmer": {
+                "0%": { opacity: 1 },
+                "50%": { opacity: 0.5 },
+                "100%": { opacity: 1 },
+              },
+            }}
+          >
+            Game Hub
+          </Typography>
+        </Box>
+      </Box>
       {/* Header Section with Play Button and Title */}
       <Box
         sx={{
@@ -75,6 +124,7 @@ export default function ArtistQuizPage() {
           mb: 4,
         }}
       >
+        {/* Play Button */}
         <Box
           sx={{
             display: "flex",
@@ -84,11 +134,12 @@ export default function ArtistQuizPage() {
           }}
         >
           <Image
-            src="/IconLearnOrch.webp"
+            src={`${basePath}/icons/IconQuiz.webp`}
             alt="Play Button"
             onClick={handlePlayClick}
-            width={100}
-            height={100}
+            layout="intrinsic" // Adjusted for intrinsic sizing
+            width={100} // Exact width
+            height={100} // Exact height
             style={{
               cursor: "pointer",
               borderRadius: "50%",
@@ -99,9 +150,8 @@ export default function ArtistQuizPage() {
             onMouseOver={(e) =>
               (e.currentTarget.style.transform = "scale(1.05)")
             }
-            onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} // Reset on mouse out
           />
-
           <Typography
             variant="h6"
             sx={{
@@ -119,7 +169,7 @@ export default function ArtistQuizPage() {
             Play
           </Typography>
         </Box>
-
+        {/* Game Title */}
         <Typography
           variant="h5"
           sx={{
@@ -128,11 +178,10 @@ export default function ArtistQuizPage() {
             color: "var(--foreground)",
           }}
         >
-          Artist Quiz
+          Quiz on Masters
         </Typography>
       </Box>
-
-      {/* Configuration Tab */}
+      {/* Configuration Tab - passes a callback to receive fetched songs */}
       <ConfigTab onSongsFetched={handleSongsFetched} />
     </Box>
   );

@@ -52,10 +52,6 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <ScoreProvider>
             <ThemeContext.Provider value={{ theme, toggleTheme }}>
-              {/* 
-                1) Our global theme toggle icon 
-                   Placed absolutely top-right, or you can choose a different styling 
-              */}
               <Box
                 sx={{
                   position: "fixed",
