@@ -37,10 +37,14 @@ export default function PlayTab({ songs, config, onCancel }) {
   const PLAY_DURATION = config.timeLimit ?? 15;
   const FADE_DURATION = 0.8;
 
-  // We might not need anything special in this effect for config, but included for completeness
+  // useEffect((() => {
+  //   console.log("PlayTab - Config:", config);
+  // },[]));
+
+  // // We might not need anything special in this effect for config, but included for completeness
   useEffect(() => {
-    // possibly respond to config changes if needed
-  }, [config]);
+    console.log("PlayTab - Config:", config);
+  }, []);
 
   // ---- Cleanup wavesurfer
   const cleanupWaveSurfer = useCallback(() => {

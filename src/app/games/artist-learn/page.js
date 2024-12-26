@@ -5,7 +5,8 @@ import { Box, Typography } from "@mui/material";
 import styles from "../styles.module.css";
 import ConfigTab from "./ConfigTab";
 import PlayTab from "./PlayTab";
-import useConfig from "@/hooks/useConfigTab";
+//import useConfig from "@/hooks/useConfigTab";
+import useConfigTab from "@/hooks/useConfigTab";
 import useArtistLearn from "@/hooks/useArtistLearn";
 import { useRouter } from "next/navigation";
 import { fetchFilteredSongs } from "@/utils/dataFetching";
@@ -15,9 +16,11 @@ import PropTypes from "prop-types";
 export default function ArtistLearnPage() {
   const [songs, setSongs] = useState([]);
   const [showPlayTab, setShowPlayTab] = useState(false);
-
-  // 1) The main config from the user
-  const { config } = useConfig("artistLearn");
+  const { config, updateConfig, isDisabled } = useConfigTab("artistLearn");
+  console.log("Current page useConfigTab:", config);
+  // 1) The main config from the user. OLD
+  //const { config } = useConfig("artistLearn");
+  //console.log("Current useConfig:", config);
 
   // 2) The artist-learn hook that contains style/artist data & validation
   const {
@@ -39,12 +42,16 @@ export default function ArtistLearnPage() {
       console.warn("Validation error:", error);
       return null;
     }
+    await new Promise((r) => setTimeout(r, 0));
+
+    const freshConfig = { ...config };
+    console.log("About to fetch songs with config:", freshConfig);
 
     // 2) Build fetch logic
-    const numSongs = config.numSongs ?? 10;
-    const artistLevels = config.levels || [];
-    const activeStyles = Object.keys(config.styles || {}).filter(
-      (key) => config.styles[key],
+    const numSongs = freshConfig.numSongs ?? 10;
+    const artistLevels = freshConfig.levels || [];
+    const activeStyles = Object.keys(freshConfig.styles || {}).filter(
+      (key) => freshConfig.styles[key],
     );
     const chosenArtists = (config.artists || []).map((a) => a.value);
 
@@ -68,6 +75,7 @@ export default function ArtistLearnPage() {
 
   // ---- On Play Click
   const handlePlayClick = async () => {
+    console.log("Play clicked with config:", config );
     const fetchedSongs = await fetchSongsForPlay();
     if (!fetchedSongs || fetchedSongs.length === 0) {
       console.warn("No songs returned. Adjust config.");

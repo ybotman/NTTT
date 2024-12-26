@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import useConfigTab from "@/hooks/useConfigTab";
-import PropTypes from "prop-types";
 
 export default function useArtistLearn() {
   const { config, updateConfig, isDisabled } = useConfigTab("artistLearn");
