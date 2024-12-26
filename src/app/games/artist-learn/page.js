@@ -1,97 +1,67 @@
+// ------------------------------------------------------------
+// src/app/games/artist-learn/page.js
+// ------------------------------------------------------------
 "use client";
+import React, { useState } from "react";
 import Image from "next/image";
-import React, { useEffect, useState, useCallback } from "react";
-import { Box, Typography } from "@mui/material";
-import styles from "../styles.module.css";
+import { Box, Typography, Button, Paper } from "@mui/material";
 import ConfigTab from "./ConfigTab";
 import PlayTab from "./PlayTab";
-//import useConfig from "@/hooks/useConfigTab";
-import useConfigTab from "@/hooks/useConfigTab";
-import useArtistLearn from "@/hooks/useArtistLearn";
 import { useRouter } from "next/navigation";
+import { useGameContext } from "@/contexts/GameContext"; // The shared context
 import { fetchFilteredSongs } from "@/utils/dataFetching";
-
-import PropTypes from "prop-types";
+import styles from "../styles.module.css";
 
 export default function ArtistLearnPage() {
+  const router = useRouter();
   const [songs, setSongs] = useState([]);
   const [showPlayTab, setShowPlayTab] = useState(false);
-  const { config, updateConfig, isDisabled } = useConfigTab("artistLearn");
-  console.log("Current page useConfigTab:", config);
-  // 1) The main config from the user. OLD
-  //const { config } = useConfig("artistLearn");
-  //console.log("Current useConfig:", config);
 
-  // 2) The artist-learn hook that contains style/artist data & validation
+  // 1) Access config & scoring from GameContext
   const {
-    validationMessage,
-    setValidationMessage,
-    validateInputs,
-    selectedArtists,
-  } = useArtistLearn(); // We don’t pass onSongsFetched; we’re no longer auto-fetching
+    config,
+    bestScore,
+    totalScore,
+    completedGames,
+    resetAll,
+  } = useGameContext();
 
-  const router = useRouter();
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-
-  // ---- Handler to manually fetch songs using the final config
-  const fetchSongsForPlay = useCallback(async () => {
-    // 1) Validate local config first
-    const error = validateInputs(config);
-    if (error) {
-      setValidationMessage(error);
-      console.warn("Validation error:", error);
-      return null;
-    }
-    await new Promise((r) => setTimeout(r, 0));
-
-    const freshConfig = { ...config };
-    console.log("About to fetch songs with config:", freshConfig);
-
-    // 2) Build fetch logic
-    const numSongs = freshConfig.numSongs ?? 10;
-    const artistLevels = freshConfig.levels || [];
-    const activeStyles = Object.keys(freshConfig.styles || {}).filter(
-      (key) => freshConfig.styles[key],
+  // 2) “Play” button click -> fetch songs, show PlayTab
+  const handlePlayClick = async () => {
+    // Prepare config with defaults if user never touched
+    const numSongs = config.numSongs ?? 10;
+    const timeLimit = config.timeLimit ?? 15;
+    const activeStyles = Object.keys(config.styles || {}).filter(
+      (key) => config.styles[key],
     );
+    const artistLevels = config.levels || [];
     const chosenArtists = (config.artists || []).map((a) => a.value);
 
-    try {
-      const { songs: fetchedSongs } = await fetchFilteredSongs(
-        chosenArtists,
-        artistLevels,
-        [],
-        activeStyles,
-        "N",
-        "N",
-        "N",
-        numSongs,
-      );
-      return fetchedSongs;
-    } catch (err) {
-      console.error("Error fetching songs for Play:", err);
-      return null;
-    }
-  }, [config, setValidationMessage, validateInputs]);
+    // Actually fetch your songs from the server
+    const { songs: fetchedSongs } = await fetchFilteredSongs(
+      chosenArtists,
+      artistLevels,
+      [],
+      activeStyles,
+      "N",
+      "N",
+      "N",
+      numSongs,
+    );
 
-  // ---- On Play Click
-  const handlePlayClick = async () => {
-    console.log("Play clicked with config:", config );
-    const fetchedSongs = await fetchSongsForPlay();
     if (!fetchedSongs || fetchedSongs.length === 0) {
       console.warn("No songs returned. Adjust config.");
       return;
     }
-    // If songs exist, proceed
+
     setSongs(fetchedSongs);
     setShowPlayTab(true);
   };
 
-  // ---- “Close” or “Cancel” from Play tab
   const handleClosePlayTab = () => {
     setShowPlayTab(false);
   };
 
-  // ---- Return to game hub
   const handleGameHubClick = () => {
     router.push("/games/gamehub");
   };
@@ -105,7 +75,7 @@ export default function ArtistLearnPage() {
         minHeight: "100vh",
       }}
     >
-      {/* Overlays the PlayTab if showPlayTab is true */}
+      {/* If showPlayTab, overlay the PlayTab */}
       {showPlayTab && (
         <Box
           sx={{
@@ -120,11 +90,7 @@ export default function ArtistLearnPage() {
             p: 2,
           }}
         >
-          <PlayTab
-            songs={songs}
-            config={config}
-            onCancel={handleClosePlayTab}
-          />
+          <PlayTab songs={songs} config={config} onCancel={handleClosePlayTab} />
         </Box>
       )}
 
@@ -145,10 +111,10 @@ export default function ArtistLearnPage() {
           onClick={handleGameHubClick}
         >
           <Image
-            src={`${basePath}/icons/IconGameHub.jpg`}
+            src={`/icons/IconGameHub.jpg`}
             alt="Game Hub"
-            width={100}
-            height={100}
+            width={80}
+            height={80}
             style={{
               borderRadius: "50%",
               objectFit: "cover",
@@ -161,12 +127,6 @@ export default function ArtistLearnPage() {
               mt: 1,
               fontWeight: "bold",
               color: "var(--accent)",
-              animation: "shimmer 2s infinite",
-              "@keyframes shimmer": {
-                "0%": { opacity: 1 },
-                "50%": { opacity: 0.5 },
-                "100%": { opacity: 1 },
-              },
             }}
           >
             Game Hub
@@ -174,31 +134,16 @@ export default function ArtistLearnPage() {
         </Box>
       </Box>
 
-      {/* Header Section with the “Play” button and Title */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          mb: 4,
-        }}
-      >
-        {/* “Play” button */}
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
+      {/* Top Center: “Play” Button & Right-Side Score Box */}
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 2, mb: 2 }}>
+        {/* Play Button */}
+        <Box sx={{ textAlign: "center" }}>
           <Image
-            src={`${basePath}/icons/IconLearnOrch.webp`}
+            src={`/icons/IconLearnOrch.webp`}
             alt="Play Button"
             onClick={handlePlayClick}
-            layout="intrinsic"
-            width={100}
-            height={100}
+            width={80}
+            height={80}
             style={{
               cursor: "pointer",
               borderRadius: "50%",
@@ -206,9 +151,7 @@ export default function ArtistLearnPage() {
               boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
               transition: "transform 0.2s",
             }}
-            onMouseOver={(e) =>
-              (e.currentTarget.style.transform = "scale(1.05)")
-            }
+            onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
             onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
           />
           <Typography
@@ -217,46 +160,65 @@ export default function ArtistLearnPage() {
               mt: 1,
               fontWeight: "bold",
               color: "var(--accent)",
-              animation: "shimmer 2s infinite",
-              "@keyframes shimmer": {
-                "0%": { opacity: 1 },
-                "50%": { opacity: 0.5 },
-                "100%": { opacity: 1 },
-              },
             }}
           >
             Play
           </Typography>
         </Box>
 
-        {/* Game Title */}
-        <Typography
-          variant="h5"
+        {/* Scores & Reset (Box to the right) */}
+        <Paper
           sx={{
-            fontWeight: "bold",
-            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "center",
+            p: 2,
+            ml: 2,
+            border: "1px solid var(--foreground)",
+            backgroundColor: "var(--background)",
             color: "var(--foreground)",
+            minWidth: "150px",
           }}
         >
-          Mastering Orchestras and Maestros
-        </Typography>
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            <strong>Best Score:</strong> {bestScore}
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            <strong>Total Score:</strong> {totalScore}
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            <strong>Games:</strong> {completedGames}
+          </Typography>
+          <Button
+            variant="outlined"
+            onClick={resetAll}
+            sx={{
+              mt: 1,
+              color: "var(--foreground)",
+              borderColor: "var(--foreground)",
+            }}
+          >
+            Reset
+          </Button>
+        </Paper>
       </Box>
 
-      {/* Configuration Tab (No longer auto-fetching songs) */}
+      {/* Game Title */}
+      <Typography
+        variant="h5"
+        sx={{
+          fontWeight: "bold",
+          textAlign: "center",
+          color: "var(--foreground)",
+          mb: 3,
+        }}
+      >
+        Mastering Orchestras and Maestros
+      </Typography>
+
+      {/* Configuration Tab */}
       <ConfigTab />
-      {/* If you want to show a validation error on screen, you can do so here: */}
-      {validationMessage && (
-        <Typography
-          variant="body2"
-          sx={{ color: "red", marginTop: "1rem", textAlign: "center" }}
-        >
-          {validationMessage}
-        </Typography>
-      )}
     </Box>
   );
 }
-
-ArtistLearnPage.propTypes = {
-  // Not strictly necessary, but you can define any props if you pass them here
-};

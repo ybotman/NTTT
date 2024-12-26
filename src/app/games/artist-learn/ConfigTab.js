@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Box, FormHelperText } from "@mui/material";
-
 import styles from "../styles.module.css";
 
 import SongsSlider from "@/components/ui/SongsSlider";
@@ -10,114 +9,104 @@ import SecondsSlider from "@/components/ui/SecondsSlider";
 import LevelsSelector from "@/components/ui/LevelsSelector";
 import StylesSelector from "@/components/ui/StylesSelector";
 import ArtistsSelector from "@/components/ui/ArtistsSelector";
+
+// 1) We'll still fetch style data from useArtistLearn (like old version)
 import useArtistLearn from "@/hooks/useArtistLearn";
 
+// 2) We'll store config in GameContext
+import { useGameContext } from "@/contexts/GameContext";
+
 export default function ConfigTab() {
-  // 1) Use the custom hook instead of onSongsFetched
+  // A) fetch metadata (primaryStyles, artistOptions, etc.)
   const {
-    config,
-    isDisabled,
     primaryStyles,
     artistOptions,
-    selectedArtists,
     validationMessage,
-    levelsDisabled,
+    selectedArtists,
+    // any other old states from useArtistLearn
+  } = useArtistLearn();
 
-    // handlers
-    handleNumSongsChange,
-    handleTimeLimitChange,
-    handleLevelsChange,
-    handleStylesChange,
-    handleArtistsChange,
-  } = useArtistLearn(); // no callback
+  // B) store final config in game context
+  const { config, updateConfig } = useGameContext();
+
+  // If you also want isDisabled or levelsDisabled from the old approach, you can do that:
+  // e.g. const { isDisabled, levelsDisabled } = useArtistLearn();
+
+  // Handlers
+  const handleNumSongsChange = (value) => {
+    updateConfig("numSongs", value);
+  };
+
+  const handleTimeLimitChange = (value) => {
+    updateConfig("timeLimit", value);
+  };
+
+  const handleLevelsChange = (newLevels) => {
+    updateConfig("levels", newLevels);
+  };
+
+  const handleStylesChange = (updatedStylesObj) => {
+    updateConfig("styles", updatedStylesObj);
+  };
+
+  const handleArtistsChange = (newSelected) => {
+    updateConfig("artists", newSelected);
+  };
 
   return (
     <Box className={styles.configurationContainer}>
-      {/* Show validation errors if any */}
       {validationMessage && (
         <FormHelperText className={styles.validationError}>
           {validationMessage}
         </FormHelperText>
       )}
 
-      {/* Row with # of Songs slider & Time Limit slider */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          width: "100%",
-          mb: 3,
-        }}
-      >
-        <Box sx={{ flex: 1 }}>
-          <SongsSlider
-            label="Number of Songs"
-            min={3}
-            max={25}
-            step={1}
-            value={config.numSongs ?? 10}
-            onChange={handleNumSongsChange}
-            disabled={isDisabled}
-          />
-        </Box>
-        <Box sx={{ flex: 1 }}>
-          <SecondsSlider
-            label="Time Limit (Seconds)"
-            min={3}
-            max={29}
-            step={1}
-            value={config.timeLimit ?? 15}
-            onChange={handleTimeLimitChange}
-            disabled={isDisabled}
-          />
-        </Box>
+      {/* Sliders */}
+      <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
+        <SongsSlider
+          label="Number of Songs"
+          min={3}
+          max={25}
+          step={1}
+          value={config.numSongs ?? 10}
+          onChange={handleNumSongsChange}
+        />
+
+        <SecondsSlider
+          label="Time Limit (Seconds)"
+          min={3}
+          max={29}
+          step={1}
+          value={config.timeLimit ?? 15}
+          onChange={handleTimeLimitChange}
+        />
       </Box>
 
       {/* Levels & Styles */}
       <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
-        <Box sx={{ flex: 1 }}>
-          <LevelsSelector
-            label="Levels:"
-            availableLevels={[1, 2, 3, 4, 5]}
-            selectedLevels={config.levels || []}
-            onChange={handleLevelsChange}
-            disabled={isDisabled || levelsDisabled}
-          />
-        </Box>
-        <Box sx={{ flex: 1 }}>
-          <StylesSelector
-            label="Styles:"
-            availableStyles={primaryStyles}
-            selectedStyles={config.styles || {}}
-            onChange={handleStylesChange}
-            disabled={isDisabled}
-          />
-        </Box>
+        <LevelsSelector
+          label="Levels:"
+          availableLevels={[1, 2, 3, 4, 5]}
+          selectedLevels={config.levels || []}
+          onChange={handleLevelsChange}
+        />
+
+        <StylesSelector
+          label="Styles:"
+          // We'll pass an array of objects, as old code expects, so each item has { style: "Tango" }
+          availableStyles={primaryStyles} 
+          selectedStyles={config.styles || {}}
+          onChange={handleStylesChange}
+        />
       </Box>
 
-      {/* Artists (Optional) */}
+      {/* Artists */}
       <ArtistsSelector
         label="Select Artists (Optional)"
         availableArtists={artistOptions}
-        selectedArtists={selectedArtists}
+        selectedArtists={config.artists || []}
         onChange={handleArtistsChange}
-        disabled={isDisabled || (config.levels || []).length > 0}
-        placeholder="Artists"
       />
-
-      {/* If both levels & artists are selected => error */}
-      {(config.levels || []).length > 0 && selectedArtists.length > 0 && (
-        <FormHelperText className={styles.errorText}>
-          Both artists and levels are selected. Please clear one.
-        </FormHelperText>
-      )}
     </Box>
   );
 }
-
-ConfigTab.propTypes = {
-  // No more onSongsFetched prop
-};
-
-ConfigTab.defaultProps = {};

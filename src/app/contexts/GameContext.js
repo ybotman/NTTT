@@ -1,9 +1,9 @@
-//------------------------------------------------------------
+// ------------------------------------------------------------
 // src/app/contexts/GameContext.js
-//------------------------------------------------------------
+// ------------------------------------------------------------
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 
 const GameContext = createContext(null);
@@ -13,40 +13,90 @@ export function useGameContext() {
 }
 
 export function GameProvider({ children }) {
-  // Example: A game’s config settings, plus “in-progress” session details
+  // 1) Game config (with null defaults where relevant)
   const [config, setConfig] = useState({
-    // Example defaults
-    numSongs: 10,
-    timeLimit: 15,
+    numSongs: null,
+    timeLimit: null,
     levels: [],
     styles: {},
+    artists: [], // if needed
   });
 
-  // Example: Track the user’s current score or question index
+  // 2) Score/Usage tracking
   const [currentScore, setCurrentScore] = useState(0);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(-1);
+  const [bestScore, setBestScore] = useState(0);
+  const [totalScore, setTotalScore] = useState(0);
+  const [completedGames, setCompletedGames] = useState(0);
 
-  // Example: Simple update function for config
-  const updateConfig = (key, value) => {
+  // -- Load from local storage on first mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("artistLearn_config");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          // Merge with defaults if needed
+          setConfig((prev) => ({
+            ...prev,
+            ...parsed,
+          }));
+        }
+      } catch (err) {
+        console.warn("Could not load local config:", err);
+      }
+    }
+  }, []);
+
+  // -- Save to local storage whenever config changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("artistLearn_config", JSON.stringify(config));
+    }
+  }, [config]);
+
+  // 3) Config setter
+  function updateConfig(key, value) {
     setConfig((prev) => ({ ...prev, [key]: value }));
-  };
+  }
 
-  // Example: Reset the game
-  const resetGame = () => {
+  // 4) Game completion logic (increment scores, track best, etc.)
+  function completeGame(finalScore) {
+    setCurrentScore(finalScore);
+
+    // Update total & best
+    setTotalScore((old) => old + finalScore);
+    setBestScore((old) => (finalScore > old ? finalScore : old));
+
+    // Increment completedGames
+    setCompletedGames((old) => old + 1);
+  }
+
+  // 5) Reset everything
+  function resetAll() {
+    setConfig({
+      numSongs: null,
+      timeLimit: null,
+      levels: [],
+      styles: {},
+      artists: [],
+    });
     setCurrentScore(0);
-    setCurrentQuestionIndex(-1);
-    // Possibly reset config to defaults or do partial resets
-  };
+    setBestScore(0);
+    setTotalScore(0);
+    setCompletedGames(0);
+  }
 
-  // Provide everything game components need
   const value = {
     config,
     updateConfig,
     currentScore,
     setCurrentScore,
-    currentQuestionIndex,
-    setCurrentQuestionIndex,
-    resetGame,
+    bestScore,
+    totalScore,
+    completedGames,
+
+    completeGame,
+    resetAll,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
