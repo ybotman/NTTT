@@ -1,0 +1,1795 @@
+diff --git a/next.config.mjs b/next.config.mjs
+index fd926c6..f8d180a 100644
+--- a/next.config.mjs
++++ b/next.config.mjs
+@@ -1,7 +1,14 @@
+ /** @type {import('next').NextConfig} */
+ 
++import bundleAnalyzer from '@next/bundle-analyzer';
++
++const withBundleAnalyzer = bundleAnalyzer({
++  enabled: process.env.ANALYZE === 'true'
++});
++
+ const isProd = process.env.NODE_ENV === "production";
+ 
++
+ const nextConfig = {
+   reactStrictMode: false,
+   output: "export",
+diff --git a/package-lock.json b/package-lock.json
+index 4b447f8..78c92ad 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -12,12 +12,12 @@
+         "@emotion/styled": "^11.14.0",
+         "@mui/icons-material": "^6.2.1",
+         "@mui/material": "^6.2.1",
++        "@next/bundle-analyzer": "^15.1.2",
+         "firebase": "^11.1.0",
+         "prettier": "^3.4.2",
+         "prop-types": "^15.8.1",
+         "react": "^19.0.0",
+         "react-dom": "^19.0.0",
+-        "tall": "^8.0.0",
+         "uuid": "^11.0.3",
+         "wavesurfer.js": "^7.8.11"
+       },
+@@ -161,6 +161,15 @@
+         "node": ">=6.9.0"
+       }
+     },
++    "node_modules/@discoveryjs/json-ext": {
++      "version": "0.5.7",
++      "resolved": "https://registry.npmjs.org/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz",
++      "integrity": "sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=10.0.0"
++      }
++    },
+     "node_modules/@emnapi/runtime": {
+       "version": "1.3.1",
+       "resolved": "https://registry.npmjs.org/@emnapi/runtime/-/runtime-1.3.1.tgz",
+@@ -1819,6 +1828,15 @@
+         }
+       }
+     },
++    "node_modules/@next/bundle-analyzer": {
++      "version": "15.1.2",
++      "resolved": "https://registry.npmjs.org/@next/bundle-analyzer/-/bundle-analyzer-15.1.2.tgz",
++      "integrity": "sha512-LuQkM4HSipn+kP8ChckPYL+w0qzx331QfSYY3lU5cutf7Gvk069sK+wH4GfVRdFq+DXSaCiy5IPzAcuXq6G+7g==",
++      "license": "MIT",
++      "dependencies": {
++        "webpack-bundle-analyzer": "4.10.1"
++      }
++    },
+     "node_modules/@next/env": {
+       "version": "15.1.2",
+       "resolved": "https://registry.npmjs.org/@next/env/-/env-15.1.2.tgz",
+@@ -2020,6 +2038,12 @@
+         "node": ">=12.4.0"
+       }
+     },
++    "node_modules/@polka/url": {
++      "version": "1.0.0-next.28",
++      "resolved": "https://registry.npmjs.org/@polka/url/-/url-1.0.0-next.28.tgz",
++      "integrity": "sha512-8LduaNlMZGwdZ6qWrKlfa+2M4gahzFkprZiAt2TF8uS0qQgBizKXpXURqvTJ4WtmupWxaLqjRb2UCTe72mu+Aw==",
++      "license": "MIT"
++    },
+     "node_modules/@popperjs/core": {
+       "version": "2.11.8",
+       "resolved": "https://registry.npmjs.org/@popperjs/core/-/core-2.11.8.tgz",
+@@ -2426,7 +2450,6 @@
+       "version": "8.14.0",
+       "resolved": "https://registry.npmjs.org/acorn/-/acorn-8.14.0.tgz",
+       "integrity": "sha512-cl669nCJTZBsL97OF4kUQm5g5hC2uihk0NxY3WENAC0TYdILVkAyHymAntgxGkl7K+t0cXIrH5siy5S4XkFycA==",
+-      "dev": true,
+       "license": "MIT",
+       "bin": {
+         "acorn": "bin/acorn"
+@@ -2445,6 +2468,18 @@
+         "acorn": "^6.0.0 || ^7.0.0 || ^8.0.0"
+       }
+     },
++    "node_modules/acorn-walk": {
++      "version": "8.3.4",
++      "resolved": "https://registry.npmjs.org/acorn-walk/-/acorn-walk-8.3.4.tgz",
++      "integrity": "sha512-ueEepnujpqee2o5aIYnvHU6C0A42MNdsIDeqy5BydrkuC5R1ZuUFnm27EeFJGoEHJQgn3uleRvmTXaJgfXbt4g==",
++      "license": "MIT",
++      "dependencies": {
++        "acorn": "^8.11.0"
++      },
++      "engines": {
++        "node": ">=0.4.0"
++      }
++    },
+     "node_modules/ajv": {
+       "version": "6.12.6",
+       "resolved": "https://registry.npmjs.org/ajv/-/ajv-6.12.6.tgz",
+@@ -2933,6 +2968,15 @@
+         "simple-swizzle": "^0.2.2"
+       }
+     },
++    "node_modules/commander": {
++      "version": "7.2.0",
++      "resolved": "https://registry.npmjs.org/commander/-/commander-7.2.0.tgz",
++      "integrity": "sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==",
++      "license": "MIT",
++      "engines": {
++        "node": ">= 10"
++      }
++    },
+     "node_modules/concat-map": {
+       "version": "0.0.1",
+       "resolved": "https://registry.npmjs.org/concat-map/-/concat-map-0.0.1.tgz",
+@@ -3044,6 +3088,12 @@
+         "url": "https://github.com/sponsors/ljharb"
+       }
+     },
++    "node_modules/debounce": {
++      "version": "1.2.1",
++      "resolved": "https://registry.npmjs.org/debounce/-/debounce-1.2.1.tgz",
++      "integrity": "sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==",
++      "license": "MIT"
++    },
+     "node_modules/debug": {
+       "version": "4.4.0",
+       "resolved": "https://registry.npmjs.org/debug/-/debug-4.4.0.tgz",
+@@ -3153,6 +3203,12 @@
+         "node": ">= 0.4"
+       }
+     },
++    "node_modules/duplexer": {
++      "version": "0.1.2",
++      "resolved": "https://registry.npmjs.org/duplexer/-/duplexer-0.1.2.tgz",
++      "integrity": "sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg==",
++      "license": "MIT"
++    },
+     "node_modules/emoji-regex": {
+       "version": "9.2.2",
+       "resolved": "https://registry.npmjs.org/emoji-regex/-/emoji-regex-9.2.2.tgz",
+@@ -4210,6 +4266,21 @@
+       "dev": true,
+       "license": "MIT"
+     },
++    "node_modules/gzip-size": {
++      "version": "6.0.0",
++      "resolved": "https://registry.npmjs.org/gzip-size/-/gzip-size-6.0.0.tgz",
++      "integrity": "sha512-ax7ZYomf6jqPTQ4+XCpUGyXKHk5WweS+e05MBO4/y3WJ5RkmPXNKvX+bx1behVILVwr6JSQvZAku021CHPXG3Q==",
++      "license": "MIT",
++      "dependencies": {
++        "duplexer": "^0.1.2"
++      },
++      "engines": {
++        "node": ">=10"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/sindresorhus"
++      }
++    },
+     "node_modules/has-bigints": {
+       "version": "1.1.0",
+       "resolved": "https://registry.npmjs.org/has-bigints/-/has-bigints-1.1.0.tgz",
+@@ -4318,6 +4389,12 @@
+       "integrity": "sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==",
+       "license": "MIT"
+     },
++    "node_modules/html-escaper": {
++      "version": "2.0.2",
++      "resolved": "https://registry.npmjs.org/html-escaper/-/html-escaper-2.0.2.tgz",
++      "integrity": "sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==",
++      "license": "MIT"
++    },
+     "node_modules/http-parser-js": {
+       "version": "0.5.8",
+       "resolved": "https://registry.npmjs.org/http-parser-js/-/http-parser-js-0.5.8.tgz",
+@@ -4631,6 +4708,15 @@
+         "url": "https://github.com/sponsors/ljharb"
+       }
+     },
++    "node_modules/is-plain-object": {
++      "version": "5.0.0",
++      "resolved": "https://registry.npmjs.org/is-plain-object/-/is-plain-object-5.0.0.tgz",
++      "integrity": "sha512-VRSzKkbMm5jMDoKLbltAkFQ5Qr7VDiTFGXxYFXXowVj387GeGNOCsOH6Msy00SGZ3Fp84b1Naa1psqgcCIEP5Q==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=0.10.0"
++      }
++    },
+     "node_modules/is-regex": {
+       "version": "1.2.1",
+       "resolved": "https://registry.npmjs.org/is-regex/-/is-regex-1.2.1.tgz",
+@@ -5049,6 +5135,15 @@
+         "url": "https://github.com/sponsors/ljharb"
+       }
+     },
++    "node_modules/mrmime": {
++      "version": "2.0.0",
++      "resolved": "https://registry.npmjs.org/mrmime/-/mrmime-2.0.0.tgz",
++      "integrity": "sha512-eu38+hdgojoyq63s+yTpN4XMBdt5l8HhMhc4VKLO9KM5caLIBvUm4thi7fFaxyTmCKeNnXZ5pAlBwCUnhA09uw==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=10"
++      }
++    },
+     "node_modules/ms": {
+       "version": "2.1.3",
+       "resolved": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz",
+@@ -5257,6 +5352,15 @@
+         "url": "https://github.com/sponsors/ljharb"
+       }
+     },
++    "node_modules/opener": {
++      "version": "1.5.2",
++      "resolved": "https://registry.npmjs.org/opener/-/opener-1.5.2.tgz",
++      "integrity": "sha512-ur5UIdyw5Y7yEj9wLzhqXiy6GZ3Mwx0yGI+5sMn2r0N0v3cKJvUmFH5yPP+WXh9e0xfyzyJX95D8l088DNFj7A==",
++      "license": "(WTFPL OR MIT)",
++      "bin": {
++        "opener": "bin/opener-bin.js"
++      }
++    },
+     "node_modules/optionator": {
+       "version": "0.9.4",
+       "resolved": "https://registry.npmjs.org/optionator/-/optionator-0.9.4.tgz",
+@@ -5971,6 +6075,20 @@
+       "license": "MIT",
+       "optional": true
+     },
++    "node_modules/sirv": {
++      "version": "2.0.4",
++      "resolved": "https://registry.npmjs.org/sirv/-/sirv-2.0.4.tgz",
++      "integrity": "sha512-94Bdh3cC2PKrbgSOUqTiGPWVZeSiXfKOVZNJniWoqrWrRkB1CJzBU3NEbiTsPcYy1lDsANA/THzS+9WBiy5nfQ==",
++      "license": "MIT",
++      "dependencies": {
++        "@polka/url": "^1.0.0-next.24",
++        "mrmime": "^2.0.0",
++        "totalist": "^3.0.0"
++      },
++      "engines": {
++        "node": ">= 10"
++      }
++    },
+     "node_modules/source-map": {
+       "version": "0.5.7",
+       "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.5.7.tgz",
+@@ -6229,15 +6347,6 @@
+         "url": "https://github.com/sponsors/ljharb"
+       }
+     },
+-    "node_modules/tall": {
+-      "version": "8.0.0",
+-      "resolved": "https://registry.npmjs.org/tall/-/tall-8.0.0.tgz",
+-      "integrity": "sha512-kRS3kKsGvQGdud8PCo6Y0FseC9o8crZmet1b1/zk+Hbzn4cayRcAIIaWNOwuZBgyhMKSDLRwRCE+sZUkzUUCaQ==",
+-      "license": "MIT",
+-      "engines": {
+-        "node": ">=16.0.0"
+-      }
+-    },
+     "node_modules/tapable": {
+       "version": "2.2.1",
+       "resolved": "https://registry.npmjs.org/tapable/-/tapable-2.2.1.tgz",
+@@ -6261,6 +6370,15 @@
+         "node": ">=8.0"
+       }
+     },
++    "node_modules/totalist": {
++      "version": "3.0.1",
++      "resolved": "https://registry.npmjs.org/totalist/-/totalist-3.0.1.tgz",
++      "integrity": "sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=6"
++      }
++    },
+     "node_modules/ts-api-utils": {
+       "version": "1.4.3",
+       "resolved": "https://registry.npmjs.org/ts-api-utils/-/ts-api-utils-1.4.3.tgz",
+@@ -6453,6 +6571,33 @@
+       "integrity": "sha512-Ovyv3ASEXXWmQVh3clpaZufkraRSg2Uv+28Z5zBHL4nB1HgTZ64lcFMUXX7yZlV5WAIN5ST9w3naaYmOdV2+iw==",
+       "license": "BSD-3-Clause"
+     },
++    "node_modules/webpack-bundle-analyzer": {
++      "version": "4.10.1",
++      "resolved": "https://registry.npmjs.org/webpack-bundle-analyzer/-/webpack-bundle-analyzer-4.10.1.tgz",
++      "integrity": "sha512-s3P7pgexgT/HTUSYgxJyn28A+99mmLq4HsJepMPzu0R8ImJc52QNqaFYW1Z2z2uIb1/J3eYgaAWVpaC+v/1aAQ==",
++      "license": "MIT",
++      "dependencies": {
++        "@discoveryjs/json-ext": "0.5.7",
++        "acorn": "^8.0.4",
++        "acorn-walk": "^8.0.0",
++        "commander": "^7.2.0",
++        "debounce": "^1.2.1",
++        "escape-string-regexp": "^4.0.0",
++        "gzip-size": "^6.0.0",
++        "html-escaper": "^2.0.2",
++        "is-plain-object": "^5.0.0",
++        "opener": "^1.5.2",
++        "picocolors": "^1.0.0",
++        "sirv": "^2.0.3",
++        "ws": "^7.3.1"
++      },
++      "bin": {
++        "webpack-bundle-analyzer": "lib/bin/analyzer.js"
++      },
++      "engines": {
++        "node": ">= 10.13.0"
++      }
++    },
+     "node_modules/websocket-driver": {
+       "version": "0.7.4",
+       "resolved": "https://registry.npmjs.org/websocket-driver/-/websocket-driver-0.7.4.tgz",
+@@ -6607,6 +6752,27 @@
+         "url": "https://github.com/chalk/wrap-ansi?sponsor=1"
+       }
+     },
++    "node_modules/ws": {
++      "version": "7.5.10",
++      "resolved": "https://registry.npmjs.org/ws/-/ws-7.5.10.tgz",
++      "integrity": "sha512-+dbF1tHwZpXcbOJdVOkzLDxZP1ailvSxM6ZweXTegylPny803bFhA+vqBYw4s31NSAk4S2Qz+AKXK9a4wkdjcQ==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=8.3.0"
++      },
++      "peerDependencies": {
++        "bufferutil": "^4.0.1",
++        "utf-8-validate": "^5.0.2"
++      },
++      "peerDependenciesMeta": {
++        "bufferutil": {
++          "optional": true
++        },
++        "utf-8-validate": {
++          "optional": true
++        }
++      }
++    },
+     "node_modules/y18n": {
+       "version": "5.0.8",
+       "resolved": "https://registry.npmjs.org/y18n/-/y18n-5.0.8.tgz",
+diff --git a/package.json b/package.json
+index edc9595..dd5d4b3 100644
+--- a/package.json
++++ b/package.json
+@@ -15,12 +15,12 @@
+     "@emotion/styled": "^11.14.0",
+     "@mui/icons-material": "^6.2.1",
+     "@mui/material": "^6.2.1",
++    "@next/bundle-analyzer": "^15.1.2",
+     "firebase": "^11.1.0",
+     "prettier": "^3.4.2",
+     "prop-types": "^15.8.1",
+     "react": "^19.0.0",
+     "react-dom": "^19.0.0",
+-    "tall": "^8.0.0",
+     "uuid": "^11.0.3",
+     "wavesurfer.js": "^7.8.11"
+   },
+diff --git a/src/app/contexts/Readme GameContext.MD b/src/app/contexts/Readme GameContext.MD
+index 8cf656b..e619bd3 100644
+--- a/src/app/contexts/Readme GameContext.MD	
++++ b/src/app/contexts/Readme GameContext.MD	
+@@ -15,9 +15,9 @@ This document outlines how to manage multiple games that share the **same types
+ ```js
+ // Pseudocode shape
+ const [configMap, setConfigMap] = useState({
+-  artistLearn:  { timeLimit: 10, numSongs: 5, styles: {}, levels: [] },
+-  artistQuiz:   { timeLimit: 30, numSongs: 4, styles: {}, levels: [] },
+-  styleLearn:   { timeLimit: 15, numSongs: 8, styles: {}, levels: [] },
++  artistLearn: { timeLimit: 10, numSongs: 5, styles: {}, levels: [] },
++  artistQuiz: { timeLimit: 30, numSongs: 4, styles: {}, levels: [] },
++  styleLearn: { timeLimit: 15, numSongs: 8, styles: {}, levels: [] },
+   // etc...
+ });
+ ```
+@@ -26,12 +26,14 @@ const [configMap, setConfigMap] = useState({
+ 
+ ## Key Steps
+ 
+-1. **Create a Single `GameContext`**  
+-   - Define one context (and provider) that holds a **`configMap`** object in state.  
++1. **Create a Single `GameContext`**
++
++   - Define one context (and provider) that holds a **`configMap`** object in state.
+    - Each game references its config via `configMap[gameSlug]`.
+ 
+-2. **Update Config**  
+-   - Provide an `updateConfig(gameSlug, newValues)` function that merges `newValues` into the correct map entry.  
++2. **Update Config**
++
++   - Provide an `updateConfig(gameSlug, newValues)` function that merges `newValues` into the correct map entry.
+    - Example:
+      ```js
+      function updateConfig(gameSlug, newValues) {
+@@ -45,17 +47,21 @@ const [configMap, setConfigMap] = useState({
+      }
+      ```
+ 
+-3. **Per-Game Defaults & Logic**  
+-   - On first load, if `configMap[gameSlug]` doesn’t exist, initialize it with that game’s defaults (e.g., 4 vs. 5 songs).  
+-   - Each game can impose its own constraints before calling `updateConfig`.  
++3. **Per-Game Defaults & Logic**
++
++   - On first load, if `configMap[gameSlug]` doesn’t exist, initialize it with that game’s defaults (e.g., 4 vs. 5 songs).
++   - Each game can impose its own constraints before calling `updateConfig`.
+    - E.g., `ArtistQuiz` might enforce `timeLimit = 30` automatically, while `ArtistLearn` could allow 10 to 15 seconds.
+ 
+-4. **Persist Locally or to Cloud**  
+-   - To save each game’s config, you can serialize the **entire** `configMap` (one structure) to local storage or an API.  
++4. **Persist Locally or to Cloud**
++
++   - To save each game’s config, you can serialize the **entire** `configMap` (one structure) to local storage or an API.
+    - On load, read from local storage / API, then set your state accordingly.
+ 
+-5. **Consuming the Context**  
++5. **Consuming the Context**
++
+    - In each game’s page or components (`ConfigTab`, `PlayTab`), call:
++
+      ```js
+      const { configMap, updateConfig } = useGameContext();
+      const gameSlug = "artistLearn"; // or "artistQuiz" etc.
+@@ -64,6 +70,7 @@ const [configMap, setConfigMap] = useState({
+      // Now read or write as needed:
+      updateConfig(gameSlug, { timeLimit: 20 });
+      ```
++
+    - This ensures each game only touches its own config subset.
+ 
+ ---
+@@ -93,14 +100,14 @@ Each game calls `updateConfig("artistLearn", { timeLimit: 12 })` or `updateConfi
+ 
+ ## Benefits
+ 
+-1. **One Data Structure**: No duplication of context logic.  
+-2. **Clearly Separate Game Data**: `artistLearn` vs. `artistQuiz` each has its own entry.  
+-3. **Easy Persistence**: You can save and restore the entire `configMap` in a single read/write to local storage or your API.  
++1. **One Data Structure**: No duplication of context logic.
++2. **Clearly Separate Game Data**: `artistLearn` vs. `artistQuiz` each has its own entry.
++3. **Easy Persistence**: You can save and restore the entire `configMap` in a single read/write to local storage or your API.
+ 4. **Per-Game Constraints**: Each game can apply its own rules before calling `updateConfig`.
+ 
+ ---
+ 
+ ### Final Notes
+ 
+-- If your games differ significantly, you can still store any fields you share in `configMap`, and each game can store extra keys as needed (`decadeRange`, `specialRule`, etc.).  
+-- Keep your “unique” logic (e.g., enforcing min or max values) in the game’s own code so the context remains generic.
+\ No newline at end of file
++- If your games differ significantly, you can still store any fields you share in `configMap`, and each game can store extra keys as needed (`decadeRange`, `specialRule`, etc.).
++- Keep your “unique” logic (e.g., enforcing min or max values) in the game’s own code so the context remains generic.
+diff --git a/src/app/contexts/Readme GameContext2.MD b/src/app/contexts/Readme GameContext2.MD
+index ac416be..c73ab4c 100644
+--- a/src/app/contexts/Readme GameContext2.MD	
++++ b/src/app/contexts/Readme GameContext2.MD	
+@@ -6,32 +6,35 @@ This document explains how our **GameContext** is consumed by a typical three-ta
+ 
+ ### **Overall Flow**
+ 
+-1. **Main Game Page (Wrapper)**  
+-   - Renders the “Play” button, which reads config from `GameContext` to fetch data (songs, questions, etc.).  
+-   - Updates the score or session data when the user finishes a round.  
++1. **Main Game Page (Wrapper)**
++
++   - Renders the “Play” button, which reads config from `GameContext` to fetch data (songs, questions, etc.).
++   - Updates the score or session data when the user finishes a round.
+    - Shows/hides `PlayTab` or `ConfigTab`.
+ 
+-2. **ConfigTab**  
+-   - Renders sliders, dropdowns, etc.  
+-   - Calls `updateConfig(key, value)` from `GameContext` to store filter/limit values (e.g., `timeLimit`, `numSongs`).  
++2. **ConfigTab**
++
++   - Renders sliders, dropdowns, etc.
++   - Calls `updateConfig(key, value)` from `GameContext` to store filter/limit values (e.g., `timeLimit`, `numSongs`).
+ 
+-3. **PlayTab**  
+-   - Uses the final config from `GameContext` to run the actual game.  
++3. **PlayTab**
++   - Uses the final config from `GameContext` to run the actual game.
+    - When the game ends or user’s turn completes, it updates `currentScore` via `setCurrentScore()` or calls `resetGame()` if needed.
+ 
+ ---
+ 
+ ### **1) Main Game Page**
+ 
+-- **Consumes**: 
++- **Consumes**:
+   - `config` (to confirm the user’s chosen settings before playing)
+   - `currentScore` (to display or reset)
+-- **Actions**: 
++- **Actions**:
+   - On “Play” click, does the official GET request using `config` values to fetch data (e.g., songs).
+   - Shows/hides `PlayTab`.
+   - Updates `currentScore` if a user completes a session with a new score.
+ 
+ **Example**:
++
+ ```jsx
+ const { config, currentScore, setCurrentScore } = useGameContext();
+ 
+@@ -53,14 +56,15 @@ function handleGameComplete(newScore) {
+ 
+ ### **2) ConfigTab**
+ 
+-- **Consumes**:  
+-  - `config` to display current sliders/checkbox states.  
++- **Consumes**:
++  - `config` to display current sliders/checkbox states.
+   - `updateConfig(key, value)` to change them.
+-- **Actions**:  
++- **Actions**:
+   - Users move a slider or toggle a checkbox -> `updateConfig("numSongs", 12)`.
+   - The updated config is reflected instantly anywhere else consuming `GameContext`.
+ 
+ **Example**:
++
+ ```jsx
+ const { config, updateConfig } = useGameContext();
+ 
+@@ -76,16 +80,17 @@ const { config, updateConfig } = useGameContext();
+ 
+ ### **3) PlayTab**
+ 
+-- **Consumes**: 
+-  - `config` (time limit, number of questions)  
+-  - `currentScore` (if you want to show the user’s ongoing points)  
++- **Consumes**:
++  - `config` (time limit, number of questions)
++  - `currentScore` (if you want to show the user’s ongoing points)
+   - `setCurrentScore` for updating points or final score
+-- **Actions**:  
+-  - Uses `config` to play the actual session.  
+-  - Calls `setCurrentScore()` or `resetGame()` when session ends.  
++- **Actions**:
++  - Uses `config` to play the actual session.
++  - Calls `setCurrentScore()` or `resetGame()` when session ends.
+   - Could also read `currentQuestionIndex` or `setCurrentQuestionIndex()` if needed.
+ 
+ **Example**:
++
+ ```jsx
+ const { config, currentScore, setCurrentScore, resetGame } = useGameContext();
+ 
+@@ -104,9 +109,9 @@ function finishGame() {
+ 
+ ## **Key Takeaways**
+ 
+-- **One GameContext** holds shared fields (`config`, `currentScore`, etc.).  
+-- **Main Page** orchestrates the flow: fetch data on “Play,” toggle tabs, record final score.  
+-- **ConfigTab** just sets `config` fields.  
+-- **PlayTab** uses those `config` fields to run the game, then updates or resets session.  
++- **One GameContext** holds shared fields (`config`, `currentScore`, etc.).
++- **Main Page** orchestrates the flow: fetch data on “Play,” toggle tabs, record final score.
++- **ConfigTab** just sets `config` fields.
++- **PlayTab** uses those `config` fields to run the game, then updates or resets session.
+ 
+-This pattern ensures each piece (Page, ConfigTab, PlayTab) stays focused on its role while sharing a single source of truth in `GameContext`.
+\ No newline at end of file
++This pattern ensures each piece (Page, ConfigTab, PlayTab) stays focused on its role while sharing a single source of truth in `GameContext`.
+diff --git a/src/app/games/artist-learn/ConfigTab copy.js b/src/app/games/artist-learn/ConfigTab copy.js
+deleted file mode 100644
+index aa88716..0000000
+--- a/src/app/games/artist-learn/ConfigTab copy.js	
++++ /dev/null
+@@ -1,126 +0,0 @@
+-// ------------------------------------------------------------
+-// src/app/games/artist-learn/ConfigTab.js (OLD)
+-// ------------------------------------------------------------
+-"use client";
+-
+-import React from "react";
+-import { Box, FormHelperText } from "@mui/material";
+-
+-import styles from "../styles.module.css";
+-
+-import SongsSlider from "@/components/ui/SongsSlider";
+-import SecondsSlider from "@/components/ui/SecondsSlider";
+-import LevelsSelector from "@/components/ui/LevelsSelector";
+-import StylesSelector from "@/components/ui/StylesSelector";
+-import ArtistsSelector from "@/components/ui/ArtistsSelector";
+-import useArtistLearn from "@/hooks/useArtistLearn";
+-
+-export default function ConfigTab() {
+-  // 1) Use the custom hook instead of onSongsFetched
+-  const {
+-    config,
+-    isDisabled,
+-    primaryStyles,
+-    artistOptions,
+-    selectedArtists,
+-    validationMessage,
+-    levelsDisabled,
+-
+-    // handlers
+-    handleNumSongsChange,
+-    handleTimeLimitChange,
+-    handleLevelsChange,
+-    handleStylesChange,
+-    handleArtistsChange,
+-  } = useArtistLearn(); // no callback
+-
+-  return (
+-    <Box className={styles.configurationContainer}>
+-      {/* Show validation errors if any */}
+-      {validationMessage && (
+-        <FormHelperText className={styles.validationError}>
+-          {validationMessage}
+-        </FormHelperText>
+-      )}
+-
+-      {/* Row with # of Songs slider & Time Limit slider */}
+-      <Box
+-        sx={{
+-          display: "flex",
+-          alignItems: "center",
+-          gap: 4,
+-          width: "100%",
+-          mb: 3,
+-        }}
+-      >
+-        <Box sx={{ flex: 1 }}>
+-          <SongsSlider
+-            label="Number of Songs"
+-            min={3}
+-            max={25}
+-            step={1}
+-            value={config.numSongs ?? 10}
+-            onChange={handleNumSongsChange}
+-            disabled={isDisabled}
+-          />
+-        </Box>
+-        <Box sx={{ flex: 1 }}>
+-          <SecondsSlider
+-            label="Time Limit (Seconds)"
+-            min={3}
+-            max={29}
+-            step={1}
+-            value={config.timeLimit ?? 15}
+-            onChange={handleTimeLimitChange}
+-            disabled={isDisabled}
+-          />
+-        </Box>
+-      </Box>
+-
+-      {/* Levels & Styles */}
+-      <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
+-        <Box sx={{ flex: 1 }}>
+-          <LevelsSelector
+-            label="Levels:"
+-            availableLevels={[1, 2, 3, 4, 5]}
+-            selectedLevels={config.levels || []}
+-            onChange={handleLevelsChange}
+-            disabled={isDisabled || levelsDisabled}
+-          />
+-        </Box>
+-        <Box sx={{ flex: 1 }}>
+-          <StylesSelector
+-            label="Styles:"
+-            availableStyles={primaryStyles}
+-            selectedStyles={config.styles || {}}
+-            onChange={handleStylesChange}
+-            disabled={isDisabled}
+-          />
+-        </Box>
+-      </Box>
+-
+-      {/* Artists (Optional) */}
+-      <ArtistsSelector
+-        label="Select Artists (Optional)"
+-        availableArtists={artistOptions}
+-        selectedArtists={selectedArtists}
+-        onChange={handleArtistsChange}
+-        disabled={isDisabled || (config.levels || []).length > 0}
+-        placeholder="Artists"
+-      />
+-
+-      {/* If both levels & artists are selected => error */}
+-      {(config.levels || []).length > 0 && selectedArtists.length > 0 && (
+-        <FormHelperText className={styles.errorText}>
+-          Both artists and levels are selected. Please clear one.
+-        </FormHelperText>
+-      )}
+-    </Box>
+-  );
+-}
+-
+-ConfigTab.propTypes = {
+-  // No more onSongsFetched prop
+-};
+-
+-ConfigTab.defaultProps = {};
+diff --git a/src/app/games/artist-learn/ConfigTab.js b/src/app/games/artist-learn/ConfigTab.js
+index ee9fcbe..1de1cc8 100644
+--- a/src/app/games/artist-learn/ConfigTab.js
++++ b/src/app/games/artist-learn/ConfigTab.js
+@@ -1,112 +1,231 @@
++// ------------------------------------------------------------
++// src/app/games/artist-learn/ConfigTab.js
++// ------------------------------------------------------------
+ "use client";
+-
+-import React from "react";
+-import { Box, FormHelperText } from "@mui/material";
+-import styles from "../styles.module.css";
+-
+-import SongsSlider from "@/components/ui/SongsSlider";
+-import SecondsSlider from "@/components/ui/SecondsSlider";
+-import LevelsSelector from "@/components/ui/LevelsSelector";
+-import StylesSelector from "@/components/ui/StylesSelector";
+-import ArtistsSelector from "@/components/ui/ArtistsSelector";
+-
+-// 1) We'll still fetch style data from useArtistLearn (like old version)
+-import useArtistLearn from "@/hooks/useArtistLearn";
+-
+-// 2) We'll store config in GameContext
++import React, { useState } from "react";
++import Image from "next/image";
++import { Box, Typography, Button, Paper } from "@mui/material";
++import ConfigTab from "./ConfigTab";
++import PlayTab from "./PlayTab";
++import { useRouter } from "next/navigation";
+ import { useGameContext } from "@/contexts/GameContext";
++import { fetchFilteredSongs } from "@/utils/dataFetching";
++import styles from "../styles.module.css";
+ 
+-export default function ConfigTab() {
+-  // A) fetch metadata (primaryStyles, artistOptions, etc.)
+-  const {
+-    primaryStyles,
+-    artistOptions,
+-    validationMessage,
+-    selectedArtists,
+-    // any other old states from useArtistLearn
+-  } = useArtistLearn();
+-
+-  // B) store final config in game context
+-  const { config, updateConfig } = useGameContext();
+-
+-  // If you also want isDisabled or levelsDisabled from the old approach, you can do that:
+-  // e.g. const { isDisabled, levelsDisabled } = useArtistLearn();
+-
+-  // Handlers
+-  const handleNumSongsChange = (value) => {
+-    updateConfig("numSongs", value);
+-  };
+-
+-  const handleTimeLimitChange = (value) => {
+-    updateConfig("timeLimit", value);
+-  };
+-
+-  const handleLevelsChange = (newLevels) => {
+-    updateConfig("levels", newLevels);
++export default function ArtistLearnPage() {
++  const router = useRouter();
++  const [songs, setSongs] = useState([]);
++  const [showPlayTab, setShowPlayTab] = useState(false);
++
++  const { config, bestScore, totalScore, completedGames, resetAll } =
++    useGameContext();
++
++  const handlePlayClick = async () => {
++    const numSongs = config.numSongs ?? 10;
++    const activeStyles = Object.keys(config.styles || {}).filter(
++      (key) => config.styles[key],
++    );
++    const artistLevels = config.levels || [];
++    const chosenArtists = (config.artists || []).map((a) => a.value);
++
++    const { songs: fetchedSongs } = await fetchFilteredSongs(
++      chosenArtists,
++      artistLevels,
++      [],
++      activeStyles,
++      "N",
++      "N",
++      "N",
++      numSongs,
++    );
++
++    if (!fetchedSongs || fetchedSongs.length === 0) {
++      console.warn("No songs returned. Adjust config.");
++      return;
++    }
++
++    setSongs(fetchedSongs);
++    setShowPlayTab(true);
+   };
+ 
+-  const handleStylesChange = (updatedStylesObj) => {
+-    updateConfig("styles", updatedStylesObj);
++  const handleClosePlayTab = () => {
++    setShowPlayTab(false);
+   };
+ 
+-  const handleArtistsChange = (newSelected) => {
+-    updateConfig("artists", newSelected);
++  const handleGameHubClick = () => {
++    router.push("/games/gamehub");
+   };
+ 
+   return (
+-    <Box className={styles.configurationContainer}>
+-      {validationMessage && (
+-        <FormHelperText className={styles.validationError}>
+-          {validationMessage}
+-        </FormHelperText>
++    <Box
++      className={styles.container}
++      sx={{
++        color: "var(--foreground)",
++        background: "var(--background)",
++        minHeight: "100vh",
++      }}
++    >
++      {showPlayTab && (
++        <Box
++          sx={{
++            position: "fixed",
++            top: 0,
++            left: 0,
++            width: "100vw",
++            height: "100vh",
++            backgroundColor: "var(--background)",
++            zIndex: 9999,
++            overflow: "auto",
++            p: 2,
++          }}
++        >
++          <PlayTab
++            songs={songs}
++            config={config}
++            onCancel={handleClosePlayTab}
++          />
++        </Box>
+       )}
+ 
+-      {/* Sliders */}
+-      <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
+-        <SongsSlider
+-          label="Number of Songs"
+-          min={3}
+-          max={25}
+-          step={1}
+-          value={config.numSongs ?? 10}
+-          onChange={handleNumSongsChange}
+-        />
+-
+-        <SecondsSlider
+-          label="Time Limit (Seconds)"
+-          min={3}
+-          max={29}
+-          step={1}
+-          value={config.timeLimit ?? 15}
+-          onChange={handleTimeLimitChange}
+-        />
++      {/* Game Hub Button (Top-Left) */}
++      <Box sx={{ position: "absolute", top: "1rem", left: "1rem" }}>
++        <Box
++          sx={{
++            display: "flex",
++            flexDirection: "column",
++            alignItems: "center",
++            mb: 2,
++            cursor: "pointer",
++            transition: "transform 0.2s",
++            "&:hover": {
++              transform: "scale(1.05)",
++            },
++          }}
++          onClick={handleGameHubClick}
++        >
++          <Image
++            src={`/icons/IconGameHub.jpg`}
++            alt="Game Hub"
++            width={80}
++            height={80}
++            style={{
++              borderRadius: "50%",
++              objectFit: "cover",
++              boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
++            }}
++          />
++          <Typography
++            variant="h6"
++            sx={{
++              mt: 1,
++              fontWeight: "bold",
++              color: "var(--accent)",
++            }}
++          >
++            Game Hub
++          </Typography>
++        </Box>
+       </Box>
+ 
+-      {/* Levels & Styles */}
+-      <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
+-        <LevelsSelector
+-          label="Levels:"
+-          availableLevels={[1, 2, 3, 4, 5]}
+-          selectedLevels={config.levels || []}
+-          onChange={handleLevelsChange}
+-        />
+-
+-        <StylesSelector
+-          label="Styles:"
+-          // We'll pass an array of objects, as old code expects, so each item has { style: "Tango" }
+-          availableStyles={primaryStyles} 
+-          selectedStyles={config.styles || {}}
+-          onChange={handleStylesChange}
++      {/* Score Box in top-right */}
++      <Paper
++        sx={{
++          position: "absolute",
++          top: "1rem",
++          right: "1rem",
++          p: 1,
++          border: "1px solid var(--foreground)",
++          backgroundColor: "var(--background)",
++          color: "var(--foreground)",
++          minWidth: "120px",
++        }}
++      >
++        <Typography
++          variant="caption"
++          sx={{ display: "block", mb: 0.5, fontSize: "0.8rem" }}
++        >
++          <strong>Best:</strong> {bestScore}
++        </Typography>
++        <Typography
++          variant="caption"
++          sx={{ display: "block", mb: 0.5, fontSize: "0.8rem" }}
++        >
++          <strong>Total:</strong> {totalScore}
++        </Typography>
++        <Typography
++          variant="caption"
++          sx={{ display: "block", mb: 0.5, fontSize: "0.8rem" }}
++        >
++          <strong>Games:</strong> {completedGames}
++        </Typography>
++        <Button
++          variant="outlined"
++          size="small"
++          onClick={resetAll}
++          sx={{
++            mt: 0.5,
++            color: "var(--foreground)",
++            borderColor: "var(--foreground)",
++            fontSize: "0.7rem",
++            padding: "2px 6px",
++            minWidth: 0,
++          }}
++        >
++          Reset
++        </Button>
++      </Paper>
++
++      {/* Centered "Play" button + Title */}
++      <Box
++        sx={{
++          display: "flex",
++          flexDirection: "column",
++          alignItems: "center",
++          mt: 6,
++        }}
++      >
++        <Image
++          src={`/icons/IconLearnOrch.webp`}
++          alt="Play Button"
++          onClick={handlePlayClick}
++          width={80}
++          height={80}
++          style={{
++            cursor: "pointer",
++            borderRadius: "50%",
++            objectFit: "cover",
++            boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
++            transition: "transform 0.2s",
++          }}
++          onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
++          onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+         />
++        <Typography
++          variant="h6"
++          sx={{
++            mt: 1,
++            fontWeight: "bold",
++            color: "var(--accent)",
++          }}
++        >
++          Play
++        </Typography>
++        <Typography
++          variant="h5"
++          sx={{
++            fontWeight: "bold",
++            textAlign: "center",
++            color: "var(--foreground)",
++            mt: 2,
++            mb: 3,
++          }}
++        >
++          Mastering Orchestras and Maestros
++        </Typography>
+       </Box>
+ 
+-      {/* Artists */}
+-      <ArtistsSelector
+-        label="Select Artists (Optional)"
+-        availableArtists={artistOptions}
+-        selectedArtists={config.artists || []}
+-        onChange={handleArtistsChange}
+-      />
++      {/* Configuration Tab */}
++      <ConfigTab />
+     </Box>
+   );
+ }
+diff --git a/src/app/games/artist-learn/PlayTab copy.js b/src/app/games/artist-learn/PlayTab copy.js
+deleted file mode 100644
+index 41e0cfe..0000000
+--- a/src/app/games/artist-learn/PlayTab copy.js	
++++ /dev/null
+@@ -1,445 +0,0 @@
+-//--------
+-//src/app/games/artist-learn/PlayTab.js
+-//--------
+-
+-
+-"use client";
+-
+-import React, { useEffect, useRef, useState, useCallback } from "react";
+-import PropTypes from "prop-types";
+-import {
+-  Box,
+-  Typography,
+-  List,
+-  ListItem,
+-  ListItemText,
+-  Stack,
+-  Button,
+-  LinearProgress,
+-} from "@mui/material";
+-import WaveSurfer from "wavesurfer.js";
+-import styles from "../styles.module.css";
+-import SongSnippet from "@/components/ui/SongSnippet";
+-
+-export default function PlayTab({ songs, config, onCancel }) {
+-  const wavesurferRef = useRef(null);
+-  const playTimeoutRef = useRef(null);
+-  const fadeIntervalRef = useRef(null);
+-  const listRef = useRef(null);
+-  const countdownRef = useRef(null);
+-
+-  const [duration, setDuration] = useState(0);
+-  const [randomStart, setRandomStart] = useState(0); // 1) store randomStart in state
+-  const [currentIndex, setCurrentIndex] = useState(-1);
+-  const [isPlaying, setIsPlaying] = useState(false);
+-  const [ready, setReady] = useState(false);
+-  const [timeLeft, setTimeLeft] = useState(0);
+-
+-  const PLAY_DURATION = config.timeLimit ?? 15;
+-  const FADE_DURATION = 0.8;
+-
+-  // useEffect((() => {
+-  //   console.log("PlayTab - Config:", config);
+-  // },[]));
+-
+-  // // We might not need anything special in this effect for config, but included for completeness
+-  useEffect(() => {
+-    console.log("PlayTab - Config:", config);
+-  }, []);
+-
+-  // ---- Cleanup wavesurfer
+-  const cleanupWaveSurfer = useCallback(() => {
+-    if (fadeIntervalRef.current) {
+-      clearInterval(fadeIntervalRef.current);
+-      fadeIntervalRef.current = null;
+-    }
+-    if (wavesurferRef.current) {
+-      wavesurferRef.current.destroy();
+-      wavesurferRef.current = null;
+-    }
+-    if (playTimeoutRef.current) {
+-      clearTimeout(playTimeoutRef.current);
+-      playTimeoutRef.current = null;
+-    }
+-    if (countdownRef.current) {
+-      clearInterval(countdownRef.current);
+-      countdownRef.current = null;
+-    }
+-    setReady(false);
+-    setDuration(0);
+-    setTimeLeft(0);
+-    setRandomStart(0); // reset snippet start
+-  }, []);
+-
+-  // ---- Fade volume
+-  const fadeVolume = useCallback((fromVol, toVol, durationSec, callback) => {
+-    if (!wavesurferRef.current) return;
+-    const steps = 15;
+-    const stepTime = (durationSec * 1000) / steps;
+-    let currentStep = 0;
+-    const volumeStep = (toVol - fromVol) / steps;
+-    let currentVol = fromVol;
+-
+-    if (fadeIntervalRef.current) {
+-      clearInterval(fadeIntervalRef.current);
+-    }
+-
+-    fadeIntervalRef.current = setInterval(() => {
+-      currentStep++;
+-      currentVol += volumeStep;
+-      if (wavesurferRef.current) {
+-        wavesurferRef.current.setVolume(Math.min(Math.max(currentVol, 0), 1));
+-      }
+-      if (currentStep >= steps) {
+-        clearInterval(fadeIntervalRef.current);
+-        fadeIntervalRef.current = null;
+-        if (callback) callback();
+-      }
+-    }, stepTime);
+-  }, []);
+-
+-  // ---- Next Song
+-  const handleNextSong = useCallback(() => {
+-    cleanupWaveSurfer();
+-    if (currentIndex + 1 < songs.length) {
+-      setCurrentIndex((prevIndex) => prevIndex + 1);
+-    } else {
+-      setIsPlaying(false);
+-      setCurrentIndex(-1);
+-    }
+-  }, [cleanupWaveSurfer, currentIndex, songs.length]);
+-
+-  // ---- Start playback with fade in/out
+-  const startPlaybackWithFade = useCallback(() => {
+-    if (!wavesurferRef.current) return;
+-    wavesurferRef.current.setVolume(0);
+-
+-    // Initialize countdown from PLAY_DURATION
+-    setTimeLeft(PLAY_DURATION);
+-    if (countdownRef.current) {
+-      clearInterval(countdownRef.current);
+-    }
+-    // Count down in 0.1s steps
+-    countdownRef.current = setInterval(() => {
+-      setTimeLeft((prev) => {
+-        if (prev <= 0.1) {
+-          clearInterval(countdownRef.current);
+-          countdownRef.current = null;
+-          return 0;
+-        }
+-        return prev - 0.1;
+-      });
+-    }, 100);
+-
+-    // Fade in
+-    fadeVolume(0, 1, FADE_DURATION, () => {
+-      // Then wait the remainder to fade out
+-      playTimeoutRef.current = setTimeout(
+-        () => {
+-          fadeVolume(1, 0, FADE_DURATION, handleNextSong);
+-        },
+-        (PLAY_DURATION - FADE_DURATION) * 1000,
+-      );
+-    });
+-  }, [fadeVolume, FADE_DURATION, PLAY_DURATION, handleNextSong]);
+-
+-  // ---- Load current song
+-  const loadCurrentSong = useCallback(() => {
+-    cleanupWaveSurfer();
+-    const currentSong = songs[currentIndex];
+-    if (!currentSong) {
+-      setIsPlaying(false);
+-      setCurrentIndex(-1);
+-      return;
+-    }
+-
+-    console.log("PlayTab - Playing Song:", currentSong);
+-
+-    const ws = WaveSurfer.create({
+-      container: document.createElement("div"),
+-      waveColor: "transparent",
+-      progressColor: "transparent",
+-      barWidth: 0,
+-      height: 0,
+-      backend: "WebAudio",
+-    });
+-
+-    // On wavesurfer ready
+-    ws.on("ready", () => {
+-      setReady(true);
+-      const dur = ws.getDuration();
+-      setDuration(dur);
+-      console.log(`PlayTab - Song duration (seconds): ${dur}`);
+-
+-      // 2) Compute randomStart outside so we can store it in state
+-      const maxStart = dur * 0.75;
+-      const startVal = Math.random() * maxStart;
+-      setRandomStart(startVal);
+-
+-      // Seek wave
+-      ws.seekTo(startVal / dur);
+-
+-      // Start playback
+-      ws.play()
+-        .then(() => {
+-          startPlaybackWithFade();
+-        })
+-        .catch((err) => {
+-          console.error("PlayTab - Error playing audio:", err);
+-          handleNextSong();
+-        });
+-    });
+-
+-    // On wavesurfer error
+-    ws.on("error", (err) => {
+-      console.error("PlayTab - Wavesurfer error:", err);
+-      handleNextSong();
+-    });
+-
+-    // Load
+-    ws.load(currentSong.AudioUrl);
+-    wavesurferRef.current = ws;
+-  }, [
+-    currentIndex,
+-    songs,
+-    startPlaybackWithFade,
+-    handleNextSong,
+-    cleanupWaveSurfer,
+-  ]);
+-
+-  // ---- Jump to a song by index
+-  const playSongAtIndex = useCallback((idx) => {
+-    setCurrentIndex(idx);
+-    setIsPlaying(true);
+-  }, []);
+-
+-  // ---- if playing & currentIndex changes, load the new song
+-  useEffect(() => {
+-    if (isPlaying && currentIndex >= 0 && currentIndex < songs.length) {
+-      loadCurrentSong();
+-    }
+-    return () => {
+-      cleanupWaveSurfer();
+-    };
+-  }, [
+-    isPlaying,
+-    currentIndex,
+-    songs.length,
+-    loadCurrentSong,
+-    cleanupWaveSurfer,
+-  ]);
+-
+-  // Automatically start if songs exist and no one is playing
+-  useEffect(() => {
+-    if (songs.length > 0 && !isPlaying && currentIndex === -1) {
+-      setCurrentIndex(0);
+-      setIsPlaying(true);
+-    }
+-  }, [songs, isPlaying, currentIndex]);
+-
+-  // Auto-scroll to the currently playing item
+-  useEffect(() => {
+-    if (listRef.current && currentIndex >= 0) {
+-      const listItem = listRef.current.querySelector(
+-        `[data-idx="${currentIndex}"]`,
+-      );
+-      if (listItem) {
+-        listItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+-      }
+-    }
+-  }, [currentIndex]);
+-
+-  // Render metadata for each song
+-  const renderMetadata = (song) => {
+-    const style = song.Style || "";
+-    const year = song.Year || "";
+-    const composer = song.Composer || "";
+-    const alternative = song.Alternative === "Y" ? "Alternative " : "";
+-    const candombe = song.Candombe === "Y" ? "Candombe " : "";
+-    const cancion = song.Cancion === "Y" ? "Cancion " : "";
+-    const singer = song.Singer === "Y" ? "Singer " : "";
+-    const extras = [alternative, candombe, cancion, singer]
+-      .join("")
+-      .trim()
+-      .replace(/\s+/g, " ");
+-    const metaParts = [style, year, composer, extras].filter(Boolean);
+-    return metaParts.length > 0 ? metaParts.join(" | ") : "";
+-  };
+-
+-  // Time-left countdown as progress
+-  const progressValue = timeLeft > 0 ? (timeLeft / PLAY_DURATION) * 100 : 0;
+-
+-  return (
+-    <Box
+-      className={styles.container}
+-      sx={{
+-        minHeight: "100vh",
+-        background: "var(--background)",
+-        color: "var(--foreground)",
+-      }}
+-    >
+-      {/* If playing, show countdown and linear progress */}
+-      {isPlaying && (
+-        <Box sx={{ mb: 2 }}>
+-          <Typography variant="body1" sx={{ mb: 1 }}>
+-            Time Remaining: {timeLeft.toFixed(1)}s
+-          </Typography>
+-          <LinearProgress
+-            variant="determinate"
+-            value={progressValue}
+-            sx={{ height: "8px", borderRadius: "4px" }}
+-          />
+-        </Box>
+-      )}
+-      {/* 3) Snippet bar if we have a duration */}
+-      {duration > 0 && (
+-        <SongSnippet
+-          //         label="Snippet Range"
+-          duration={duration}
+-          lower={randomStart}
+-          upper={Math.min(duration, randomStart + PLAY_DURATION)}
+-        />
+-      )}
+-
+-      {/* If no songs, say so */}
+-      {songs.length === 0 ? (
+-        <Typography>No songs. Adjust configuration and try again.</Typography>
+-      ) : (
+-        <>
+-          {/* Song list container */}
+-          <Box
+-            ref={listRef}
+-            className={styles.listContainer}
+-            sx={{
+-              maxHeight: "calc(100vh - 200px)",
+-              overflowY: "auto",
+-              border: "1px solid var(--border-color)",
+-              borderRadius: "8px",
+-              padding: "10px",
+-            }}
+-          >
+-            <List>
+-              {songs.map((song, idx) => {
+-                const title = song.Title || song.SongTitle || "Unknown Title";
+-                const artist = song.ArtistMaster || "Unknown Artist";
+-                const meta = renderMetadata(song);
+-                const isCurrent = idx === currentIndex;
+-
+-                return (
+-                  <ListItem
+-                    key={song.SongID || idx}
+-                    data-idx={idx}
+-                    onClick={() => playSongAtIndex(idx)}
+-                    className={isCurrent ? styles.activeSong : styles.songRow}
+-                    sx={{
+-                      cursor: "pointer",
+-                      marginBottom: "0.5rem",
+-                      border: isCurrent ? "2px solid var(--accent)" : "none",
+-                      "&:hover": {
+-                        background: "var(--input-bg)",
+-                      },
+-                    }}
+-                  >
+-                    <ListItemText
+-                      primary={title}
+-                      secondary={
+-                        <>
+-                          <Typography
+-                            component="span"
+-                            variant="body2"
+-                            color="var(--foreground)"
+-                          >
+-                            {artist}
+-                          </Typography>
+-                          {meta && (
+-                            <Typography
+-                              component="span"
+-                              variant="caption"
+-                              sx={{
+-                                color: "var(--foreground)",
+-                                opacity: 0.8,
+-                              }}
+-                            >
+-                              {meta}
+-                            </Typography>
+-                          )}
+-                        </>
+-                      }
+-                    />
+-                  </ListItem>
+-                );
+-              })}
+-            </List>
+-          </Box>
+-
+-          <Stack
+-            direction="row"
+-            spacing={2}
+-            sx={{ justifyContent: "center", marginTop: "1rem" }}
+-          >
+-            {/* Next button if playing */}
+-            {isPlaying && (
+-              <Button
+-                variant="contained"
+-                className={styles.button}
+-                onClick={handleNextSong}
+-                disabled={!ready}
+-                sx={{
+-                  background: "var(--accent)",
+-                  color: "var(--background)",
+-                  "&:hover": {
+-                    opacity: 0.8,
+-                  },
+-                }}
+-              >
+-                Next
+-              </Button>
+-            )}
+-            {/* Cancel button always */}
+-            <Button
+-              variant="outlined"
+-              className={`${styles.button} ${styles.outlined}`}
+-              onClick={onCancel}
+-              sx={{
+-                borderColor: "var(--foreground)",
+-                color: "var(--foreground)",
+-                "&:hover": {
+-                  background: "var(--foreground)",
+-                  color: "var(--background)",
+-                },
+-              }}
+-            >
+-              Cancel
+-            </Button>
+-          </Stack>
+-        </>
+-      )}
+-    </Box>
+-  );
+-}
+-
+-PlayTab.propTypes = {
+-  songs: PropTypes.arrayOf(
+-    PropTypes.shape({
+-      SongID: PropTypes.string,
+-      Title: PropTypes.string,
+-      SongTitle: PropTypes.string,
+-      ArtistMaster: PropTypes.string,
+-      AudioUrl: PropTypes.string,
+-      Style: PropTypes.string,
+-      Year: PropTypes.string,
+-      Composer: PropTypes.string,
+-      Alternative: PropTypes.string,
+-      Candombe: PropTypes.string,
+-      Cancion: PropTypes.string,
+-      Singer: PropTypes.string,
+-    }),
+-  ).isRequired,
+-  config: PropTypes.shape({
+-    numSongs: PropTypes.number,
+-    timeLimit: PropTypes.number,
+-    levels: PropTypes.arrayOf(PropTypes.number),
+-    styles: PropTypes.objectOf(PropTypes.bool),
+-  }).isRequired,
+-  onCancel: PropTypes.func.isRequired,
+-};
+diff --git a/src/app/games/artist-learn/PlayTab.js b/src/app/games/artist-learn/PlayTab.js
+index eb69cc8..a9e5e49 100644
+--- a/src/app/games/artist-learn/PlayTab.js
++++ b/src/app/games/artist-learn/PlayTab.js
+@@ -101,7 +101,14 @@ export default function PlayTab({ songs, config, onCancel }) {
+       // Then record it as a completed game
+       completeGame(finalScore);
+     }
+-  }, [cleanupWaveSurfer, currentIndex, songs, currentScore, setCurrentScore, completeGame]);
++  }, [
++    cleanupWaveSurfer,
++    currentIndex,
++    songs,
++    currentScore,
++    setCurrentScore,
++    completeGame,
++  ]);
+ 
+   // Start playback with fade in/out
+   const startPlaybackWithFade = useCallback(() => {
+@@ -123,9 +130,12 @@ export default function PlayTab({ songs, config, onCancel }) {
+     // fade in
+     fadeVolume(0, 1, FADE_DURATION, () => {
+       // wait remainder, then fade out
+-      playTimeoutRef.current = setTimeout(() => {
+-        fadeVolume(1, 0, FADE_DURATION, handleNextSong);
+-      }, (PLAY_DURATION - FADE_DURATION) * 1000);
++      playTimeoutRef.current = setTimeout(
++        () => {
++          fadeVolume(1, 0, FADE_DURATION, handleNextSong);
++        },
++        (PLAY_DURATION - FADE_DURATION) * 1000,
++      );
+     });
+   }, [fadeVolume, PLAY_DURATION, FADE_DURATION, handleNextSong]);
+ 
+@@ -177,7 +187,13 @@ export default function PlayTab({ songs, config, onCancel }) {
+ 
+     ws.load(currentSong.AudioUrl);
+     wavesurferRef.current = ws;
+-  }, [songs, currentIndex, cleanupWaveSurfer, startPlaybackWithFade, handleNextSong]);
++  }, [
++    songs,
++    currentIndex,
++    cleanupWaveSurfer,
++    startPlaybackWithFade,
++    handleNextSong,
++  ]);
+ 
+   // If playing & currentIndex changes, load
+   useEffect(() => {
+@@ -198,7 +214,9 @@ export default function PlayTab({ songs, config, onCancel }) {
+   // Scroll to active song
+   useEffect(() => {
+     if (listRef.current && currentIndex >= 0) {
+-      const listItem = listRef.current.querySelector(`[data-idx="${currentIndex}"]`);
++      const listItem = listRef.current.querySelector(
++        `[data-idx="${currentIndex}"]`,
++      );
+       if (listItem) {
+         listItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+       }
+@@ -291,7 +309,11 @@ export default function PlayTab({ songs, config, onCancel }) {
+             </List>
+           </Box>
+ 
+-          <Stack direction="row" spacing={2} sx={{ justifyContent: "center", mt: 2 }}>
++          <Stack
++            direction="row"
++            spacing={2}
++            sx={{ justifyContent: "center", mt: 2 }}
++          >
+             {isPlaying && (
+               <Button
+                 variant="contained"
+diff --git a/src/app/games/artist-learn/page copy.js b/src/app/games/artist-learn/page copy.js
+deleted file mode 100644
+index 0f0095b..0000000
+--- a/src/app/games/artist-learn/page copy.js	
++++ /dev/null
+@@ -1,190 +0,0 @@
+-// ------------------------------------------------------------
+-// src/app/games/artist-learn/page.js
+-// ------------------------------------------------------------
+-"use client";
+-import Image from "next/image";
+-import React, { useState, useCallback } from "react";
+-import { Box, Typography, Button } from "@mui/material";
+-import styles from "../styles.module.css";
+-import ConfigTab from "./ConfigTab";
+-import PlayTab from "./PlayTab";
+-import { useRouter } from "next/navigation";
+-import { fetchFilteredSongs } from "@/utils/dataFetching";
+-import { useGameContext } from "@/contexts/GameContext"; // <— ADDED
+-
+-export default function ArtistLearnPage() {
+-  const router = useRouter();
+-  const [songs, setSongs] = useState([]);
+-  const [showPlayTab, setShowPlayTab] = useState(false);
+-
+-  // 1) Grab everything from GameContext
+-  const {
+-    config,
+-    updateConfig,
+-    bestScore,
+-    totalScore,
+-    completedGames,
+-    resetAll,
+-    // Optionally: currentScore if you want to display it here
+-  } = useGameContext();
+-
+-  // 2) Called when user clicks “Play”
+-  const handlePlayClick = useCallback(async () => {
+-    // Actually fetch songs using the config
+-    // If you have validation, do it here or rely on your existing logic in hooks
+-    const fresh = { ...config };
+-
+-    // Fallback defaults if user never touched config
+-    const numSongs = fresh.numSongs ?? 10;
+-    const activeStyles = Object.keys(fresh.styles || {}).filter((key) => fresh.styles[key]);
+-    const artistLevels = fresh.levels || [];
+-    const chosenArtists = fresh.artists?.map((a) => a.value) || [];
+-
+-    // Just an example fetch
+-    const { songs: fetchedSongs } = await fetchFilteredSongs(
+-      chosenArtists,
+-      artistLevels,
+-      [],
+-      activeStyles,
+-      "N",
+-      "N",
+-      "N",
+-      numSongs,
+-    );
+-
+-    if (!fetchedSongs || fetchedSongs.length === 0) {
+-      console.warn("No songs returned. Adjust config or try again.");
+-      return;
+-    }
+-
+-    // If success, set them & show PlayTab
+-    setSongs(fetchedSongs);
+-    setShowPlayTab(true);
+-  }, [config]);
+-
+-  // 3) Close or Cancel play tab
+-  const handleClosePlayTab = () => {
+-    setShowPlayTab(false);
+-  };
+-
+-  // 4) Reset
+-  const handleReset = () => {
+-    resetAll();
+-  };
+-
+-  // 5) Return to game hub
+-  const handleGameHubClick = () => {
+-    router.push("/games/gamehub");
+-  };
+-
+-  return (
+-    <Box
+-      className={styles.container}
+-      sx={{
+-        color: "var(--foreground)",
+-        background: "var(--background)",
+-        minHeight: "100vh",
+-      }}
+-    >
+-      {/* If user hits “Play,” show the PlayTab in an overlay */}
+-      {showPlayTab && (
+-        <Box
+-          sx={{
+-            position: "fixed",
+-            top: 0,
+-            left: 0,
+-            width: "100vw",
+-            height: "100vh",
+-            backgroundColor: "var(--background)",
+-            zIndex: 9999,
+-            overflow: "auto",
+-            p: 2,
+-          }}
+-        >
+-          <PlayTab songs={songs} config={config} onCancel={handleClosePlayTab} />
+-        </Box>
+-      )}
+-
+-      {/* Button to return to GameHub */}
+-      <Box sx={{ position: "absolute", top: "1rem", left: "1rem" }}>
+-        <Box
+-          sx={{
+-            display: "flex",
+-            flexDirection: "column",
+-            alignItems: "center",
+-            mb: 2,
+-            cursor: "pointer",
+-            transition: "transform 0.2s",
+-            "&:hover": {
+-              transform: "scale(1.05)",
+-            },
+-          }}
+-          onClick={handleGameHubClick}
+-        >
+-          <Image
+-            src={`/icons/IconGameHub.jpg`}
+-            alt="Game Hub"
+-            width={80}
+-            height={80}
+-            style={{
+-              borderRadius: "50%",
+-              objectFit: "cover",
+-              boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
+-            }}
+-          />
+-          <Typography
+-            variant="h6"
+-            sx={{
+-              mt: 1,
+-              fontWeight: "bold",
+-              color: "var(--accent)",
+-              "@keyframes shimmer": {
+-                "0%": { opacity: 1 },
+-                "50%": { opacity: 0.5 },
+-                "100%": { opacity: 1 },
+-              },
+-            }}
+-          >
+-            Game Hub
+-          </Typography>
+-        </Box>
+-      </Box>
+-
+-      {/* Top Layout: Title, Reset, Score Info */}
+-      <Box sx={{ textAlign: "center", mb: 3, mt: 4 }}>
+-        <Typography variant="h4" sx={{ fontWeight: "bold", mb: 2 }}>
+-          ArtistLearn
+-        </Typography>
+-        <Typography variant="body1">Best Score: {bestScore}</Typography>
+-        <Typography variant="body1">Total Score: {totalScore}</Typography>
+-        <Typography variant="body1">Games Completed: {completedGames}</Typography>
+-
+-        <Button
+-          variant="outlined"
+-          onClick={handleReset}
+-          sx={{ mt: 2, color: "var(--foreground)", borderColor: "var(--foreground)" }}
+-        >
+-          Reset All
+-        </Button>
+-      </Box>
+-
+-      {/* ConfigTab */}
+-      <ConfigTab />
+-
+-      {/* “Play” button */}
+-      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+-        <Button
+-          variant="contained"
+-          onClick={handlePlayClick}
+-          sx={{
+-            background: "var(--accent)",
+-            color: "var(--background)",
+-            "&:hover": { opacity: 0.8 },
+-          }}
+-        >
+-          Play
+-        </Button>
+-      </Box>
+-    </Box>
+-  );
+-}
+diff --git a/src/app/games/artist-learn/page.js b/src/app/games/artist-learn/page.js
+index ec810d5..c90ee9d 100644
+--- a/src/app/games/artist-learn/page.js
++++ b/src/app/games/artist-learn/page.js
+@@ -18,13 +18,8 @@ export default function ArtistLearnPage() {
+   const [showPlayTab, setShowPlayTab] = useState(false);
+ 
+   // 1) Access config & scoring from GameContext
+-  const {
+-    config,
+-    bestScore,
+-    totalScore,
+-    completedGames,
+-    resetAll,
+-  } = useGameContext();
++  const { config, bestScore, totalScore, completedGames, resetAll } =
++    useGameContext();
+ 
+   // 2) “Play” button click -> fetch songs, show PlayTab
+   const handlePlayClick = async () => {
+@@ -90,7 +85,11 @@ export default function ArtistLearnPage() {
+             p: 2,
+           }}
+         >
+-          <PlayTab songs={songs} config={config} onCancel={handleClosePlayTab} />
++          <PlayTab
++            songs={songs}
++            config={config}
++            onCancel={handleClosePlayTab}
++          />
+         </Box>
+       )}
+ 
+@@ -151,7 +150,9 @@ export default function ArtistLearnPage() {
+               boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
+               transition: "transform 0.2s",
+             }}
+-            onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
++            onMouseOver={(e) =>
++              (e.currentTarget.style.transform = "scale(1.05)")
++            }
+             onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+           />
+           <Typography
