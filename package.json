@@ -15,12 +15,12 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.2.1",
     "@mui/material": "^6.2.1",
+    "@next/bundle-analyzer": "^15.1.2",
     "firebase": "^11.1.0",
     "prettier": "^3.4.2",
     "prop-types": "^15.8.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tall": "^8.0.0",
     "uuid": "^11.0.3",
     "wavesurfer.js": "^7.8.11"
   },

@@ -15,9 +15,9 @@ This document outlines how to manage multiple games that share the **same types 
 ```js
 // Pseudocode shape
 const [configMap, setConfigMap] = useState({
-  artistLearn:  { timeLimit: 10, numSongs: 5, styles: {}, levels: [] },
-  artistQuiz:   { timeLimit: 30, numSongs: 4, styles: {}, levels: [] },
-  styleLearn:   { timeLimit: 15, numSongs: 8, styles: {}, levels: [] },
+  artistLearn: { timeLimit: 10, numSongs: 5, styles: {}, levels: [] },
+  artistQuiz: { timeLimit: 30, numSongs: 4, styles: {}, levels: [] },
+  styleLearn: { timeLimit: 15, numSongs: 8, styles: {}, levels: [] },
   // etc...
 });
 ```
@@ -26,12 +26,14 @@ const [configMap, setConfigMap] = useState({
 
 ## Key Steps
 
-1. **Create a Single `GameContext`**  
-   - Define one context (and provider) that holds a **`configMap`** object in state.  
+1. **Create a Single `GameContext`**
+
+   - Define one context (and provider) that holds a **`configMap`** object in state.
    - Each game references its config via `configMap[gameSlug]`.
 
-2. **Update Config**  
-   - Provide an `updateConfig(gameSlug, newValues)` function that merges `newValues` into the correct map entry.  
+2. **Update Config**
+
+   - Provide an `updateConfig(gameSlug, newValues)` function that merges `newValues` into the correct map entry.
    - Example:
      ```js
      function updateConfig(gameSlug, newValues) {
@@ -45,17 +47,21 @@ const [configMap, setConfigMap] = useState({
      }
      ```
 
-3. **Per-Game Defaults & Logic**  
-   - On first load, if `configMap[gameSlug]` doesn’t exist, initialize it with that game’s defaults (e.g., 4 vs. 5 songs).  
-   - Each game can impose its own constraints before calling `updateConfig`.  
+3. **Per-Game Defaults & Logic**
+
+   - On first load, if `configMap[gameSlug]` doesn’t exist, initialize it with that game’s defaults (e.g., 4 vs. 5 songs).
+   - Each game can impose its own constraints before calling `updateConfig`.
    - E.g., `ArtistQuiz` might enforce `timeLimit = 30` automatically, while `ArtistLearn` could allow 10 to 15 seconds.
 
-4. **Persist Locally or to Cloud**  
-   - To save each game’s config, you can serialize the **entire** `configMap` (one structure) to local storage or an API.  
+4. **Persist Locally or to Cloud**
+
+   - To save each game’s config, you can serialize the **entire** `configMap` (one structure) to local storage or an API.
    - On load, read from local storage / API, then set your state accordingly.
 
-5. **Consuming the Context**  
+5. **Consuming the Context**
+
    - In each game’s page or components (`ConfigTab`, `PlayTab`), call:
+
      ```js
      const { configMap, updateConfig } = useGameContext();
      const gameSlug = "artistLearn"; // or "artistQuiz" etc.
@@ -64,6 +70,7 @@ const [configMap, setConfigMap] = useState({
      // Now read or write as needed:
      updateConfig(gameSlug, { timeLimit: 20 });
      ```
+
    - This ensures each game only touches its own config subset.
 
 ---
@@ -93,14 +100,14 @@ Each game calls `updateConfig("artistLearn", { timeLimit: 12 })` or `updateConfi
 
 ## Benefits
 
-1. **One Data Structure**: No duplication of context logic.  
-2. **Clearly Separate Game Data**: `artistLearn` vs. `artistQuiz` each has its own entry.  
-3. **Easy Persistence**: You can save and restore the entire `configMap` in a single read/write to local storage or your API.  
+1. **One Data Structure**: No duplication of context logic.
+2. **Clearly Separate Game Data**: `artistLearn` vs. `artistQuiz` each has its own entry.
+3. **Easy Persistence**: You can save and restore the entire `configMap` in a single read/write to local storage or your API.
 4. **Per-Game Constraints**: Each game can apply its own rules before calling `updateConfig`.
 
 ---
 
 ### Final Notes
 
-- If your games differ significantly, you can still store any fields you share in `configMap`, and each game can store extra keys as needed (`decadeRange`, `specialRule`, etc.).  
+- If your games differ significantly, you can still store any fields you share in `configMap`, and each game can store extra keys as needed (`decadeRange`, `specialRule`, etc.).
 - Keep your “unique” logic (e.g., enforcing min or max values) in the game’s own code so the context remains generic.

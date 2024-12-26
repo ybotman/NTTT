@@ -1,112 +1,231 @@
+// ------------------------------------------------------------
+// src/app/games/artist-learn/ConfigTab.js
+// ------------------------------------------------------------
 "use client";
-
-import React from "react";
-import { Box, FormHelperText } from "@mui/material";
+import React, { useState } from "react";
+import Image from "next/image";
+import { Box, Typography, Button, Paper } from "@mui/material";
+import ConfigTab from "./ConfigTab";
+import PlayTab from "./PlayTab";
+import { useRouter } from "next/navigation";
+import { useGameContext } from "@/contexts/GameContext";
+import { fetchFilteredSongs } from "@/utils/dataFetching";
 import styles from "../styles.module.css";
 
-import SongsSlider from "@/components/ui/SongsSlider";
-import SecondsSlider from "@/components/ui/SecondsSlider";
-import LevelsSelector from "@/components/ui/LevelsSelector";
-import StylesSelector from "@/components/ui/StylesSelector";
-import ArtistsSelector from "@/components/ui/ArtistsSelector";
+export default function ArtistLearnPage() {
+  const router = useRouter();
+  const [songs, setSongs] = useState([]);
+  const [showPlayTab, setShowPlayTab] = useState(false);
 
-// 1) We'll still fetch style data from useArtistLearn (like old version)
-import useArtistLearn from "@/hooks/useArtistLearn";
+  const { config, bestScore, totalScore, completedGames, resetAll } =
+    useGameContext();
 
-// 2) We'll store config in GameContext
-import { useGameContext } from "@/contexts/GameContext";
+  const handlePlayClick = async () => {
+    const numSongs = config.numSongs ?? 10;
+    const activeStyles = Object.keys(config.styles || {}).filter(
+      (key) => config.styles[key],
+    );
+    const artistLevels = config.levels || [];
+    const chosenArtists = (config.artists || []).map((a) => a.value);
 
-export default function ConfigTab() {
-  // A) fetch metadata (primaryStyles, artistOptions, etc.)
-  const {
-    primaryStyles,
-    artistOptions,
-    validationMessage,
-    selectedArtists,
-    // any other old states from useArtistLearn
-  } = useArtistLearn();
+    const { songs: fetchedSongs } = await fetchFilteredSongs(
+      chosenArtists,
+      artistLevels,
+      [],
+      activeStyles,
+      "N",
+      "N",
+      "N",
+      numSongs,
+    );
 
-  // B) store final config in game context
-  const { config, updateConfig } = useGameContext();
+    if (!fetchedSongs || fetchedSongs.length === 0) {
+      console.warn("No songs returned. Adjust config.");
+      return;
+    }
 
-  // If you also want isDisabled or levelsDisabled from the old approach, you can do that:
-  // e.g. const { isDisabled, levelsDisabled } = useArtistLearn();
-
-  // Handlers
-  const handleNumSongsChange = (value) => {
-    updateConfig("numSongs", value);
+    setSongs(fetchedSongs);
+    setShowPlayTab(true);
   };
 
-  const handleTimeLimitChange = (value) => {
-    updateConfig("timeLimit", value);
+  const handleClosePlayTab = () => {
+    setShowPlayTab(false);
   };
 
-  const handleLevelsChange = (newLevels) => {
-    updateConfig("levels", newLevels);
-  };
-
-  const handleStylesChange = (updatedStylesObj) => {
-    updateConfig("styles", updatedStylesObj);
-  };
-
-  const handleArtistsChange = (newSelected) => {
-    updateConfig("artists", newSelected);
+  const handleGameHubClick = () => {
+    router.push("/games/gamehub");
   };
 
   return (
-    <Box className={styles.configurationContainer}>
-      {validationMessage && (
-        <FormHelperText className={styles.validationError}>
-          {validationMessage}
-        </FormHelperText>
+    <Box
+      className={styles.container}
+      sx={{
+        color: "var(--foreground)",
+        background: "var(--background)",
+        minHeight: "100vh",
+      }}
+    >
+      {showPlayTab && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "var(--background)",
+            zIndex: 9999,
+            overflow: "auto",
+            p: 2,
+          }}
+        >
+          <PlayTab
+            songs={songs}
+            config={config}
+            onCancel={handleClosePlayTab}
+          />
+        </Box>
       )}
 
-      {/* Sliders */}
-      <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
-        <SongsSlider
-          label="Number of Songs"
-          min={3}
-          max={25}
-          step={1}
-          value={config.numSongs ?? 10}
-          onChange={handleNumSongsChange}
-        />
-
-        <SecondsSlider
-          label="Time Limit (Seconds)"
-          min={3}
-          max={29}
-          step={1}
-          value={config.timeLimit ?? 15}
-          onChange={handleTimeLimitChange}
-        />
+      {/* Game Hub Button (Top-Left) */}
+      <Box sx={{ position: "absolute", top: "1rem", left: "1rem" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            mb: 2,
+            cursor: "pointer",
+            transition: "transform 0.2s",
+            "&:hover": {
+              transform: "scale(1.05)",
+            },
+          }}
+          onClick={handleGameHubClick}
+        >
+          <Image
+            src={`/icons/IconGameHub.jpg`}
+            alt="Game Hub"
+            width={80}
+            height={80}
+            style={{
+              borderRadius: "50%",
+              objectFit: "cover",
+              boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
+            }}
+          />
+          <Typography
+            variant="h6"
+            sx={{
+              mt: 1,
+              fontWeight: "bold",
+              color: "var(--accent)",
+            }}
+          >
+            Game Hub
+          </Typography>
+        </Box>
       </Box>
 
-      {/* Levels & Styles */}
-      <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
-        <LevelsSelector
-          label="Levels:"
-          availableLevels={[1, 2, 3, 4, 5]}
-          selectedLevels={config.levels || []}
-          onChange={handleLevelsChange}
-        />
+      {/* Score Box in top-right */}
+      <Paper
+        sx={{
+          position: "absolute",
+          top: "1rem",
+          right: "1rem",
+          p: 1,
+          border: "1px solid var(--foreground)",
+          backgroundColor: "var(--background)",
+          color: "var(--foreground)",
+          minWidth: "120px",
+        }}
+      >
+        <Typography
+          variant="caption"
+          sx={{ display: "block", mb: 0.5, fontSize: "0.8rem" }}
+        >
+          <strong>Best:</strong> {bestScore}
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{ display: "block", mb: 0.5, fontSize: "0.8rem" }}
+        >
+          <strong>Total:</strong> {totalScore}
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{ display: "block", mb: 0.5, fontSize: "0.8rem" }}
+        >
+          <strong>Games:</strong> {completedGames}
+        </Typography>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={resetAll}
+          sx={{
+            mt: 0.5,
+            color: "var(--foreground)",
+            borderColor: "var(--foreground)",
+            fontSize: "0.7rem",
+            padding: "2px 6px",
+            minWidth: 0,
+          }}
+        >
+          Reset
+        </Button>
+      </Paper>
 
-        <StylesSelector
-          label="Styles:"
-          // We'll pass an array of objects, as old code expects, so each item has { style: "Tango" }
-          availableStyles={primaryStyles} 
-          selectedStyles={config.styles || {}}
-          onChange={handleStylesChange}
+      {/* Centered "Play" button + Title */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          mt: 6,
+        }}
+      >
+        <Image
+          src={`/icons/IconLearnOrch.webp`}
+          alt="Play Button"
+          onClick={handlePlayClick}
+          width={80}
+          height={80}
+          style={{
+            cursor: "pointer",
+            borderRadius: "50%",
+            objectFit: "cover",
+            boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
+            transition: "transform 0.2s",
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+          onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
         />
+        <Typography
+          variant="h6"
+          sx={{
+            mt: 1,
+            fontWeight: "bold",
+            color: "var(--accent)",
+          }}
+        >
+          Play
+        </Typography>
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: "bold",
+            textAlign: "center",
+            color: "var(--foreground)",
+            mt: 2,
+            mb: 3,
+          }}
+        >
+          Mastering Orchestras and Maestros
+        </Typography>
       </Box>
 
-      {/* Artists */}
-      <ArtistsSelector
-        label="Select Artists (Optional)"
-        availableArtists={artistOptions}
-        selectedArtists={config.artists || []}
-        onChange={handleArtistsChange}
-      />
+      {/* Configuration Tab */}
+      <ConfigTab />
     </Box>
   );
 }
