@@ -235,7 +235,7 @@ export default function PlayTab({ songs, config, onCancel }) {
 
   // Countdown as progress
   const progressValue = timeLeft > 0 ? (timeLeft / PLAY_DURATION) * 100 : 0;
-   if (gameOver) {
+  if (gameOver) {
     return (
       <Box
         className={styles.container}
@@ -267,7 +267,6 @@ export default function PlayTab({ songs, config, onCancel }) {
       </Box>
     );
   }
-
 
   return (
     <Box

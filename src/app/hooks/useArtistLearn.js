@@ -128,7 +128,6 @@ export default function useArtistLearn() {
   // 4) Handlers to update config
   const handleNumSongsChange = (value) => {
     updateConfig("numSongs", value);
-
   };
 
   const handleTimeLimitChange = (value) => {
