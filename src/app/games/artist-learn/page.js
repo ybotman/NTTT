@@ -169,16 +169,14 @@ export default function ArtistLearnPage() {
         {/* Scores & Reset (Box to the right) */}
         <Paper
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            justifyContent: "center",
+    position: "absolute",
+    top: "3rem",
+    right: "3rem",
             p: 2,
-            ml: 2,
             border: "1px solid var(--foreground)",
             backgroundColor: "var(--background)",
             color: "var(--foreground)",
-            minWidth: "150px",
+            minWidth: "120px",
           }}
         >
           <Typography variant="body2" sx={{ mb: 1 }}>
@@ -192,11 +190,14 @@ export default function ArtistLearnPage() {
           </Typography>
           <Button
             variant="outlined"
+            size="small"
             onClick={resetAll}
             sx={{
-              mt: 1,
               color: "var(--foreground)",
               borderColor: "var(--foreground)",
+              fontSize: "0.75rem",
+              padding: "2px 6px",
+              minWidth: 0,
             }}
           >
             Reset
