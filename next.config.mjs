@@ -9,7 +9,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: isProd ? "/NTTT" : "",
 };
 
 export default nextConfig;
