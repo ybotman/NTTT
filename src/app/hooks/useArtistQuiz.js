@@ -1,4 +1,6 @@
-//src/app/hooks/useArtistQuiz.js
+//----------------------------------------------------------------------------- 
+//src/app/hooks/useArtistQuiz.jss
+//-----------------------------------------------------------------------------
 import { useState, useEffect } from "react";
 
 export default function useConfig(gameName) {

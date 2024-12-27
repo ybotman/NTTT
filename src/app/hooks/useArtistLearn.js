@@ -1,3 +1,7 @@
+//----------------------------------------------------------------------------- 
+//src/app/hooks/useArtistLearn.js
+//-----------------------------------------------------------------------------
+// 
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
