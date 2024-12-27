@@ -90,6 +90,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     cleanupWaveSurfer();
     if (currentIndex + 1 < songs.length) {
       setCurrentIndex((prev) => prev + 1);
+      setTimeout(() => {}, 500); // small gap
     } else {
       setIsPlaying(false);
       setCurrentIndex(-1);
