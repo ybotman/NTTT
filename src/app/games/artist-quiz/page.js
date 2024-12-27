@@ -15,7 +15,6 @@ export default function ArtistQuizPage() {
   const [songs, setSongs] = useState([]);
   const { config } = useConfig("artistQuiz");
   const [showPlayTab, setShowPlayTab] = useState(false);
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
   const handleSongsFetched = (fetchedSongs) => {
     setSongs(fetchedSongs);
@@ -87,7 +86,7 @@ export default function ArtistQuizPage() {
           onClick={handleGameHubClick} // Attach click handler
         >
           <Image
-            src={`${basePath}/icons/IconGameHub.jpg`}
+            src={`/icons/IconGameHub.jpg`}
             alt="Game Hub"
             width={100}
             height={100}
@@ -134,7 +133,7 @@ export default function ArtistQuizPage() {
           }}
         >
           <Image
-            src={`${basePath}/icons/IconQuiz.webp`}
+            src={`/icons/IconQuiz.webp`}
             alt="Play Button"
             onClick={handlePlayClick}
             layout="intrinsic" // Adjusted for intrinsic sizing

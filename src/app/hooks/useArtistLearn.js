@@ -1,7 +1,7 @@
-//----------------------------------------------------------------------------- 
+//-----------------------------------------------------------------------------
 //src/app/hooks/useArtistLearn.js
 //-----------------------------------------------------------------------------
-// 
+//
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -74,10 +74,9 @@ export default function useArtistLearn() {
     // ----- Fetch Styles
     const fetchStyles = async () => {
       try {
-        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-        const styleData = await fetch(
-          `${basePath}/songData/StyleMaster.json`,
-        ).then((res) => res.json());
+        const styleData = await fetch(`/songData/StyleMaster.json`).then(
+          (res) => res.json(),
+        );
         setPrimaryStyles(styleData.primaryStyles || []);
 
         // If user’s config.styles is empty, set default "Tango"
@@ -92,10 +91,9 @@ export default function useArtistLearn() {
     // ----- Fetch Artist Master
     const fetchArtists = async () => {
       try {
-        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-        const artistData = await fetch(
-          `${basePath}/songData/ArtistMaster.json`,
-        ).then((res) => res.json());
+        const artistData = await fetch(`/songData/ArtistMaster.json`).then(
+          (res) => res.json(),
+        );
         const activeArtists = artistData
           .filter((artist) => artist.active === "true")
           .sort((a, b) => {

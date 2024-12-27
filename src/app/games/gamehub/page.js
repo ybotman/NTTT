@@ -11,7 +11,6 @@ import { auth, signInAnonymously, signOut } from "@/utils/firebase";
 
 export default function GameHubPage() {
   const { user, loadingUser } = useContext(AuthContext);
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
   const handleLogin = async () => {
     await signInAnonymously(auth);
@@ -156,7 +155,7 @@ export default function GameHubPage() {
                     }}
                   >
                     <Image
-                      src={`${basePath}/${game.icon}`}
+                      src={`/${game.icon}`}
                       alt={`${game.name} Icon`}
                       fill
                       sizes="(max-width: 600px) 100vw,

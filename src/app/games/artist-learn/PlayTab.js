@@ -101,7 +101,14 @@ export default function PlayTab({ songs, config, onCancel }) {
       // Then record it as a completed game
       completeGame(finalScore);
     }
-  }, [cleanupWaveSurfer, currentIndex, songs, currentScore, setCurrentScore, completeGame]);
+  }, [
+    cleanupWaveSurfer,
+    currentIndex,
+    songs,
+    currentScore,
+    setCurrentScore,
+    completeGame,
+  ]);
 
   // Start playback with fade in/out
   const startPlaybackWithFade = useCallback(() => {
@@ -123,9 +130,12 @@ export default function PlayTab({ songs, config, onCancel }) {
     // fade in
     fadeVolume(0, 1, FADE_DURATION, () => {
       // wait remainder, then fade out
-      playTimeoutRef.current = setTimeout(() => {
-        fadeVolume(1, 0, FADE_DURATION, handleNextSong);
-      }, (PLAY_DURATION - FADE_DURATION) * 1000);
+      playTimeoutRef.current = setTimeout(
+        () => {
+          fadeVolume(1, 0, FADE_DURATION, handleNextSong);
+        },
+        (PLAY_DURATION - FADE_DURATION) * 1000,
+      );
     });
   }, [fadeVolume, PLAY_DURATION, FADE_DURATION, handleNextSong]);
 
@@ -177,7 +187,13 @@ export default function PlayTab({ songs, config, onCancel }) {
 
     ws.load(currentSong.AudioUrl);
     wavesurferRef.current = ws;
-  }, [songs, currentIndex, cleanupWaveSurfer, startPlaybackWithFade, handleNextSong]);
+  }, [
+    songs,
+    currentIndex,
+    cleanupWaveSurfer,
+    startPlaybackWithFade,
+    handleNextSong,
+  ]);
 
   // If playing & currentIndex changes, load
   useEffect(() => {
@@ -198,7 +214,9 @@ export default function PlayTab({ songs, config, onCancel }) {
   // Scroll to active song
   useEffect(() => {
     if (listRef.current && currentIndex >= 0) {
-      const listItem = listRef.current.querySelector(`[data-idx="${currentIndex}"]`);
+      const listItem = listRef.current.querySelector(
+        `[data-idx="${currentIndex}"]`,
+      );
       if (listItem) {
         listItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
@@ -291,7 +309,11 @@ export default function PlayTab({ songs, config, onCancel }) {
             </List>
           </Box>
 
-          <Stack direction="row" spacing={2} sx={{ justifyContent: "center", mt: 2 }}>
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{ justifyContent: "center", mt: 2 }}
+          >
             {isPlaying && (
               <Button
                 variant="contained"

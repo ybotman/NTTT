@@ -2,8 +2,6 @@
 // src/utils/dataFetching.js
 //------------------------------------------------------------
 
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-
 /**
  * Fetch songs and artists data, enrich with artist levels, and then filter them
  * based on provided criteria.
@@ -29,10 +27,9 @@ export async function fetchFilteredSongs(
   qty = 10,
 ) {
   try {
-    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
     const [djSongsData, artistData] = await Promise.all([
-      fetch(`${basePath}/songData/djSongs.json`).then((r) => r.json()),
-      fetch(`${basePath}/songData/ArtistMaster.json`).then((r) => r.json()),
+      fetch(`/songData/djSongs.json`).then((r) => r.json()),
+      fetch(`/songData/ArtistMaster.json`).then((r) => r.json()),
     ]);
 
     // Build artistLevel map

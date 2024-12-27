@@ -18,13 +18,8 @@ export default function ArtistLearnPage() {
   const [showPlayTab, setShowPlayTab] = useState(false);
 
   // 1) Access config & scoring from GameContext
-  const {
-    config,
-    bestScore,
-    totalScore,
-    completedGames,
-    resetAll,
-  } = useGameContext();
+  const { config, bestScore, totalScore, completedGames, resetAll } =
+    useGameContext();
 
   // 2) “Play” button click -> fetch songs, show PlayTab
   const handlePlayClick = async () => {
@@ -90,7 +85,11 @@ export default function ArtistLearnPage() {
             p: 2,
           }}
         >
-          <PlayTab songs={songs} config={config} onCancel={handleClosePlayTab} />
+          <PlayTab
+            songs={songs}
+            config={config}
+            onCancel={handleClosePlayTab}
+          />
         </Box>
       )}
 
@@ -151,7 +150,9 @@ export default function ArtistLearnPage() {
               boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
               transition: "transform 0.2s",
             }}
-            onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.transform = "scale(1.05)")
+            }
             onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
           />
           <Typography
@@ -169,9 +170,9 @@ export default function ArtistLearnPage() {
         {/* Scores & Reset (Box to the right) */}
         <Paper
           sx={{
-    position: "absolute",
-    top: "3rem",
-    right: "3rem",
+            position: "absolute",
+            top: "3rem",
+            right: "3rem",
             p: 2,
             border: "1px solid var(--foreground)",
             backgroundColor: "var(--background)",

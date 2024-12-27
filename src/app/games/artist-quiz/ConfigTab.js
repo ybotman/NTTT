@@ -25,7 +25,6 @@ export default function ConfigTab({ onSongsFetched }) {
   const [validationMessage, setValidationMessage] = useState("");
 
   const isMountedRef = useRef(false);
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
   /**
    * Wrap validateInputs in useCallback to avoid re-creating every render.
    * Adjust dependencies to match fields used inside.
@@ -71,9 +70,9 @@ export default function ConfigTab({ onSongsFetched }) {
     // Fetch style data
     (async () => {
       try {
-        const styleData = await fetch(
-          `${basePath}/songData/StyleMaster.json`,
-        ).then((res) => res.json());
+        const styleData = await fetch(`/songData/StyleMaster.json`).then(
+          (res) => res.json(),
+        );
         if (isMountedRef.current) {
           setPrimaryStyles(styleData.primaryStyles || []);
           if (!config.styles || Object.keys(config.styles).length === 0) {
@@ -89,9 +88,9 @@ export default function ConfigTab({ onSongsFetched }) {
     // Fetch artist data
     (async () => {
       try {
-        const artistData = await fetch(
-          `${basePath}/songData/ArtistMaster.json`,
-        ).then((res) => res.json());
+        const artistData = await fetch(`/songData/ArtistMaster.json`).then(
+          (res) => res.json(),
+        );
         const activeArtists = artistData
           .filter((artist) => artist.active === "true")
           .sort((a, b) => {

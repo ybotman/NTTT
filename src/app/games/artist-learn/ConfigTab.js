@@ -2,7 +2,6 @@
 //src/app/games/artist-learn/ConfigTab.js
 //--------------------------------------------
 
-
 "use client";
 
 import React from "react";
@@ -99,7 +98,7 @@ export default function ConfigTab() {
         <StylesSelector
           label="Styles:"
           // We'll pass an array of objects, as old code expects, so each item has { style: "Tango" }
-          availableStyles={primaryStyles} 
+          availableStyles={primaryStyles}
           selectedStyles={config.styles || {}}
           onChange={handleStylesChange}
         />
