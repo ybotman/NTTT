@@ -57,6 +57,7 @@ export function GameProvider({ children }) {
   // 3) Config setter
   function updateConfig(key, value) {
     setConfig((prev) => ({ ...prev, [key]: value }));
+    console.log(" - Updated Config:", key, value);
   }
 
   // 4) Game completion logic (increment scores, track best, etc.)

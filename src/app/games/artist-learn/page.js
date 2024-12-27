@@ -20,6 +20,7 @@ export default function ArtistLearnPage() {
   // 1) Access config & scoring from GameContext
   const { config, bestScore, totalScore, completedGames, resetAll } =
     useGameContext();
+  console.log("useGameContext.config", config);
 
   // 2) “Play” button click -> fetch songs, show PlayTab
   const handlePlayClick = async () => {
