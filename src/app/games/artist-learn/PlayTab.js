@@ -18,8 +18,7 @@ import {
 import WaveSurfer from "wavesurfer.js";
 import styles from "../styles.module.css";
 import SongSnippet from "@/components/ui/SongSnippet";
-import { useGameContext } from "@/contexts/GameContext"; // <--- new
-import { v4 as uuidv4 } from "uuid"; // optional if you need unique IDs
+import { useGameContext } from "@/contexts/GameContext";
 
 export default function PlayTab({ songs, config, onCancel }) {
   const { currentScore, setCurrentScore, completeGame } = useGameContext();
@@ -35,9 +34,9 @@ export default function PlayTab({ songs, config, onCancel }) {
   const [randomStart, setRandomStart] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
   const [ready, setReady] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
-
   const PLAY_DURATION = config.timeLimit ?? 15;
   const FADE_DURATION = 0.8;
 
@@ -94,6 +93,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     } else {
       setIsPlaying(false);
       setCurrentIndex(-1);
+      setGameOver(true);
 
       // For example, if user finishes game, we add +1 to the currentScore or finalize
       const finalScore = currentScore + 1; // Or whatever logic
@@ -205,6 +205,7 @@ export default function PlayTab({ songs, config, onCancel }) {
 
   // Auto-start if songs exist
   useEffect(() => {
+    if (gameOver) return;
     if (songs.length > 0 && !isPlaying && currentIndex === -1) {
       setCurrentIndex(0);
       setIsPlaying(true);
@@ -234,6 +235,39 @@ export default function PlayTab({ songs, config, onCancel }) {
 
   // Countdown as progress
   const progressValue = timeLeft > 0 ? (timeLeft / PLAY_DURATION) * 100 : 0;
+   if (gameOver) {
+    return (
+      <Box
+        className={styles.container}
+        sx={{
+          minHeight: "100vh",
+          background: "var(--background)",
+          color: "var(--foreground)",
+          textAlign: "center",
+          p: 2,
+        }}
+      >
+        <Typography variant="h5" sx={{ mb: 2 }}>
+          All done!
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 3 }}>
+          Your score: {currentScore}
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={onCancel}
+          sx={{
+            background: "var(--accent)",
+            color: "var(--background)",
+            "&:hover": { opacity: 0.8 },
+          }}
+        >
+          Close
+        </Button>
+      </Box>
+    );
+  }
+
 
   return (
     <Box
@@ -286,7 +320,7 @@ export default function PlayTab({ songs, config, onCancel }) {
                 const isCurrent = idx === currentIndex;
                 return (
                   <ListItem
-                    key={song.SongID || uuidv4()}
+                    key={song.SongID}
                     data-idx={idx}
                     onClick={() => {
                       setCurrentIndex(idx);
