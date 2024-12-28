@@ -11,7 +11,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  Stack,
   Button,
   LinearProgress,
   Snackbar,
@@ -24,9 +23,7 @@ import styles from "../styles.module.css";
 import SongSnippet from "@/components/ui/SongSnippet";
 import { useGameContext } from "@/contexts/GameContext";
 
-/**
- * Simple iOS user-agent check
- */
+// iOS check
 function isIOS() {
   if (typeof navigator === "undefined") return false;
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -34,13 +31,14 @@ function isIOS() {
 
 export default function PlayTab({ songs, config, onCancel }) {
   const { currentScore, setCurrentScore, completeGame } = useGameContext();
+
+  // Refs & States
   const wavesurferRef = useRef(null);
   const playTimeoutRef = useRef(null);
   const fadeIntervalRef = useRef(null);
-  const listRef = useRef(null);
   const countdownRef = useRef(null);
+  const listRef = useRef(null);
 
-  // Playback states
   const [duration, setDuration] = useState(0);
   const [randomStart, setRandomStart] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(-1);
@@ -48,12 +46,9 @@ export default function PlayTab({ songs, config, onCancel }) {
   const [gameOver, setGameOver] = useState(false);
   const [ready, setReady] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
-  const [autoNext, setAutoNext] = useState(!isIOS());
-  // iOS detection
   const onIOS = isIOS();
-
-  // For iOS bug message
-  const [iosBugOpen, setIosBugOpen] = useState(onIOS); // show if iOS by default
+  const [autoNext, setAutoNext] = useState(!onIOS);
+  const [iosBugOpen, setIosBugOpen] = useState(onIOS);
 
   const PLAY_DURATION = config.timeLimit ?? 15;
   const FADE_DURATION = 0.8;
@@ -62,9 +57,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     console.log("PlayTab - config:", config);
   }, [config]);
 
-  // ------------------------------------------------------
-  //  Cleanup waveSurfer, timers, intervals
-  // ------------------------------------------------------
+  // Cleanup waveSurfer
   const cleanupWaveSurfer = useCallback(() => {
     if (fadeIntervalRef.current) clearInterval(fadeIntervalRef.current);
     if (wavesurferRef.current) wavesurferRef.current.destroy();
@@ -82,9 +75,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     setRandomStart(0);
   }, []);
 
-  // ------------------------------------------------------
-  //  fadeVolume helper
-  // ------------------------------------------------------
+  // Fade volume
   const fadeVolume = useCallback((fromVol, toVol, durationSec, callback) => {
     if (!wavesurferRef.current) return;
     const steps = 15;
@@ -107,20 +98,19 @@ export default function PlayTab({ songs, config, onCancel }) {
     }, stepTime);
   }, []);
 
-  // ------------------------------------------------------
-  //  handleNextSong
-  // ------------------------------------------------------
+  // Next song
   const handleNextSong = useCallback(() => {
     cleanupWaveSurfer();
     if (currentIndex + 1 < songs.length) {
       setCurrentIndex((prev) => prev + 1);
-      setTimeout(() => {}, 500); // small gap
+      // small gap
+      setTimeout(() => {}, 500);
     } else {
       setIsPlaying(false);
       setCurrentIndex(-1);
       setGameOver(true);
 
-      // Example scoring
+      // example scoring
       const finalScore = currentScore + 1;
       setCurrentScore(finalScore);
       completeGame(finalScore);
@@ -134,9 +124,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     completeGame,
   ]);
 
-  // ------------------------------------------------------
-  //  startPlaybackWithFade
-  // ------------------------------------------------------
+  // Start playback fade
   const startPlaybackWithFade = useCallback(() => {
     if (!wavesurferRef.current) return;
     wavesurferRef.current.setVolume(0);
@@ -155,25 +143,18 @@ export default function PlayTab({ songs, config, onCancel }) {
 
     // fade in
     fadeVolume(0, 1, FADE_DURATION, () => {
-      // wait remainder, then fade out
-      playTimeoutRef.current = setTimeout(
-        () => {
-          // fade out
-          fadeVolume(1, 0, FADE_DURATION, () => {
-            // Only auto-next if enabled
-            if (autoNext) {
-              handleNextSong();
-            }
-          });
-        },
-        (PLAY_DURATION - FADE_DURATION) * 1000,
-      );
+      // wait remainder, fade out
+      playTimeoutRef.current = setTimeout(() => {
+        fadeVolume(1, 0, FADE_DURATION, () => {
+          if (autoNext) {
+            handleNextSong();
+          }
+        });
+      }, (PLAY_DURATION - FADE_DURATION) * 1000);
     });
   }, [fadeVolume, PLAY_DURATION, FADE_DURATION, handleNextSong, autoNext]);
 
-  // ------------------------------------------------------
-  //  loadCurrentSong
-  // ------------------------------------------------------
+  // Load current song
   const loadCurrentSong = useCallback(() => {
     cleanupWaveSurfer();
     const currentSong = songs[currentIndex];
@@ -229,9 +210,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     handleNextSong,
   ]);
 
-  // ------------------------------------------------------
-  //  If playing & currentIndex changes, load
-  // ------------------------------------------------------
+  // If playing & currentIndex changes, load
   useEffect(() => {
     if (isPlaying && currentIndex >= 0 && currentIndex < songs.length) {
       loadCurrentSong();
@@ -239,9 +218,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     return cleanupWaveSurfer;
   }, [isPlaying, currentIndex, songs, loadCurrentSong, cleanupWaveSurfer]);
 
-  // ------------------------------------------------------
-  //  Auto-start if songs exist
-  // ------------------------------------------------------
+  // Auto-start if songs exist
   useEffect(() => {
     if (gameOver) return;
     if (songs.length > 0 && !isPlaying && currentIndex === -1) {
@@ -250,9 +227,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     }
   }, [songs, isPlaying, currentIndex, gameOver]);
 
-  // ------------------------------------------------------
-  //  Scroll to active song
-  // ------------------------------------------------------
+  // Scroll to active
   useEffect(() => {
     if (listRef.current && currentIndex >= 0) {
       const listItem = listRef.current.querySelector(
@@ -264,9 +239,52 @@ export default function PlayTab({ songs, config, onCancel }) {
     }
   }, [currentIndex]);
 
-  // ------------------------------------------------------
-  //  Render metadata
-  // ------------------------------------------------------
+  // For snippet
+  const progressValue = timeLeft > 0 ? (timeLeft / PLAY_DURATION) * 100 : 0;
+
+  // If gameOver
+  if (gameOver) {
+    return (
+      <Box
+        className={styles.container}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+          background: "var(--background)",
+          color: "var(--foreground)",
+        }}
+      >
+        <Box
+          sx={{
+            flex: "0 0 auto",
+            textAlign: "center",
+            p: 2,
+          }}
+        >
+          <Typography variant="h5" sx={{ mb: 2 }}>
+            All done!
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 3 }}>
+            Your score: {currentScore}
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={onCancel}
+            sx={{
+              background: "var(--accent)",
+              color: "var(--background)",
+              "&:hover": { opacity: 0.8 },
+            }}
+          >
+            Close
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
+
+  // Minimal function to render each song's metadata
   const renderMetadata = (song) => {
     const artist = song.ArtistMaster || "";
     const style = song.Style || "";
@@ -275,120 +293,18 @@ export default function PlayTab({ songs, config, onCancel }) {
     return [artist, style, year, composer].filter(Boolean).join(" | ");
   };
 
-  // ------------------------------------------------------
-  //  Countdown as progress
-  // ------------------------------------------------------
-  const progressValue = timeLeft > 0 ? (timeLeft / PLAY_DURATION) * 100 : 0;
-
-  // ------------------------------------------------------
-  //  Game Over Screen
-  // ------------------------------------------------------
-  if (gameOver) {
-    return (
-      <Box
-        className={styles.container}
-        sx={{
-          minHeight: "100vh",
-          background: "var(--background)",
-          color: "var(--foreground)",
-          textAlign: "center",
-          p: 2,
-        }}
-      >
-        <Typography variant="h5" sx={{ mb: 2 }}>
-          All done!
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 3 }}>
-          Your score: {currentScore}
-        </Typography>
-        <Button
-          variant="contained"
-          onClick={onCancel}
-          sx={{
-            background: "var(--accent)",
-            color: "var(--background)",
-            "&:hover": { opacity: 0.8 },
-          }}
-        >
-          Close
-        </Button>
-      </Box>
-    );
-  }
-
-  // ------------------------------------------------------
-  //  Main UI
-  // ------------------------------------------------------
-
   return (
     <Box
       sx={{
         display: "flex",
-        gap: 2,
-        p: 2,
+        flexDirection: "column",
+        height: "100vh", // full height
+        background: "var(--background)",
+        color: "var(--foreground)",
       }}
     >
-      {/* Left Column: Auto-Next Switch, Next, Cancel */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-          width: "200px",
-        }}
-      >
-        <FormControlLabel
-          control={
-            <Switch
-              checked={autoNext}
-              onChange={(e) => setAutoNext(e.target.checked)}
-              disabled={onIOS} // iOS -> disable the switch
-            />
-          }
-          label="Auto-Next"
-        />
-
-        {isPlaying && (
-          <Button
-            variant="contained"
-            onClick={handleNextSong}
-            disabled={!ready}
-            sx={{
-              background: "var(--accent)",
-              color: "var(--background)",
-              "&:hover": { opacity: 0.8 },
-            }}
-          >
-            Next
-          </Button>
-        )}
-
-        <Button
-          variant="outlined"
-          onClick={onCancel}
-          sx={{
-            borderColor: "var(--foreground)",
-            color: "var(--foreground)",
-            "&:hover": {
-              background: "var(--foreground)",
-              color: "var(--background)",
-            },
-          }}
-        >
-          Cancel
-        </Button>
-      </Box>
-
-      {/* Right Column: The existing main container code */}
-      <Box
-        className={styles.container}
-        sx={{
-          minHeight: "100vh",
-          background: "var(--background)",
-          color: "var(--foreground)",
-          flexGrow: 1,
-        }}
-      >
+      {/* Top portion with Switch/Next/Cancel, plus progress & snippet */}
+      <Box sx={{ flex: "0 0 auto", p: 2 }}>
         {/* iOS bug message */}
         <Snackbar
           open={iosBugOpen && onIOS}
@@ -405,6 +321,58 @@ export default function PlayTab({ songs, config, onCancel }) {
           </Alert>
         </Snackbar>
 
+        {/* Switch/Next/Cancel row */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            mb: 2,
+          }}
+        >
+          <FormControlLabel
+            control={
+              <Switch
+                checked={autoNext}
+                onChange={(e) => setAutoNext(e.target.checked)}
+                disabled={onIOS} 
+              />
+            }
+            label="Auto-Next"
+          />
+
+          {isPlaying && (
+            <Button
+              variant="contained"
+              onClick={handleNextSong}
+              disabled={!ready}
+              sx={{
+                background: "var(--accent)",
+                color: "var(--background)",
+                "&:hover": { opacity: 0.8 },
+              }}
+            >
+              Next
+            </Button>
+          )}
+
+          <Button
+            variant="outlined"
+            onClick={onCancel}
+            sx={{
+              borderColor: "var(--foreground)",
+              color: "var(--foreground)",
+              "&:hover": {
+                background: "var(--foreground)",
+                color: "var(--background)",
+              },
+            }}
+          >
+            Cancel
+          </Button>
+        </Box>
+
+        {/* If playing => show time & progress */}
         {isPlaying && (
           <Box sx={{ mb: 2 }}>
             <Typography variant="body1" sx={{ mb: 1 }}>
@@ -418,6 +386,7 @@ export default function PlayTab({ songs, config, onCancel }) {
           </Box>
         )}
 
+        {/* Snippet if duration > 0 */}
         {duration > 0 && (
           <SongSnippet
             duration={duration}
@@ -425,51 +394,55 @@ export default function PlayTab({ songs, config, onCancel }) {
             upper={Math.min(duration, randomStart + PLAY_DURATION)}
           />
         )}
+      </Box>
 
+      {/* Bottom portion: scrollable list */}
+      <Box
+        sx={{
+          flex: "1 1 auto", // fill remaining space
+          overflowY: "auto",
+          p: 2,
+        }}
+      >
         {songs.length === 0 ? (
           <Typography>No songs. Adjust configuration and try again.</Typography>
         ) : (
-          <>
-            <Box
-              ref={listRef}
-              className={styles.listContainer}
-              sx={{
-                maxHeight: "calc(100vh - 200px)",
-                overflowY: "auto",
-                border: "1px solid var(--border-color)",
-                borderRadius: "8px",
-                p: 2,
-              }}
-            >
-              <List>
-                {songs.map((song, idx) => {
-                  const title = song.Title || "Unknown Title";
-                  const isCurrent = idx === currentIndex;
-                  return (
-                    <ListItem
-                      key={song.SongID}
-                      data-idx={idx}
-                      onClick={() => {
-                        setCurrentIndex(idx);
-                        setIsPlaying(true);
-                      }}
-                      sx={{
-                        cursor: "pointer",
-                        mb: 1,
-                        border: isCurrent ? "2px solid var(--accent)" : "none",
-                        "&:hover": { background: "var(--input-bg)" },
-                      }}
-                    >
-                      <ListItemText
-                        primary={title}
-                        secondary={renderMetadata(song)}
-                      />
-                    </ListItem>
-                  );
-                })}
-              </List>
-            </Box>
-          </>
+          <Box
+            ref={listRef}
+            sx={{
+              border: "1px solid var(--border-color)",
+              borderRadius: "8px",
+              p: 2,
+            }}
+          >
+            <List>
+              {songs.map((song, idx) => {
+                const title = song.Title || "Unknown Title";
+                const isCurrent = idx === currentIndex;
+                return (
+                  <ListItem
+                    key={song.SongID}
+                    data-idx={idx}
+                    onClick={() => {
+                      setCurrentIndex(idx);
+                      setIsPlaying(true);
+                    }}
+                    sx={{
+                      cursor: "pointer",
+                      mb: 1,
+                      border: isCurrent ? "2px solid var(--accent)" : "none",
+                      "&:hover": { background: "var(--input-bg)" },
+                    }}
+                  >
+                    <ListItemText
+                      primary={title}
+                      secondary={renderMetadata(song)}
+                    />
+                  </ListItem>
+                );
+              })}
+            </List>
+          </Box>
         )}
       </Box>
     </Box>
