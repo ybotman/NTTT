@@ -46,7 +46,7 @@ export default function PlayTab({ songs, config, onCancel }) {
 
   // iOS detection
   const onIOS = isIOS();
-  
+
   // For iOS bug message
   const [iosBugOpen, setIosBugOpen] = useState(onIOS); // show if iOS by default
 
@@ -116,7 +116,7 @@ export default function PlayTab({ songs, config, onCancel }) {
       setGameOver(true);
 
       // Example scoring
-      const finalScore = currentScore + 1; 
+      const finalScore = currentScore + 1;
       setCurrentScore(finalScore);
       completeGame(finalScore);
     }
@@ -153,7 +153,13 @@ export default function PlayTab({ songs, config, onCancel }) {
       // wait remainder, then fade out
       playTimeoutRef.current = setTimeout(
         () => {
-          fadeVolume(1, 0, FADE_DURATION, handleNextSong);
+          // fade out
+          fadeVolume(1, 0, FADE_DURATION, () => {
+            // Only auto-next if NOT on iOS
+            if (!onIOS) {
+              handleNextSong();
+            }
+          });
         },
         (PLAY_DURATION - FADE_DURATION) * 1000,
       );
@@ -403,7 +409,7 @@ export default function PlayTab({ songs, config, onCancel }) {
             sx={{ justifyContent: "center", mt: 2 }}
           >
             {/* If iOS, hide or disable "Next" */}
-            {!onIOS && isPlaying && (
+            {isPlaying && (
               <Button
                 variant="contained"
                 onClick={handleNextSong}
