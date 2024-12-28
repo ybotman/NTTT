@@ -13,11 +13,6 @@ import ArtistsSelector from "@/components/ui/ArtistsSelector";
 import useArtistLearn from "@/hooks/useArtistLearn";  // for style data, etc.
 import { useGameContext } from "@/contexts/GameContext";
 
-/**
- * Minimal validation function for the “simple rules”:
- *  1) At least one style selected.
- *  2) Must choose either levels (<3) or artists (<4), but not both or neither.
- */
 function validateSimpleRules(config) {
   // 1) styles must not be blank
   const selectedStyles = Object.keys(config.styles || {}).filter(
@@ -61,11 +56,6 @@ export default function ConfigTab() {
   // Local state to track whether the config is valid (under these simple rules)
   const [isConfigValid, setIsConfigValid] = useState(false);
 
-  /**
-   * We run the “simple rules” check whenever the config changes,
-   * so if the user hits “Play” at any time, a different component
-   * can see if (isConfigValid) is false and show a pop-up.
-   */
   const checkConfigValidity = useCallback(() => {
     const valid = validateSimpleRules(config);
     setIsConfigValid(valid);

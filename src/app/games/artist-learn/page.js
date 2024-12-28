@@ -244,8 +244,8 @@ export default function ArtistLearnPage() {
             sx={{
               color: "var(--foreground)",
               borderColor: "var(--foreground)",
-              fontSize: "0.75rem",
-              padding: "2px 6px",
+              fontSize: "0.35rem",
+              padding: "1px 4px",
               minWidth: 0,
             }}
           >

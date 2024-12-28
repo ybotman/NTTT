@@ -268,10 +268,11 @@ export default function PlayTab({ songs, config, onCancel }) {
   //  Render metadata
   // ------------------------------------------------------
   const renderMetadata = (song) => {
+    const artist = song.ArtistMaster || "";
     const style = song.Style || "";
     const year = song.Year || "";
     const composer = song.Composer || "";
-    return [style, year, composer].filter(Boolean).join(" | ");
+    return [artist, style, year, composer].filter(Boolean).join(" | ");
   };
 
   // ------------------------------------------------------
