@@ -1,16 +1,48 @@
 // ------------------------------------------------------------
 // src/app/games/artist-learn/page.js
 // ------------------------------------------------------------
+// ------------------------------------------------------------
+// src/app/games/artist-learn/page.js
+// ------------------------------------------------------------
 "use client";
-import React, { useState } from "react";
+
+import React, { useState, useCallback } from "react";
 import Image from "next/image";
 import { Box, Typography, Button, Paper } from "@mui/material";
 import ConfigTab from "./ConfigTab";
 import PlayTab from "./PlayTab";
 import { useRouter } from "next/navigation";
-import { useGameContext } from "@/contexts/GameContext"; // The shared context
+import { useGameContext } from "@/contexts/GameContext";
 import { fetchFilteredSongs } from "@/utils/dataFetching";
 import styles from "../styles.module.css";
+
+/**
+ * Minimal validation function for the “simple rules”:
+ *  1) Must have at least 1 style selected.
+ *  2) Must choose either levels (<3) or artists (<4), but not both or neither.
+ */
+function validateSimpleRules(config) {
+  // styles
+  const selectedStyles = Object.keys(config.styles || {}).filter(
+    (k) => config.styles[k],
+  );
+  if (selectedStyles.length === 0) return false;
+
+  // levels/artists
+  const levelCount = (config.levels || []).length;
+  const artistCount = (config.artists || []).length;
+
+  const hasBoth = levelCount > 0 && artistCount > 0;
+  const hasNeither = levelCount === 0 && artistCount === 0;
+  if (hasBoth || hasNeither) return false;
+
+  // if using levels => must be < 3
+  if (levelCount > 0 && levelCount >= 3) return false;
+  // if using artists => must be <4
+  if (artistCount > 0 && artistCount >= 4) return false;
+
+  return true;
+}
 
 export default function ArtistLearnPage() {
   const router = useRouter();
@@ -18,13 +50,27 @@ export default function ArtistLearnPage() {
   const [showPlayTab, setShowPlayTab] = useState(false);
 
   // 1) Access config & scoring from GameContext
-  const { config, bestScore, totalScore, completedGames, resetAll } =
-    useGameContext();
-  console.log("uconfig", config);
+  const {
+    config,
+    bestScore,
+    totalScore,
+    completedGames,
+    resetAll,
+  } = useGameContext();
 
-  // 2) “Play” button click -> fetch songs, show PlayTab
-  const handlePlayClick = async () => {
-    // Prepare config with defaults if user never touched
+  // 2) “Play” button click
+  const handlePlayClick = useCallback(async () => {
+    // A) Run our simple rules check
+    const isValid = validateSimpleRules(config);
+    if (!isValid) {
+      // Show pop-up if invalid
+      alert(
+        "Selections: \n• Must select at least one style,\n• And either Levels (<3) or Artists (<4),\n• But not both or neither."
+      );
+      return; // do not fetch
+    }
+
+    // B) If valid, fetch songs
     const numSongs = config.numSongs ?? 10;
     const timeLimit = config.timeLimit ?? 15;
     const activeStyles = Object.keys(config.styles || {}).filter(
@@ -33,7 +79,6 @@ export default function ArtistLearnPage() {
     const artistLevels = config.levels || [];
     const chosenArtists = (config.artists || []).map((a) => a.value);
 
-    // Actually fetch your songs from the server
     const { songs: fetchedSongs } = await fetchFilteredSongs(
       chosenArtists,
       artistLevels,
@@ -45,14 +90,16 @@ export default function ArtistLearnPage() {
       numSongs,
     );
 
+    // C) If fetch returns zero songs, show alert
     if (!fetchedSongs || fetchedSongs.length === 0) {
-      console.warn("No songs returned. Adjust config.");
+      alert("No songs returned for this configuration. Try different settings.");
       return;
     }
 
+    // D) Otherwise, we have songs. Show PlayTab
     setSongs(fetchedSongs);
     setShowPlayTab(true);
-  };
+  }, [config]);
 
   const handleClosePlayTab = () => {
     setShowPlayTab(false);

@@ -1,7 +1,11 @@
+//--------------------------------------------
+//src/app/games/artist-learn/ConfigTab.js
+//--------------------------------------------
+
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { Box } from "@mui/material";
+import React from "react";
+import { Box, FormHelperText } from "@mui/material";
 import styles from "../styles.module.css";
 
 import SongsSlider from "@/components/ui/SongsSlider";
@@ -10,73 +14,26 @@ import LevelsSelector from "@/components/ui/LevelsSelector";
 import StylesSelector from "@/components/ui/StylesSelector";
 import ArtistsSelector from "@/components/ui/ArtistsSelector";
 
-import useArtistLearn from "@/hooks/useArtistLearn";  // for style data, etc.
+// 1) We'll still fetch style data from useArtistLearn (like old version)
+import useArtistLearn from "@/hooks/useArtistLearn";
+
+// 2) We'll store config in GameContext
 import { useGameContext } from "@/contexts/GameContext";
 
-/**
- * Minimal validation function for the “simple rules”:
- *  1) At least one style selected.
- *  2) Must choose either levels (<3) or artists (<4), but not both or neither.
- */
-function validateSimpleRules(config) {
-  // 1) styles must not be blank
-  const selectedStyles = Object.keys(config.styles || {}).filter(
-    (k) => config.styles[k],
-  );
-  if (selectedStyles.length === 0) {
-    return false; // no styles => invalid
-  }
-
-  // 2) either levels (<3) or artists (<4)
-  const levelCount = (config.levels || []).length;
-  const artistCount = (config.artists || []).length;
-
-  // not both
-  const hasBoth = levelCount > 0 && artistCount > 0;
-  // not neither
-  const hasNeither = levelCount === 0 && artistCount === 0;
-  if (hasBoth || hasNeither) {
-    return false; // invalid
-  }
-
-  // if using levels => must be < 3
-  if (levelCount > 0 && levelCount >= 3) {
-    return false;
-  }
-  // if using artists => must be < 4
-  if (artistCount > 0 && artistCount >= 4) {
-    return false;
-  }
-
-  return true; // passes all simple rules
-}
-
 export default function ConfigTab() {
-  // A) fetch data from our custom hook
-  const { primaryStyles, artistOptions } = useArtistLearn();
+  // A) fetch metadata (primaryStyles, artistOptions, etc.)
+  const {
+    primaryStyles,
+    artistOptions,
+    validationMessage,
+    selectedArtists,
+    // any other old states from useArtistLearn
+  } = useArtistLearn();
 
-  // B) Access & update final config from GameContext
+  // B) store final config in game context
   const { config, updateConfig } = useGameContext();
 
-  // Local state to track whether the config is valid (under these simple rules)
-  const [isConfigValid, setIsConfigValid] = useState(false);
-
-  /**
-   * We run the “simple rules” check whenever the config changes,
-   * so if the user hits “Play” at any time, a different component
-   * can see if (isConfigValid) is false and show a pop-up.
-   */
-  const checkConfigValidity = useCallback(() => {
-    const valid = validateSimpleRules(config);
-    setIsConfigValid(valid);
-  }, [config]);
-
-  useEffect(() => {
-    // Validate on mount & whenever config changes
-    checkConfigValidity();
-  }, [config, checkConfigValidity]);
-
-  // Handlers: Auto-save each change
+  // Handlers
   const handleNumSongsChange = (value) => {
     updateConfig("numSongs", value);
   };
@@ -99,7 +56,11 @@ export default function ConfigTab() {
 
   return (
     <Box className={styles.configurationContainer}>
-      {/* We remove any inline error display—no FormHelperText, etc. */}
+      {validationMessage && (
+        <FormHelperText className={styles.validationError}>
+          {validationMessage}
+        </FormHelperText>
+      )}
 
       {/* Sliders */}
       <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
@@ -133,12 +94,13 @@ export default function ConfigTab() {
 
         <StylesSelector
           label="Styles:"
+          // We'll pass an array of objects, as old code expects, so each item has { style: "Tango" }
           availableStyles={primaryStyles}
           selectedStyles={config.styles || {}}
           onChange={handleStylesChange}
         />
       </Box>
-
+ 
       {/* Artists */}
       <ArtistsSelector
         label="Select Artists (Optional)"
