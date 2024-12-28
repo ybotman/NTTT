@@ -1,49 +1,40 @@
+//-----------------------------------------------------------------------------
+//src/app/hooks/useArtistLearn.js
+//-----------------------------------------------------------------------------
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import useConfigTab from "@/hooks/useConfigTab";
 
-/**
- * Simple iOS user-agent check
- */
-function isIOS() {
-  if (typeof navigator === "undefined") return false;
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-}
-
 export default function useArtistLearn() {
   const { config, updateConfig, isDisabled } = useConfigTab("artistLearn");
 
-  // ---------------------------------------------
-  //  Existing fields from your version
-  // ---------------------------------------------
+  // Data from the static JSON
   const [primaryStyles, setPrimaryStyles] = useState([]);
   const [artistOptions, setArtistOptions] = useState([]);
   const [selectedArtists, setSelectedArtists] = useState(config.artists || []);
+
+  // Validation
   const [validationMessage, setValidationMessage] = useState("");
+
+  // Toggling if Levels should be disabled when Artists are chosen
   const levelsDisabled = selectedArtists.length > 0;
+
+  // Playback State
+  const [currentIndex, setCurrentIndex] = useState(-1);
+  const [autoNext, setAutoNext] = useState(true); // Default auto-next to true
+  const [gameOver, setGameOver] = useState(false);
+
+  // This ref ensures we only fetch data ONCE even if dev mode double-mounts
   const hasFetchedDataRef = useRef(false);
 
-  // ---------------------------------------------
-  //  New: iOS detection & autoNext toggles
-  // ---------------------------------------------
-  const onIOS = isIOS();
-  // If on iOS, we might disable autoNext by default (to match your PlayTab logic).
-  const [autoNext, setAutoNext] = useState(!onIOS);
-
-  // If you want to store more complex audio or fade logic, you can do so here:
-  // e.g. const wavesurferRef = useRef(null);
-
-  // ---------------------------------------------
-  //  Log current config (existing)
-  // ---------------------------------------------
   useEffect(() => {
     console.log(" - Current Config:", config);
   }, [config]);
 
-  // ---------------------------------------------
-  //  1) Validate config
-  // ---------------------------------------------
+  // ------------------------------------------------------
+  // 1) Validate user’s config
+  // ------------------------------------------------------
   const validateInputs = useCallback(
     (theConfig) => {
       const c = theConfig || config;
@@ -78,14 +69,49 @@ export default function useArtistLearn() {
     [config],
   );
 
-  // ---------------------------------------------
-  //  2) Single-time fetch of StyleMaster & ArtistMaster
-  // ---------------------------------------------
+  // ------------------------------------------------------
+  // 2) Manage Auto-Next Toggle
+  // ------------------------------------------------------
+  const toggleAutoNext = useCallback(() => {
+    setAutoNext((prev) => !prev);
+  }, []);
+
+  // ------------------------------------------------------
+  // 3) Get Current Song
+  // ------------------------------------------------------
+  const getCurrentSong = useCallback(() => {
+    if (
+      !config.songs ||
+      currentIndex < 0 ||
+      currentIndex >= config.songs.length
+    ) {
+      return null;
+    }
+    return config.songs[currentIndex];
+  }, [config.songs, currentIndex]);
+
+  // ------------------------------------------------------
+  // 4) Handle Next Song
+  // ------------------------------------------------------
+  const handleNextSong = useCallback(() => {
+    if (currentIndex + 1 < config.songs.length) {
+      setCurrentIndex((prev) => prev + 1);
+    } else {
+      setGameOver(true);
+    }
+  }, [currentIndex, config.songs]);
+
+  // ------------------------------------------------------
+  // 5) Single-time fetch of StyleMaster and ArtistMaster
+  // ------------------------------------------------------
   useEffect(() => {
+    // if we already fetched, skip
     if (hasFetchedDataRef.current) return;
+
+    // Mark that we've fetched so we don't do it again
     hasFetchedDataRef.current = true;
 
-    // Fetch Styles
+    // ----- Fetch Styles
     const fetchStyles = async () => {
       try {
         const styleData = await fetch(`/songData/StyleMaster.json`).then(
@@ -93,7 +119,7 @@ export default function useArtistLearn() {
         );
         setPrimaryStyles(styleData.primaryStyles || []);
 
-        // If user's config.styles is empty, set default "Tango"
+        // If user’s config.styles is empty, set default "Tango"
         if (!config.styles || Object.keys(config.styles).length === 0) {
           updateConfig("styles", { Tango: true });
         }
@@ -102,7 +128,7 @@ export default function useArtistLearn() {
       }
     };
 
-    // Fetch Artist Master
+    // ----- Fetch Artist Master
     const fetchArtists = async () => {
       try {
         const artistData = await fetch(`/songData/ArtistMaster.json`).then(
@@ -113,13 +139,15 @@ export default function useArtistLearn() {
           .sort((a, b) => {
             const levelA = parseInt(a.level, 10);
             const levelB = parseInt(b.level, 10);
-            if (levelA !== levelB) return levelA - levelB;
-            return a.artist.localeCompare(b.artist);
+            return levelA !== levelB
+              ? levelA - levelB
+              : a.artist.localeCompare(b.artist);
           })
           .map((artist) => ({
             label: `${artist.artist} (Level ${artist.level})`,
             value: artist.artist,
           }));
+
         setArtistOptions(activeArtists);
       } catch (err) {
         console.error("Error fetching ArtistMaster.json:", err);
@@ -131,17 +159,17 @@ export default function useArtistLearn() {
     fetchArtists();
   }, [config.styles, updateConfig]);
 
-  // ---------------------------------------------
-  //  3) Revalidate config on every change
-  // ---------------------------------------------
+  // ------------------------------------------------------
+  // 6) Revalidate config on every change
+  // ------------------------------------------------------
   useEffect(() => {
     const error = validateInputs(config);
     setValidationMessage(error);
   }, [config, validateInputs]);
 
-  // ---------------------------------------------
-  //  4) Handlers to update config
-  // ---------------------------------------------
+  // ------------------------------------------------------
+  // 7) Handlers to update config
+  // ------------------------------------------------------
   const handleNumSongsChange = (value) => {
     updateConfig("numSongs", value);
   };
@@ -173,43 +201,7 @@ export default function useArtistLearn() {
     updateConfig("artists", newSelected);
   };
 
-  // ---------------------------------------------
-  //  Additional placeholders for “PlayTab” synergy
-  // ---------------------------------------------
-  /**
-   * Toggle autoNext on/off (already in state).
-   * If you want to unify it with config, you can also store it in config.
-   */
-  const toggleAutoNext = (boolVal) => {
-    setAutoNext(boolVal);
-  };
-
-  /**
-   * Example fadeVolume placeholder (like your PlayTab).
-   * You could unify fade logic with config or states if needed.
-   */
-  const fadeVolumePlaceholder = (fromVol, toVol, durationSec, callback) => {
-    console.log(
-      "Placeholder fadeVolume - fromVol:",
-      fromVol,
-      "toVol:",
-      toVol,
-      "durationSec:",
-      durationSec,
-    );
-    if (callback) callback();
-  };
-
-  /**
-   * Example handleNextSong placeholder. 
-   * In a real scenario, you’d unify with your game logic (like in PlayTab).
-   */
-  const handleNextSongPlaceholder = () => {
-    console.log("Placeholder handleNextSong - unify with real game logic here.");
-  };
-
   return {
-    // Expose original fields
     config,
     isDisabled,
     primaryStyles,
@@ -219,25 +211,19 @@ export default function useArtistLearn() {
     setValidationMessage,
     validateInputs,
     levelsDisabled,
+    currentIndex,
+    setCurrentIndex,
+    autoNext,
+    toggleAutoNext,
+    gameOver,
+    getCurrentSong,
+    handleNextSong,
 
-    // Expose existing handlers
+    // Expose handlers
     handleNumSongsChange,
     handleTimeLimitChange,
     handleLevelsChange,
     handleStylesChange,
     handleArtistsChange,
-
-    // New: iOS detection & autoNext
-    onIOS,
-    autoNext,
-    toggleAutoNext,
-
-    // Optional placeholders to unify with PlayTab later
-    fadeVolumePlaceholder,
-    handleNextSongPlaceholder,
   };
 }
-
-useArtistLearn.propTypes = {
-  // no external props needed
-};

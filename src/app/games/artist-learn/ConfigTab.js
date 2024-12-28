@@ -33,9 +33,6 @@ export default function ConfigTab() {
   // B) store final config in game context
   const { config, updateConfig } = useGameContext();
 
-  // If you also want isDisabled or levelsDisabled from the old approach, you can do that:
-  // e.g. const { isDisabled, levelsDisabled } = useArtistLearn();
-
   // Handlers
   const handleNumSongsChange = (value) => {
     updateConfig("numSongs", value);
