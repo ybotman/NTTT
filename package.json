@@ -19,6 +19,7 @@
     "prettier": "^3.4.2",
     "prop-types": "^15.8.1",
     "react": "^19.0.0",
+    "react-device-detect": "^2.2.3",
     "react-dom": "^19.0.0",
     "tall": "^8.0.0",
     "uuid": "^11.0.3",
