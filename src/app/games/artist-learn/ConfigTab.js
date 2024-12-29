@@ -10,7 +10,7 @@ import LevelsSelector from "@/components/ui/LevelsSelector";
 import StylesSelector from "@/components/ui/StylesSelector";
 import ArtistsSelector from "@/components/ui/ArtistsSelector";
 
-import useArtistLearn from "@/hooks/useArtistLearn";  // for style data, etc.
+import useArtistLearn from "@/hooks/useArtistLearn"; // for style data, etc.
 import { useGameContext } from "@/contexts/GameContext";
 
 function validateSimpleRules(config) {

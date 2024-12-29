@@ -144,13 +144,16 @@ export default function PlayTab({ songs, config, onCancel }) {
     // fade in
     fadeVolume(0, 1, FADE_DURATION, () => {
       // wait remainder, fade out
-      playTimeoutRef.current = setTimeout(() => {
-        fadeVolume(1, 0, FADE_DURATION, () => {
-          if (autoNext) {
-            handleNextSong();
-          }
-        });
-      }, (PLAY_DURATION - FADE_DURATION) * 1000);
+      playTimeoutRef.current = setTimeout(
+        () => {
+          fadeVolume(1, 0, FADE_DURATION, () => {
+            if (autoNext) {
+              handleNextSong();
+            }
+          });
+        },
+        (PLAY_DURATION - FADE_DURATION) * 1000,
+      );
     });
   }, [fadeVolume, PLAY_DURATION, FADE_DURATION, handleNextSong, autoNext]);
 
@@ -335,7 +338,7 @@ export default function PlayTab({ songs, config, onCancel }) {
               <Switch
                 checked={autoNext}
                 onChange={(e) => setAutoNext(e.target.checked)}
-                disabled={onIOS} 
+                disabled={onIOS}
               />
             }
             label="Auto-Next"

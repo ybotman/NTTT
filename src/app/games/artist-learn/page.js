@@ -14,6 +14,7 @@ import PlayTab from "./PlayTab";
 import { useRouter } from "next/navigation";
 import { useGameContext } from "@/contexts/GameContext";
 import { fetchFilteredSongs } from "@/utils/dataFetching";
+
 import styles from "../styles.module.css";
 
 /**
@@ -50,13 +51,8 @@ export default function ArtistLearnPage() {
   const [showPlayTab, setShowPlayTab] = useState(false);
 
   // 1) Access config & scoring from GameContext
-  const {
-    config,
-    bestScore,
-    totalScore,
-    completedGames,
-    resetAll,
-  } = useGameContext();
+  const { config, bestScore, totalScore, completedGames, resetAll } =
+    useGameContext();
 
   // 2) “Play” button click
   const handlePlayClick = useCallback(async () => {
@@ -65,7 +61,7 @@ export default function ArtistLearnPage() {
     if (!isValid) {
       // Show pop-up if invalid
       alert(
-        "Selections: \n• Must select at least one style,\n• And either Levels (<3) or Artists (<4),\n• But not both or neither."
+        "Selections: \n• Must select at least one style,\n• And either Levels (<3) or Artists (<4),\n• But not both or neither.",
       );
       return; // do not fetch
     }
@@ -92,7 +88,9 @@ export default function ArtistLearnPage() {
 
     // C) If fetch returns zero songs, show alert
     if (!fetchedSongs || fetchedSongs.length === 0) {
-      alert("No songs returned for this configuration. Try different settings.");
+      alert(
+        "No songs returned for this configuration. Try different settings.",
+      );
       return;
     }
 
@@ -214,44 +212,6 @@ export default function ArtistLearnPage() {
             Play
           </Typography>
         </Box>
-
-        {/* Scores & Reset (Box to the right) */}
-        <Paper
-          sx={{
-            position: "absolute",
-            top: "3rem",
-            right: "3rem",
-            p: 2,
-            border: "1px solid var(--foreground)",
-            backgroundColor: "var(--background)",
-            color: "var(--foreground)",
-            minWidth: "120px",
-          }}
-        >
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>Best Score:</strong> {bestScore}
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>Total Score:</strong> {totalScore}
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>Games:</strong> {completedGames}
-          </Typography>
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={resetAll}
-            sx={{
-              color: "var(--foreground)",
-              borderColor: "var(--foreground)",
-              fontSize: "0.35rem",
-              padding: "1px 4px",
-              minWidth: 0,
-            }}
-          >
-            Reset
-          </Button>
-        </Paper>
       </Box>
 
       {/* Game Title */}

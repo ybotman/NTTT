@@ -77,48 +77,11 @@ export default function GameHubPage() {
       sx={{
         p: 3,
         backgroundColor: "var(--background)", // Dynamic theme background
-        color: "var(--foreground)",           // Dynamic theme text color
+        color: "var(--foreground)", // Dynamic theme text color
         minHeight: "100vh",
         transition: "background-color 0.3s, color 0.3s",
       }}
     >
-      {/* Header Section */}
-      <Paper
-        sx={{
-          p: 3,
-          mb: 3,
-          backgroundColor: "var(--background)", 
-          color: "var(--foreground)",
-        }}
-      >
-        {!loadingUser &&
-          (user ? (
-            <Typography
-              onClick={handleLogout}
-              sx={{
-                cursor: "pointer",
-                fontSize: "1rem",
-                color: "var(--accent)",
-                "&:hover": { textDecoration: "underline" },
-              }}
-            >
-              Logout
-            </Typography>
-          ) : (
-            <Typography
-              onClick={handleLogin}
-              sx={{
-                cursor: "pointer",
-                fontSize: "1rem",
-                color: "var(--accent)",
-                "&:hover": { textDecoration: "underline" },
-              }}
-            >
-              Login
-            </Typography>
-          ))}
-      </Paper>
-
       {/* Games Grid */}
       <Paper
         sx={{

@@ -201,11 +201,13 @@ export default function useArtistLearn() {
   };
 
   /**
-   * Example handleNextSong placeholder. 
+   * Example handleNextSong placeholder.
    * In a real scenario, you’d unify with your game logic (like in PlayTab).
    */
   const handleNextSongPlaceholder = () => {
-    console.log("Placeholder handleNextSong - unify with real game logic here.");
+    console.log(
+      "Placeholder handleNextSong - unify with real game logic here.",
+    );
   };
 
   return {
