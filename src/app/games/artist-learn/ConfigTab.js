@@ -88,65 +88,78 @@ export default function ConfigTab() {
     updateConfig("artists", newSelected);
   };
 
-  return (
-    <Box className={styles.configurationContainer}>
-      {/* Sliders */}
-      <Box
-        sx={{
-          display: "flex",
-          gap: 4,
-          mb: 3,
-        }}
-      >
-        <Box sx={{ flex: 1 }}>
-          <SongsSlider
-            label="# Songs"
-            min={3}
-            max={25}
-            step={1}
-            value={config.numSongs ?? 10}
-            onChange={handleNumSongsChange}
-          />
-        </Box>
-
-        <Box sx={{ flex: 1 }}>
-          <SecondsSlider
-            label="Seconds"
-            min={3}
-            max={29}
-            step={1}
-            value={config.timeLimit ?? 15}
-            onChange={handleTimeLimitChange}
-          />
-        </Box>
+return (
+  <Box className={styles.configurationContainer}>
+    {/* Sliders */}
+    <Box
+      sx={{
+        display: "flex",
+        gap: 4,
+        mb: 3,
+      }}
+    >
+      <Box sx={{ flex: 1 }}>
+        <SongsSlider
+          label="# Songs"
+          min={3}
+          max={25}
+          step={1}
+          value={config.numSongs ?? 10}
+          onChange={handleNumSongsChange}
+        />
       </Box>
 
-      {/* Levels & Styles */}
-      <LevelsSelector
-        label="Levels:"
-        availableLevels={[1, 2, 3, 4, 5]}
-        selectedLevels={config.levels || []}
-        onChange={handleLevelsChange}
-      />
-
-      <StylesSelector
-        label="Styles:"
-        availableStyles={primaryStyles}
-        selectedStyles={config.styles || {}}
-        onChange={handleStylesChange}
-      />
-      <PeriodsSelector
-        label="Tango Period(s)"
-        selectedPeriods={config.periods || []}
-        onChange={(val) => updateConfig("periods", val)}
-      />
-      {/* Artists */}
-      <ArtistsSelector
-        label="Select Artists (Optional)"
-        availableArtists={artistOptions}
-        selectedArtists={config.artists || []}
-        onChange={handleArtistsChange}
-      />
+      <Box sx={{ flex: 1 }}>
+        <SecondsSlider
+          label="Seconds"
+          min={3}
+          max={29}
+          step={1}
+          value={config.timeLimit ?? 15}
+          onChange={handleTimeLimitChange}
+        />
+      </Box>
     </Box>
-  );
+
+    {/* Main Grid */}
+    <Box
+      sx={{
+        display: "flex",
+        gap: 4,
+        mb: 3,
+      }}
+    >
+      {/* First Column: Levels & Periods */}
+      <Box sx={{ flex: 1 }}>
+        <LevelsSelector
+          label="Levels:"
+          availableLevels={[1, 2, 3, 4, 5]}
+          selectedLevels={config.levels || []}
+          onChange={handleLevelsChange}
+        />
+        <PeriodsSelector
+          label="Period(s) Not working"
+          selectedPeriods={config.periods || []}
+          onChange={(val) => updateConfig("periods", val)}
+        />
+      </Box>
+
+      {/* Second Column: Styles & Artists */}
+      <Box sx={{ flex: 1 }}>
+        <StylesSelector
+          label="Styles:"
+          availableStyles={primaryStyles}
+          selectedStyles={config.styles || {}}
+          onChange={handleStylesChange}
+        />
+        <ArtistsSelector
+          label="Select Artists (Optional)"
+          availableArtists={artistOptions}
+          selectedArtists={config.artists || []}
+          onChange={handleArtistsChange}
+        />
+      </Box>
+    </Box>
+  </Box>
+);
 }

@@ -4,28 +4,28 @@
     "periodSP": "Guardia Vieja",
     "start_year": 1880,
     "end_year": 1920,
-    "active": false
+    "active": true
   },
   {
     "period": "New Guard",
     "periodSP": "Guardia Nueva",
     "start_year": 1920,
     "end_year": 1935,
-    "active": false
+    "active": true
   },
   {
     "period": "Golden Age",
     "periodSP": "Época de Oro",
     "start_year": 1935,
     "end_year": 1955,
-    "active": false
+    "active": true
   },
   {
     "period": "Decline",
     "periodSP": "Declinación",
     "start_year": 1955,
     "end_year": 1980,
-    "active": false
+    "active": true
   },
   {
     "period": "Tango Renaissance",
