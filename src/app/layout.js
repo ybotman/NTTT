@@ -15,6 +15,7 @@ import { Inter } from "next/font/google";
 
 import ThemeSelector from "@/components/ui/ThemeSelector";
 import GameScoreCurrent from "@/components/ui/GameScoreCurrent";
+import HubButton from "@/components/ui/GameHub";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,13 +31,18 @@ function LayoutContent({ children }) {
   return (
     <>
       <ThemeSelector />
-      <Box sx={{ position: "absolute", top: "1rem", right: "4rem" }}>
+      <Box sx={{ position: "absolute", top: "1rem", right: "3rem" }}>
         <GameScoreCurrent
           bestScore={safeBest}
           totalScore={safeTotal}
           completedGames={safeCompleted}
           onReset={resetAll}
         />
+      </Box>
+
+      {/* Add HubButton to a fixed location */}
+      <Box sx={{ position: "absolute", top: "1rem", right: "5rem" }}>
+        <HubButton />
       </Box>
 
       {children}
@@ -60,7 +66,6 @@ export default function RootLayout({ children }) {
             </ThemeProvider>
           </ScoreProvider>
         </AuthProvider>
-
       </body>
     </html>
   );

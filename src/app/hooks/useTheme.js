@@ -20,7 +20,9 @@ export function ThemeProvider({ children }) {
 
   // Check system preference on mount
   useEffect(() => {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
     setTheme(prefersDark ? "dark" : "light");
   }, []);
 

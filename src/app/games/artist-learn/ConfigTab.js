@@ -9,8 +9,7 @@ import SecondsSlider from "@/components/ui/SecondsSlider";
 import LevelsSelector from "@/components/ui/LevelsSelector";
 import StylesSelector from "@/components/ui/StylesSelector";
 import ArtistsSelector from "@/components/ui/ArtistsSelector";
-
-import useArtistLearn from "@/hooks/useArtistLearn"; // for style data, etc.
+import useArtistLearn from "@/hooks/useArtistLearn";
 import { useGameContext } from "@/contexts/GameContext";
 
 function validateSimpleRules(config) {
@@ -89,7 +88,6 @@ export default function ConfigTab() {
 
   return (
     <Box className={styles.configurationContainer}>
-      {/* We remove any inline error display—no FormHelperText, etc. */}
 
       {/* Sliders */}
       <Box sx={{ display: "flex", gap: 4, mb: 3 }}>

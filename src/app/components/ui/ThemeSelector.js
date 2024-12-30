@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import { useTheme } from "@/hooks/useTheme"; 
+import { useTheme } from "@/hooks/useTheme";
 import { Box, IconButton } from "@mui/material";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
