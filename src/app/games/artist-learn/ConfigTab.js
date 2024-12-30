@@ -91,7 +91,7 @@ export default function ConfigTab() {
       {/* Sliders */}
       <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
         <SongsSlider
-          label="Number of Songs"
+          label="# Songs"
           min={3}
           max={25}
           step={1}
@@ -100,7 +100,7 @@ export default function ConfigTab() {
         />
 
         <SecondsSlider
-          label="Time Limit (Seconds)"
+          label="Seconds"
           min={3}
           max={29}
           step={1}

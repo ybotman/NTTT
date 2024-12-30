@@ -138,6 +138,7 @@ export default function ArtistLearnPage() {
           sx={{
             display: "flex",
             justifyContent: "center",
+            ml: "-15rem",
             flex: "1", // Ensure it spans remaining space
           }}
         >
