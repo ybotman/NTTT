@@ -4,21 +4,12 @@
 import React, { useContext } from "react";
 import Image from "next/image";
 import { Box, Typography, Paper } from "@mui/material";
-import Grid from "@mui/material/Grid2"; // Import Grid2
+import Grid from "@mui/material/Grid2";
 import Link from "next/link";
 import { AuthContext } from "@/contexts/AuthContext";
-import { auth, signInAnonymously, signOut } from "@/utils/firebase";
 
 export default function GameHubPage() {
   const { user, loadingUser } = useContext(AuthContext);
-
-  const handleLogin = async () => {
-    await signInAnonymously(auth);
-  };
-
-  const handleLogout = async () => {
-    await signOut(auth);
-  };
 
   // Define games for the grid
   const games = [

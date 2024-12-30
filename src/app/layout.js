@@ -15,7 +15,7 @@ import { Inter } from "next/font/google";
 
 import ThemeSelector from "@/components/ui/ThemeSelector";
 import GameScoreCurrent from "@/components/ui/GameScoreCurrent";
-import HubButton from "@/components/ui/GameHub";
+import GameHubButton from "@/components/ui/GameHubRoute";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,9 +40,9 @@ function LayoutContent({ children }) {
         />
       </Box>
 
-      {/* Add HubButton to a fixed location */}
+      {/* Add GameHubButton to a fixed location */}
       <Box sx={{ position: "absolute", top: "1rem", right: "5rem" }}>
-        <HubButton />
+        <GameHubButton />
       </Box>
 
       {children}

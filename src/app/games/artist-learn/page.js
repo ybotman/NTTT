@@ -11,7 +11,7 @@ import styles from "../styles.module.css";
 
 function validateSimpleRules(config) {
   const selectedStyles = Object.keys(config.styles || {}).filter(
-    (k) => config.styles[k]
+    (k) => config.styles[k],
   );
   if (selectedStyles.length === 0) return false;
 
@@ -39,7 +39,7 @@ export default function ArtistLearnPage() {
     const isValid = validateSimpleRules(config);
     if (!isValid) {
       alert(
-        "Selections:\n• Must select at least one style,\n• And either Levels (<3) or Artists (<4),\n• But not both or neither."
+        "Selections:\n• Must select at least one style,\n• And either Levels (<3) or Artists (<4),\n• But not both or neither.",
       );
       return;
     }
@@ -47,7 +47,7 @@ export default function ArtistLearnPage() {
     const numSongs = config.numSongs ?? 10;
     const timeLimit = config.timeLimit ?? 15;
     const activeStyles = Object.keys(config.styles || {}).filter(
-      (key) => config.styles[key]
+      (key) => config.styles[key],
     );
     const artistLevels = config.levels || [];
     const chosenArtists = (config.artists || []).map((a) => a.value);
@@ -60,11 +60,13 @@ export default function ArtistLearnPage() {
       "N",
       "N",
       "N",
-      numSongs
+      numSongs,
     );
 
     if (!fetchedSongs || fetchedSongs.length === 0) {
-      alert("No songs returned for this configuration. Try different settings.");
+      alert(
+        "No songs returned for this configuration. Try different settings.",
+      );
       return;
     }
 
@@ -99,74 +101,77 @@ export default function ArtistLearnPage() {
             p: 2,
           }}
         >
-          <PlayTab songs={songs} config={config} onCancel={handleClosePlayTab} />
+          <PlayTab
+            songs={songs}
+            config={config}
+            onCancel={handleClosePlayTab}
+          />
         </Box>
       )}
 
       {/* Top Bar */}
-<Box
-  sx={{
-    display: "flex",
-    alignItems: "center",
-    px: 2,
-    mt: 1,
-    mb: 2,
-  }}
->
-  {/* Game Title */}
-  <Typography
-    variant="h5"
-    sx={{
-      fontWeight: "bold",
-      color: "var(--foreground)",
-      mr: "auto", // Push everything else to the right
-    }}
-  >
-    Mastering
-    <br />
-    Orchestras
-  </Typography>
-
-  {/* Play Button */}
-  <Box
-    sx={{
-      display: "flex",
-      justifyContent: "center",
-      flex: "1", // Ensure it spans remaining space
-    }}
-  >
-    <Box sx={{ textAlign: "center" }}>
-      <Image
-        src={`/icons/IconLearnOrch.webp`}
-        alt="Play Button"
-        onClick={handlePlayClick}
-        width={80}
-        height={80}
-        style={{
-          cursor: "pointer",
-          borderRadius: "50%",
-          objectFit: "cover",
-          boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
-          transition: "transform 0.2s",
-        }}
-        onMouseOver={(e) =>
-          (e.currentTarget.style.transform = "scale(1.05)")
-        }
-        onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
-      />
-      <Typography
-        variant="h5"
+      <Box
         sx={{
+          display: "flex",
+          alignItems: "center",
+          px: 2,
           mt: 1,
-          color: "var(--accent)",
+          mb: 2,
         }}
       >
-        Play
-      </Typography>
-    </Box>
-  </Box>
-</Box>
+        {/* Game Title */}
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: "bold",
+            color: "var(--foreground)",
+            mr: "auto", // Push everything else to the right
+          }}
+        >
+          Mastering
+          <br />
+          Orchestras
+        </Typography>
 
+        {/* Play Button */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            flex: "1", // Ensure it spans remaining space
+          }}
+        >
+          <Box sx={{ textAlign: "center" }}>
+            <Image
+              src={`/icons/IconLearnOrch.webp`}
+              alt="Play Button"
+              onClick={handlePlayClick}
+              width={80}
+              height={80}
+              style={{
+                cursor: "pointer",
+                borderRadius: "50%",
+                objectFit: "cover",
+                boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
+                transition: "transform 0.2s",
+              }}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.transform = "scale(1.05)")
+              }
+              onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            />
+            <Typography
+              variant="h5"
+              sx={{
+                mt: 1,
+                color: "var(--accent)",
+              }}
+            >
+              Play
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
 
       {/* Configuration Tab */}
       <ConfigTab />

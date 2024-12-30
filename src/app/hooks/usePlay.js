@@ -13,7 +13,7 @@ const usePlay = () => {
       console.log("Game canceled. Scores reset.");
       setIsPlaying(false); // Reset the game state
     }
-    router.push("/games/gamehub/page.js"); // Navigate to the hub
+    router.push("/games/gamehub/"); // Navigate to the hub
   };
 
   return {

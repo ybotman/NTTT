@@ -1,7 +1,7 @@
-"use client";
-
-import React, { useState } from "react";
-import PropTypes from "prop-types";
+//------------------------------------------------------------
+//src/app/components/ui/GameHubRoute.js
+//------------------------------------------------------------
+import React from "react";
 import {
   IconButton,
   Dialog,
@@ -12,21 +12,24 @@ import {
   Button,
 } from "@mui/material";
 import HubIcon from "@mui/icons-material/Hub";
+import usePlay from "@/hooks/usePlay";
 
-const HubButton = ({ isPlaying, onNavigateToHub }) => {
-  const [openDialog, setOpenDialog] = useState(false);
+const HubButton = () => {
+  const { isPlaying, handleNavigateToHub } = usePlay(); // Access the hook directly
+
+  const [openDialog, setOpenDialog] = React.useState(false);
 
   const handleClick = () => {
     if (isPlaying) {
-      setOpenDialog(true);
+      setOpenDialog(true); // Open confirmation dialog if the game is playing
     } else {
-      onNavigateToHub();
+      handleNavigateToHub();
     }
   };
 
   const handleConfirm = () => {
     setOpenDialog(false);
-    onNavigateToHub();
+    handleNavigateToHub();
   };
 
   const handleClose = () => {
@@ -50,18 +53,13 @@ const HubButton = ({ isPlaying, onNavigateToHub }) => {
           <Button onClick={handleClose} color="primary">
             Stay
           </Button>
-          <Button onClick={handleConfirm} color="secondary" autoFocus>
-            That's OK
+          <Button onClick={handleConfirm} color="secondary">
+            That&apos;s OK
           </Button>
         </DialogActions>
       </Dialog>
     </>
   );
-};
-
-HubButton.propTypes = {
-  isPlaying: PropTypes.bool.isRequired, // Determines if a game is in progress
-  onNavigateToHub: PropTypes.func.isRequired, // Function to navigate to the hub
 };
 
 export default HubButton;

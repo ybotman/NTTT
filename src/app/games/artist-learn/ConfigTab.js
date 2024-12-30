@@ -88,7 +88,6 @@ export default function ConfigTab() {
 
   return (
     <Box className={styles.configurationContainer}>
-
       {/* Sliders */}
       <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
         <SongsSlider
