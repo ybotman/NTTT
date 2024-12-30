@@ -21,15 +21,15 @@
 }
 
 [data-theme="dark"] {
-  --background: #000517;
-  --foreground: #bbd4de;
-  --accent: #66aaff;
-  --border-color: #160eff;
-  --disabled-text: #df9797;
-  --error-color: #ff4d4f;
-  --input-bg: hsl(237, 45%, 59%);
-  --input-text: #ededed;
-  --dropdown-bg: #f09696;
+    --background: #000517;
+    --foreground: #bbd4de;
+    --accent: #66aaff;
+    --border-color: #444;
+    --disabled-text: #666;
+    --input-bg: #1a1a1a;
+    --input-text: #f5f5f5;
+    --dropdown-bg: #222;
+    --secondary-text: #999999; /* Adjust as needed */
 }
 
 /* GENERAL STYLING */

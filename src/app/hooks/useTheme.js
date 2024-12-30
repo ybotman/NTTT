@@ -23,7 +23,7 @@ export function ThemeProvider({ children }) {
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)",
     ).matches;
-    setTheme(prefersDark ? "dark" : "light");
+    setTheme(prefersDark ? "light" : "light");
   }, []);
 
   // Apply the theme to <html data-theme="...">
