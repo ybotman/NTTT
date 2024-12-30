@@ -25,7 +25,9 @@ export default function StylesSelector({
 }) {
   // 1) Convert object => array of style names
   const selectedArray = useMemo(() => {
-    return Object.keys(selectedStyles || {}).filter((styleName) => selectedStyles[styleName]);
+    return Object.keys(selectedStyles || {}).filter(
+      (styleName) => selectedStyles[styleName],
+    );
   }, [selectedStyles]);
 
   // 2) Handler for multi-select

@@ -112,24 +112,24 @@ export default function ConfigTab() {
       </Box>
 
       {/* Levels & Styles */}
-        <LevelsSelector
-          label="Levels:"
-          availableLevels={[1, 2, 3, 4, 5]}
-          selectedLevels={config.levels || []}
-          onChange={handleLevelsChange}
-        />
+      <LevelsSelector
+        label="Levels:"
+        availableLevels={[1, 2, 3, 4, 5]}
+        selectedLevels={config.levels || []}
+        onChange={handleLevelsChange}
+      />
 
-        <StylesSelector
-          label="Styles:"
-          availableStyles={primaryStyles}
-          selectedStyles={config.styles || {}}
-          onChange={handleStylesChange}
-        />
-<PeriodsSelector
-  label="Tango Period(s)"
-  selectedPeriods={config.periods || []}
-  onChange={(val) => updateConfig("periods", val)}
-/>
+      <StylesSelector
+        label="Styles:"
+        availableStyles={primaryStyles}
+        selectedStyles={config.styles || {}}
+        onChange={handleStylesChange}
+      />
+      <PeriodsSelector
+        label="Tango Period(s)"
+        selectedPeriods={config.periods || []}
+        onChange={(val) => updateConfig("periods", val)}
+      />
       {/* Artists */}
       <ArtistsSelector
         label="Select Artists (Optional)"
