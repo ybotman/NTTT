@@ -9,6 +9,8 @@ import SecondsSlider from "@/components/ui/SecondsSlider";
 import LevelsSelector from "@/components/ui/LevelsSelector";
 import StylesSelector from "@/components/ui/StylesSelector";
 import ArtistsSelector from "@/components/ui/ArtistsSelector";
+import PeriodsSelector from "@/components/ui/PeriodsSelector";
+
 import useArtistLearn from "@/hooks/useArtistLearn";
 import { useGameContext } from "@/contexts/GameContext";
 
@@ -110,7 +112,6 @@ export default function ConfigTab() {
       </Box>
 
       {/* Levels & Styles */}
-      <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
         <LevelsSelector
           label="Levels:"
           availableLevels={[1, 2, 3, 4, 5]}
@@ -124,8 +125,11 @@ export default function ConfigTab() {
           selectedStyles={config.styles || {}}
           onChange={handleStylesChange}
         />
-      </Box>
-
+<PeriodsSelector
+  label="Tango Period(s)"
+  selectedPeriods={config.periods || []}
+  onChange={(val) => updateConfig("periods", val)}
+/>
       {/* Artists */}
       <ArtistsSelector
         label="Select Artists (Optional)"

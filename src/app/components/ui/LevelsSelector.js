@@ -1,8 +1,20 @@
+// ------------------------------------------------------------
 // src/components/ui/LevelsSelector.js
+// ------------------------------------------------------------
+"use client";
 
 import React from "react";
 import PropTypes from "prop-types";
-import { Box, Typography, FormControlLabel, Checkbox } from "@mui/material";
+import {
+  Box,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Checkbox,
+  ListItemText,
+} from "@mui/material";
 
 export default function LevelsSelector({
   label,
@@ -11,15 +23,10 @@ export default function LevelsSelector({
   onChange,
   disabled,
 }) {
-  const handleCheck = (level, checked) => {
+  const handleChange = (event) => {
+    // event.target.value will be an array (for multiple Select)
     if (!onChange) return;
-    let newLevels = [...selectedLevels];
-    if (checked && !newLevels.includes(level)) {
-      newLevels.push(level);
-    } else if (!checked) {
-      newLevels = newLevels.filter((l) => l !== level);
-    }
-    onChange(newLevels);
+    onChange(event.target.value);
   };
 
   return (
@@ -29,22 +36,27 @@ export default function LevelsSelector({
           {label}
         </Typography>
       )}
-      {availableLevels.map((level) => {
-        const isChecked = selectedLevels.includes(level);
-        return (
-          <FormControlLabel
-            key={level}
-            control={
-              <Checkbox
-                checked={isChecked}
-                onChange={(e) => handleCheck(level, e.target.checked)}
-                disabled={disabled}
-              />
-            }
-            label={`Level ${level}`}
-          />
-        );
-      })}
+
+      <FormControl fullWidth variant="outlined" disabled={disabled}>
+        <InputLabel id="levels-label">{label}</InputLabel>
+        <Select
+          labelId="levels-label"
+          multiple
+          value={selectedLevels}
+          onChange={handleChange}
+          label={label}
+          renderValue={(selected) =>
+            selected.map((lvl) => `Level ${lvl}`).join(", ")
+          }
+        >
+          {availableLevels.map((level) => (
+            <MenuItem key={level} value={level}>
+              <Checkbox checked={selectedLevels.includes(level)} />
+              <ListItemText primary={`Level ${level}`} />
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
     </Box>
   );
 }
