@@ -91,24 +91,34 @@ export default function ConfigTab() {
   return (
     <Box className={styles.configurationContainer}>
       {/* Sliders */}
-      <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
-        <SongsSlider
-          label="# Songs"
-          min={3}
-          max={25}
-          step={1}
-          value={config.numSongs ?? 10}
-          onChange={handleNumSongsChange}
-        />
+      <Box
+        sx={{
+          display: "flex",
+          gap: 4,
+          mb: 3,
+        }}
+      >
+        <Box sx={{ flex: 1 }}>
+          <SongsSlider
+            label="# Songs"
+            min={3}
+            max={25}
+            step={1}
+            value={config.numSongs ?? 10}
+            onChange={handleNumSongsChange}
+          />
+        </Box>
 
-        <SecondsSlider
-          label="Seconds"
-          min={3}
-          max={29}
-          step={1}
-          value={config.timeLimit ?? 15}
-          onChange={handleTimeLimitChange}
-        />
+        <Box sx={{ flex: 1 }}>
+          <SecondsSlider
+            label="Seconds"
+            min={3}
+            max={29}
+            step={1}
+            value={config.timeLimit ?? 15}
+            onChange={handleTimeLimitChange}
+          />
+        </Box>
       </Box>
 
       {/* Levels & Styles */}
