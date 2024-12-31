@@ -1,7 +1,8 @@
-//------------------------------------------------------------
-//src/app/components/ui/GameHubRoute.js
-//------------------------------------------------------------
+"use client";
+
 import React from "react";
+import PropTypes from "prop-types";
+import { useRouter } from "next/navigation";
 import {
   IconButton,
   Dialog,
@@ -12,12 +13,22 @@ import {
   Button,
 } from "@mui/material";
 import HubIcon from "@mui/icons-material/Hub";
-import usePlay from "@/hooks/usePlay";
 
-const HubButton = () => {
-  const { isPlaying, handleNavigateToHub } = usePlay(); // Access the hook directly
+function GameHubRoute() {
+  const router = useRouter();
 
+  // local state to track if the game is in progress
+  const [isPlaying, setIsPlaying] = React.useState(false);
   const [openDialog, setOpenDialog] = React.useState(false);
+
+  const handleNavigateToHub = () => {
+    if (isPlaying) {
+      // Logic for resetting game or cleaning up scores
+      console.log("Game canceled. Scores reset.");
+      setIsPlaying(false); // Reset the game state
+    }
+    router.push("/games/gamehub/"); // Navigate to the hub
+  };
 
   const handleClick = () => {
     if (isPlaying) {
@@ -38,7 +49,11 @@ const HubButton = () => {
 
   return (
     <>
-      <IconButton color="primary" onClick={handleClick} aria-label="Go to Hub">
+      <IconButton
+        color="primary"
+        onClick={handleClick}
+        aria-label="Go to Hub"
+      >
         <HubIcon fontSize="small" />
       </IconButton>
       <Dialog open={openDialog} onClose={handleClose}>
@@ -60,6 +75,10 @@ const HubButton = () => {
       </Dialog>
     </>
   );
+}
+
+GameHubRoute.propTypes = {
+  // Define any props your component needs
 };
 
-export default HubButton;
+export default GameHubRoute;

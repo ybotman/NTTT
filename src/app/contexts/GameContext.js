@@ -1,7 +1,6 @@
 // ------------------------------------------------------------
 // src/app/contexts/GameContext.js
 // ------------------------------------------------------------
-"use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import PropTypes from "prop-types";
@@ -13,20 +12,28 @@ export function useGameContext() {
 }
 
 export function GameProvider({ children }) {
+  console.log("GameProvider children:", children);
+
   // 1) Game config (with null defaults where relevant)
   const [config, setConfig] = useState({
     numSongs: null,
     timeLimit: null,
     levels: [],
     styles: {},
-    artists: [], // if needed
+    artists: [],
+    periods:[],
+    validConfig: false,
   });
+  
+  console.log("GameProvider config:", config);  
+
 
   // 2) Score/Usage tracking
   const [currentScore, setCurrentScore] = useState(0);
   const [bestScore, setBestScore] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [completedGames, setCompletedGames] = useState(0);
+  const [filteredArtists, setFilteredArtists] = useState([]);
 
   // -- Load from local storage on first mount
   useEffect(() => {
@@ -60,6 +67,12 @@ export function GameProvider({ children }) {
     console.log(" - Updated Config:", key, value);
   }
 
+  // 3a) **NEW**: Provide a setter for filteredArtists
+  function updateFilteredArtists(arr) {
+    setFilteredArtists(arr || []);
+    console.log(" - Updated filteredArtists:", arr);
+  }
+
   // 4) Game completion logic (increment scores, track best, etc.)
   function completeGame(finalScore) {
     setCurrentScore(finalScore);
@@ -85,9 +98,12 @@ export function GameProvider({ children }) {
     setBestScore(0);
     setTotalScore(0);
     setCompletedGames(0);
+    setFilteredArtists([]);
   }
 
+  // Provide everything in the context value
   const value = {
+    // existing fields
     config,
     updateConfig,
     currentScore,
@@ -95,11 +111,14 @@ export function GameProvider({ children }) {
     bestScore,
     totalScore,
     completedGames,
-
     completeGame,
     resetAll,
-  };
 
+    // NEW fields & functions
+    filteredArtists,
+    updateFilteredArtists,
+  };
+console.log("GameProvider value:", value);
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
 

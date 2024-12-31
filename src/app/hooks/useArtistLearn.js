@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import useConfigTab from "@/hooks/useConfigTab";
+import { useGameContext } from "@/contexts/GameContext";
 
 /**
  * Simple iOS user-agent check
@@ -12,37 +12,23 @@ function isIOS() {
 }
 
 export default function useArtistLearn() {
-  const { config, updateConfig, isDisabled } = useConfigTab("artistLearn");
+  // Access config from GameContext
+  const { config, updateConfig } = useGameContext();
 
-  // ---------------------------------------------
-  //  Existing fields from your version
-  // ---------------------------------------------
-  const [primaryStyles, setPrimaryStyles] = useState([]);
+  // -- local states
   const [artistOptions, setArtistOptions] = useState([]);
   const [selectedArtists, setSelectedArtists] = useState(config.artists || []);
   const [validationMessage, setValidationMessage] = useState("");
-  const levelsDisabled = selectedArtists.length > 0;
+  const [primaryStyles, setPrimaryStyles] = useState([]);
   const hasFetchedDataRef = useRef(false);
 
-  // ---------------------------------------------
-  //  New: iOS detection & autoNext toggles
-  // ---------------------------------------------
+  // iOS detection
   const onIOS = isIOS();
-  // If on iOS, we might disable autoNext by default (to match your PlayTab logic).
+  // Example local autoNext state
   const [autoNext, setAutoNext] = useState(!onIOS);
 
-  // If you want to store more complex audio or fade logic, you can do so here:
-  // e.g. const wavesurferRef = useRef(null);
-
   // ---------------------------------------------
-  //  Log current config (existing)
-  // ---------------------------------------------
-  useEffect(() => {
-    console.log(" - Current Config:", config);
-  }, [config]);
-
-  // ---------------------------------------------
-  //  1) Validate config
+  // Validate config
   // ---------------------------------------------
   const validateInputs = useCallback(
     (theConfig) => {
@@ -73,13 +59,14 @@ export default function useArtistLearn() {
       if (hasLevels && hasArtists) {
         return "Cannot select both Artists and Levels. Clear one of them.";
       }
+
       return "";
     },
     [config],
   );
 
   // ---------------------------------------------
-  //  2) Single-time fetch of StyleMaster & ArtistMaster
+  // Fetch style/artist data once
   // ---------------------------------------------
   useEffect(() => {
     if (hasFetchedDataRef.current) return;
@@ -102,7 +89,7 @@ export default function useArtistLearn() {
       }
     };
 
-    // Fetch Artist Master
+    // Fetch Artists
     const fetchArtists = async () => {
       try {
         const artistData = await fetch(`/songData/ArtistMaster.json`).then(
@@ -132,7 +119,7 @@ export default function useArtistLearn() {
   }, [config.styles, updateConfig]);
 
   // ---------------------------------------------
-  //  3) Revalidate config on every change
+  // Revalidate config on every change
   // ---------------------------------------------
   useEffect(() => {
     const error = validateInputs(config);
@@ -140,7 +127,7 @@ export default function useArtistLearn() {
   }, [config, validateInputs]);
 
   // ---------------------------------------------
-  //  4) Handlers to update config
+  // Handlers
   // ---------------------------------------------
   const handleNumSongsChange = (value) => {
     updateConfig("numSongs", value);
@@ -174,72 +161,35 @@ export default function useArtistLearn() {
   };
 
   // ---------------------------------------------
-  //  Additional placeholders for “PlayTab” synergy
+  // Additional placeholders
   // ---------------------------------------------
-  /**
-   * Toggle autoNext on/off (already in state).
-   * If you want to unify it with config, you can also store it in config.
-   */
   const toggleAutoNext = (boolVal) => {
     setAutoNext(boolVal);
   };
 
-  /**
-   * Example fadeVolume placeholder (like your PlayTab).
-   * You could unify fade logic with config or states if needed.
-   */
-  const fadeVolumePlaceholder = (fromVol, toVol, durationSec, callback) => {
-    console.log(
-      "Placeholder fadeVolume - fromVol:",
-      fromVol,
-      "toVol:",
-      toVol,
-      "durationSec:",
-      durationSec,
-    );
-    if (callback) callback();
-  };
-
-  /**
-   * Example handleNextSong placeholder.
-   * In a real scenario, you’d unify with your game logic (like in PlayTab).
-   */
   const handleNextSongPlaceholder = () => {
-    console.log(
-      "Placeholder handleNextSong - unify with real game logic here.",
-    );
+    console.log("Placeholder handleNextSong - unify with real game logic");
   };
 
   return {
-    // Expose original fields
+    // State & config
     config,
-    isDisabled,
-    primaryStyles,
-    artistOptions,
-    selectedArtists,
     validationMessage,
-    setValidationMessage,
-    validateInputs,
-    levelsDisabled,
+    artistOptions,
+    primaryStyles,
+    selectedArtists,
 
-    // Expose existing handlers
+    // Derived
+    onIOS,
+    autoNext,
+
+    // Exposed handlers
+    toggleAutoNext,
+    handleNextSongPlaceholder,
     handleNumSongsChange,
     handleTimeLimitChange,
     handleLevelsChange,
     handleStylesChange,
     handleArtistsChange,
-
-    // New: iOS detection & autoNext
-    onIOS,
-    autoNext,
-    toggleAutoNext,
-
-    // Optional placeholders to unify with PlayTab later
-    fadeVolumePlaceholder,
-    handleNextSongPlaceholder,
   };
 }
-
-useArtistLearn.propTypes = {
-  // no external props needed
-};

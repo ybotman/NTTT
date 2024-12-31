@@ -10,17 +10,13 @@ export default function useConfigTab(gameName) {
     () => ({
       numSongs: 10,
       timeLimit: 15,
-      levels: [1, 2],
-      styles: { Tango: true, Vals: false, Milonga: false },
+      levels: [],
+      styles: { Tango: false, Vals: false, Milonga: false },
     }),
     [],
   );
 
   const [config, setConfig] = useState(defaultConfig);
-
-  // 2) If 'isDisabled' isn’t used anywhere, remove or comment out:
-  //    If you do intend to use it, keep it but handle it somewhere.
-  // const [isDisabled, setIsDisabled] = useState(false);
   const isDisabled = false; // or remove entirely
 
   const didLoadRef = useRef(false);

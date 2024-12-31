@@ -1,3 +1,8 @@
+//-----------------------------------------------------------------------------
+//src/app/games/artist-learn/page.js
+//-----------------------------------------------------------------------------
+
+
 "use client";
 
 import React, { useState, useCallback } from "react";
@@ -9,40 +14,16 @@ import { useGameContext } from "@/contexts/GameContext";
 import { fetchFilteredSongs } from "@/utils/dataFetching";
 import styles from "../styles.module.css";
 
-function validateSimpleRules(config) {
-  const selectedStyles = Object.keys(config.styles || {}).filter(
-    (k) => config.styles[k],
-  );
-  if (selectedStyles.length === 0) return false;
-
-  const levelCount = (config.levels || []).length;
-  const artistCount = (config.artists || []).length;
-
-  const hasBoth = levelCount > 0 && artistCount > 0;
-  const hasNeither = levelCount === 0 && artistCount === 0;
-  if (hasBoth || hasNeither) return false;
-
-  if (levelCount > 0 && levelCount >= 3) return false;
-  if (artistCount > 0 && artistCount >= 4) return false;
-
-  return true;
-}
-
 export default function ArtistLearnPage() {
   const [songs, setSongs] = useState([]);
   const [showPlayTab, setShowPlayTab] = useState(false);
 
-  const { config, bestScore, totalScore, completedGames, resetAll } =
+  const { config, bestScore, totalScore, completedGames, resetAll, validConfig } =
     useGameContext();
 
   const handlePlayClick = useCallback(async () => {
-    const isValid = validateSimpleRules(config);
-    if (!isValid) {
-      alert(
-        "Selections:\n• Must select at least one style,\n• And either Levels (<3) or Artists (<4),\n• But not both or neither.",
-      );
-      return;
-    }
+
+    console.log(config);
 
     const numSongs = config.numSongs ?? 10;
     const timeLimit = config.timeLimit ?? 15;

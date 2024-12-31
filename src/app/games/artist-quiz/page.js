@@ -1,41 +1,64 @@
 //--------
 //src/app/games/artist-quiz/page.js
-//--------
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Box, Typography } from "@mui/material";
 import Image from "next/image";
-import styles from "./styles.module.css";
 import ConfigTab from "./ConfigTab";
 import PlayTab from "./PlayTab";
-import useConfig from "@/hooks/useConfigTab";
+import { useGameContext } from "@/contexts/GameContext";
+import { fetchFilteredSongs } from "@/utils/dataFetching";
+import styles from "./styles.module.css";
 
 export default function ArtistQuizPage() {
   const [songs, setSongs] = useState([]);
-  const { config } = useConfig("artistQuiz");
   const [showPlayTab, setShowPlayTab] = useState(false);
 
-  const handleSongsFetched = (fetchedSongs) => {
-    setSongs(fetchedSongs);
-    console.log("Songs fetched for quiz:", fetchedSongs);
-  };
+  const { config } = useGameContext();
 
-  const handlePlayClick = () => {
-    if (songs.length === 0) {
-      console.warn("No songs available. Please adjust configuration.");
+  const handlePlayClick = useCallback(async () => {
+    console.log(config);
+    const isValid = true;
+    if (!isValid) {
+      alert(
+        "Selections:\n• Must select at least one style,\n• And either Levels (<3) or Artists (<4),\n• But not both or neither.",
+      );
       return;
     }
+
+    const numSongs = config.numSongs ?? 10;
+    const timeLimit = config.timeLimit ?? 15;
+    const activeStyles = Object.keys(config.styles || {}).filter(
+      (key) => config.styles[key],
+    );
+    const artistLevels = config.levels || [];
+    const chosenArtists = (config.artists || []).map((a) => a.value);
+
+    const { songs: fetchedSongs } = await fetchFilteredSongs(
+      chosenArtists,
+      artistLevels,
+      [],
+      activeStyles,
+      "N",
+      "N",
+      "N",
+      numSongs,
+    );
+
+    if (!fetchedSongs || fetchedSongs.length === 0) {
+      alert(
+        "No songs returned for this configuration. Try different settings.",
+      );
+      return;
+    }
+
+    setSongs(fetchedSongs);
     setShowPlayTab(true);
-  };
+  }, [config]);
 
   const handleClosePlayTab = () => {
     setShowPlayTab(false);
-  };
-
-  // New handler for Game Hub navigation
-  const handleGameHubClick = () => {
-    router.push("/games/gamehub");
   };
 
   return (
@@ -69,121 +92,72 @@ export default function ArtistQuizPage() {
         </Box>
       )}
 
-      {/* Game Hub Button */}
-      <Box sx={{ position: "absolute", top: "1rem", left: "1rem" }}>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            mb: 2,
-            cursor: "pointer",
-            transition: "transform 0.2s",
-            "&:hover": {
-              transform: "scale(1.05)",
-            },
-          }}
-          onClick={handleGameHubClick} // Attach click handler
-        >
-          <Image
-            src={`/icons/IconGameHub.jpg`}
-            alt="Game Hub"
-            width={100}
-            height={100}
-            style={{
-              borderRadius: "50%",
-              objectFit: "cover",
-              boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
-            }}
-          />
-          <Typography
-            variant="h6"
-            sx={{
-              mt: 1,
-              fontWeight: "bold",
-              color: "var(--accent)",
-              animation: "shimmer 2s infinite",
-              "@keyframes shimmer": {
-                "0%": { opacity: 1 },
-                "50%": { opacity: 0.5 },
-                "100%": { opacity: 1 },
-              },
-            }}
-          >
-            Game Hub
-          </Typography>
-        </Box>
-      </Box>
-      {/* Header Section with Play Button and Title */}
+      {/* Header Section */}
       <Box
         sx={{
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
-          mb: 4,
+          px: 2,
+          mt: 1,
+          mb: 2,
         }}
       >
-        {/* Play Button */}
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
-          <Image
-            src={`/icons/IconQuiz.webp`}
-            alt="Play Button"
-            onClick={handlePlayClick}
-            layout="intrinsic" // Adjusted for intrinsic sizing
-            width={100} // Exact width
-            height={100} // Exact height
-            style={{
-              cursor: "pointer",
-              borderRadius: "50%",
-              objectFit: "cover",
-              boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
-              transition: "transform 0.2s",
-            }}
-            onMouseOver={(e) =>
-              (e.currentTarget.style.transform = "scale(1.05)")
-            }
-            onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} // Reset on mouse out
-          />
-          <Typography
-            variant="h6"
-            sx={{
-              mt: 1,
-              fontWeight: "bold",
-              color: "var(--accent)",
-              animation: "shimmer 2s infinite",
-              "@keyframes shimmer": {
-                "0%": { opacity: 1 },
-                "50%": { opacity: 0.5 },
-                "100%": { opacity: 1 },
-              },
-            }}
-          >
-            Play
-          </Typography>
-        </Box>
         {/* Game Title */}
         <Typography
           variant="h5"
           sx={{
             fontWeight: "bold",
-            textAlign: "center",
             color: "var(--foreground)",
+            mr: "auto", // Push everything else to the right
           }}
         >
-          Quiz on Masters
+          Orchestra
+          <br />Q U I Z
         </Typography>
+
+        {/* Play Button */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            ml: "-7rem",
+            flex: "1", // Ensure it spans remaining space
+          }}
+        >
+          <Box sx={{ textAlign: "center" }}>
+            <Image
+              src={`/icons/IconQuiz.webp`}
+              alt="Play Button"
+              onClick={handlePlayClick}
+              width={80}
+              height={80}
+              style={{
+                cursor: "pointer",
+                borderRadius: "50%",
+                objectFit: "cover",
+                boxShadow: "0 0 15px rgba(0, 123, 255, 0.5)",
+                transition: "transform 0.2s",
+              }}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.transform = "scale(1.05)")
+              }
+              onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            />
+            <Typography
+              variant="h5"
+              sx={{
+                mt: 1,
+                color: "var(--accent)",
+              }}
+            >
+              Play
+            </Typography>
+          </Box>
+        </Box>
       </Box>
-      {/* Configuration Tab - passes a callback to receive fetched songs */}
-      <ConfigTab onSongsFetched={handleSongsFetched} />
+
+      {/* Configuration Tab */}
+      <ConfigTab />
     </Box>
   );
 }
-
-ArtistQuizPage.propTypes = {};

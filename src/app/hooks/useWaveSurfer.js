@@ -1,7 +1,6 @@
 //-----------------------------------------------------------------------------
-//src/app/hooks/useWaveSurfer.js
+// src/app/hooks/useWaveSurfer.js
 //-----------------------------------------------------------------------------
-
 "use client";
 
 import { useRef, useCallback } from "react";
@@ -11,11 +10,13 @@ export default function useWaveSurfer({ onSongEnd }) {
   const waveSurferRef = useRef(null);
   const fadeIntervalRef = useRef(null);
 
-  // ------------------------------------------------------
-  // Initialize WaveSurfer instance
-  // ------------------------------------------------------
+  /**
+   * 1) Initialize WaveSurfer instance (only once).
+   *    If waveSurferRef.current is already set, do nothing.
+   */
   const initWaveSurfer = useCallback(() => {
     if (waveSurferRef.current) {
+      // Already initialized => skip re-create
       console.warn("WaveSurfer is already initialized.");
       return;
     }
@@ -34,51 +35,60 @@ export default function useWaveSurfer({ onSongEnd }) {
     });
 
     waveSurferRef.current.on("error", (err) => {
+      // If it's an AbortError, we ignore the spam
+      if (err?.name === "AbortError") {
+        console.info("WaveSurfer fetch aborted - ignoring...");
+        return;
+      }
       console.error("WaveSurfer error:", err);
       if (onSongEnd) onSongEnd();
     });
   }, [onSongEnd]);
 
-  // ------------------------------------------------------
-  // Cleanup WaveSurfer instance
-  // ------------------------------------------------------
+  /**
+   * 2) Cleanup (destroy) WaveSurfer instance.
+   *    Wrap in try/catch to avoid AbortError spam.
+   */
   const cleanupWaveSurfer = useCallback(() => {
     if (fadeIntervalRef.current) {
       clearInterval(fadeIntervalRef.current);
       fadeIntervalRef.current = null;
     }
-
     if (waveSurferRef.current) {
-      waveSurferRef.current.destroy();
+      try {
+        waveSurferRef.current.destroy();
+      } catch (err) {
+        console.warn("WaveSurfer destroy error (ignored):", err);
+      }
       waveSurferRef.current = null;
     }
   }, []);
 
-  // ------------------------------------------------------
-  // Load a new song
-  // ------------------------------------------------------
+  /**
+   * 3) Load a new song (URL).
+   *    Only if waveSurferRef.current is non-null.
+   */
   const loadSong = useCallback((songUrl, onReady) => {
     if (!waveSurferRef.current) {
-      console.error("WaveSurfer is not initialized.");
+      console.error("WaveSurfer is not initialized. Call initWaveSurfer() first.");
       return;
     }
 
-    waveSurferRef.current.on("ready", () => {
+    waveSurferRef.current.once("ready", () => {
       if (onReady) onReady();
     });
 
     waveSurferRef.current.load(songUrl);
   }, []);
 
-  // ------------------------------------------------------
-  // Fade Volume
-  // ------------------------------------------------------
+  /**
+   * 4) Fade Volume
+   */
   const fadeVolume = useCallback((fromVol, toVol, durationSec, callback) => {
     if (!waveSurferRef.current) {
       console.error("WaveSurfer is not initialized.");
       return;
     }
-
     const steps = 15;
     const stepTime = (durationSec * 1000) / steps;
     let currentStep = 0;
@@ -89,7 +99,6 @@ export default function useWaveSurfer({ onSongEnd }) {
       currentStep++;
       currentVol += volumeStep;
       waveSurferRef.current.setVolume(Math.max(0, Math.min(currentVol, 1)));
-
       if (currentStep >= steps) {
         clearInterval(fadeIntervalRef.current);
         fadeIntervalRef.current = null;
@@ -98,9 +107,9 @@ export default function useWaveSurfer({ onSongEnd }) {
     }, stepTime);
   }, []);
 
-  // ------------------------------------------------------
-  // Play or Pause
-  // ------------------------------------------------------
+  /**
+   * 5) Optional togglePlay
+   */
   const togglePlay = useCallback(() => {
     if (!waveSurferRef.current) {
       console.error("WaveSurfer is not initialized.");
