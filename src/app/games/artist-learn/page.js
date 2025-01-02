@@ -2,7 +2,6 @@
 //src/app/games/artist-learn/page.js
 //-----------------------------------------------------------------------------
 
-
 "use client";
 
 import React, { useState, useCallback } from "react";
@@ -18,11 +17,16 @@ export default function ArtistLearnPage() {
   const [songs, setSongs] = useState([]);
   const [showPlayTab, setShowPlayTab] = useState(false);
 
-  const { config, bestScore, totalScore, completedGames, resetAll, validConfig } =
-    useGameContext();
+  const {
+    config,
+    bestScore,
+    totalScore,
+    completedGames,
+    resetAll,
+    validConfig,
+  } = useGameContext();
 
   const handlePlayClick = useCallback(async () => {
-
     console.log(config);
 
     const numSongs = config.numSongs ?? 10;

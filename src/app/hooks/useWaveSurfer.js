@@ -70,7 +70,9 @@ export default function useWaveSurfer({ onSongEnd }) {
    */
   const loadSong = useCallback((songUrl, onReady) => {
     if (!waveSurferRef.current) {
-      console.error("WaveSurfer is not initialized. Call initWaveSurfer() first.");
+      console.error(
+        "WaveSurfer is not initialized. Call initWaveSurfer() first.",
+      );
       return;
     }
 

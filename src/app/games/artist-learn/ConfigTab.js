@@ -10,7 +10,6 @@ import LevelsSelector from "@/components/ui/LevelsSelector";
 import StylesSelector from "@/components/ui/StylesSelector";
 import ArtistsSelector from "@/components/ui/ArtistsSelector";
 import PeriodsSelector from "@/components/ui/PeriodsSelector";
-
 import useArtistLearn from "@/hooks/useArtistLearn";
 import { useGameContext } from "@/contexts/GameContext";
 
@@ -75,7 +74,7 @@ export default function ConfigTab() {
             onChange={handleLevelsChange}
           />
           <PeriodsSelector
-            label="Period(s) Not working"
+            label="Periods:"
             selectedPeriods={config.periods || []}
             onChange={(val) => {
               // We can call a simple update here as well:
@@ -102,9 +101,7 @@ export default function ConfigTab() {
 
       {/* Validation Message */}
       {!isConfigValid && (
-        <Box sx={{ color: "red", mt: 2 }}>
-          {validationMessage}
-        </Box>
+        <Box sx={{ color: "red", mt: 2 }}>{validationMessage}</Box>
       )}
     </Box>
   );

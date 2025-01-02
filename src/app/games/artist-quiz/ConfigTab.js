@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import styles from "../styles.module.css";
 
@@ -10,94 +10,36 @@ import LevelsSelector from "@/components/ui/LevelsSelector";
 import StylesSelector from "@/components/ui/StylesSelector";
 import ArtistsSelector from "@/components/ui/ArtistsSelector";
 import PeriodsSelector from "@/components/ui/PeriodsSelector";
-
-import useArtistLearn from "@/hooks/useArtistLearn";
+import useArtistQuiz from "@/hooks/useArtistQuiz";
 import { useGameContext } from "@/contexts/GameContext";
 
-function validateSimpleRules(config) {
-  // 1) styles must not be blank
-  const selectedStyles = Object.keys(config.styles || {}).filter(
-    (k) => config.styles[k],
-  );
-  if (selectedStyles.length === 0) {
-    return false; // no styles => invalid
-  }
-
-  // 2) either levels (<3) or artists (<4)
-  const levelCount = (config.levels || []).length;
-  const artistCount = (config.artists || []).length;
-
-  // not both
-  const hasBoth = levelCount > 0 && artistCount > 0;
-  // not neither
-  const hasNeither = levelCount === 0 && artistCount === 0;
-  if (hasBoth || hasNeither) {
-    return false; // invalid
-  }
-
-  // if using levels => must be < 3
-  if (levelCount > 0 && levelCount >= 3) {
-    return false;
-  }
-  // if using artists => must be < 4
-  if (artistCount > 0 && artistCount >= 4) {
-    return false;
-  }
-
-  return true; // passes all simple rules
-}
-
 export default function ConfigTab() {
-  // A) fetch data from our custom hook
-  const { primaryStyles, artistOptions } = useArtistLearn();
+  const {
+    primaryStyles,
+    artistOptions,
+    validationMessage,
+    handleNumSongsChange,
+    handleTimeLimitChange,
+    handleLevelsChange,
+    handleStylesChange,
+    handleArtistsChange,
+  } = useArtistQuiz();
 
   // B) Access & update final config from GameContext
-  const { config, updateConfig } = useGameContext();
+  const { config } = useGameContext();
 
-  // Local state to track whether the config is valid (under these simple rules)
-  const [isConfigValid, setIsConfigValid] = useState(false);
-
-  const checkConfigValidity = useCallback(() => {
-    const valid = validateSimpleRules(config);
-    setIsConfigValid(valid);
-  }, [config]);
+  // Local state to track whether the config is valid
+  const [isConfigValid, setIsConfigValid] = useState(true);
 
   useEffect(() => {
-    // Validate on mount & whenever config changes
-    checkConfigValidity();
-  }, [config, checkConfigValidity]);
-
-  // Handlers: Auto-save each change
-  const handleNumSongsChange = (value) => {
-    updateConfig("numSongs", value);
-  };
-
-  const handleTimeLimitChange = (value) => {
-    updateConfig("timeLimit", value);
-  };
-
-  const handleLevelsChange = (newLevels) => {
-    updateConfig("levels", newLevels);
-  };
-
-  const handleStylesChange = (updatedStylesObj) => {
-    updateConfig("styles", updatedStylesObj);
-  };
-
-  const handleArtistsChange = (newSelected) => {
-    updateConfig("artists", newSelected);
-  };
+    // If validationMessage is non-empty => invalid
+    setIsConfigValid(!validationMessage);
+  }, [validationMessage]);
 
   return (
     <Box className={styles.configurationContainer}>
       {/* Sliders */}
-      <Box
-        sx={{
-          display: "flex",
-          gap: 4,
-          mb: 3,
-        }}
-      >
+      <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
         <Box sx={{ flex: 1 }}>
           <SongsSlider
             label="# Songs"
@@ -108,7 +50,6 @@ export default function ConfigTab() {
             onChange={handleNumSongsChange}
           />
         </Box>
-
         <Box sx={{ flex: 1 }}>
           <SecondsSlider
             label="Seconds"
@@ -122,13 +63,7 @@ export default function ConfigTab() {
       </Box>
 
       {/* Main Grid */}
-      <Box
-        sx={{
-          display: "flex",
-          gap: 4,
-          mb: 3,
-        }}
-      >
+      <Box sx={{ display: "flex", gap: 4, mb: 3 }}>
         {/* First Column: Levels & Periods */}
         <Box sx={{ flex: 1 }}>
           <LevelsSelector
@@ -138,12 +73,14 @@ export default function ConfigTab() {
             onChange={handleLevelsChange}
           />
           <PeriodsSelector
-            label="Period(s) Not working"
+            label="Periods:"
             selectedPeriods={config.periods || []}
-            onChange={(val) => updateConfig("periods", val)}
+            onChange={(val) => {
+              // We can call a simple update here as well:
+              // e.g. updateConfig("periods", val) if we wanted
+            }}
           />
         </Box>
-
         {/* Second Column: Styles & Artists */}
         <Box sx={{ flex: 1 }}>
           <StylesSelector
@@ -160,6 +97,11 @@ export default function ConfigTab() {
           />
         </Box>
       </Box>
+
+      {/* Validation Message */}
+      {!isConfigValid && (
+        <Box sx={{ color: "red", mt: 2 }}>{validationMessage}</Box>
+      )}
     </Box>
   );
 }

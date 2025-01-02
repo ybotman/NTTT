@@ -1,5 +1,7 @@
 //--------
 //src/app/games/artist-quiz/page.js
+//--------
+
 "use client";
 
 import React, { useState, useCallback } from "react";
@@ -19,13 +21,6 @@ export default function ArtistQuizPage() {
 
   const handlePlayClick = useCallback(async () => {
     console.log(config);
-    const isValid = true;
-    if (!isValid) {
-      alert(
-        "Selections:\n• Must select at least one style,\n• And either Levels (<3) or Artists (<4),\n• But not both or neither.",
-      );
-      return;
-    }
 
     const numSongs = config.numSongs ?? 10;
     const timeLimit = config.timeLimit ?? 15;

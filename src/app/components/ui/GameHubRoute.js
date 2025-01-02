@@ -49,11 +49,7 @@ function GameHubRoute() {
 
   return (
     <>
-      <IconButton
-        color="primary"
-        onClick={handleClick}
-        aria-label="Go to Hub"
-      >
+      <IconButton color="primary" onClick={handleClick} aria-label="Go to Hub">
         <HubIcon fontSize="small" />
       </IconButton>
       <Dialog open={openDialog} onClose={handleClose}>

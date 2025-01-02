@@ -55,11 +55,11 @@ export default function PlayTab({ songs, config, onCancel }) {
 
   // 3) Our waveSurfer hook: init/destroy/fade are handled there
   const {
-    waveSurferRef,      // contains waveSurfer instance
-    initWaveSurfer,     // create waveSurfer once
-    cleanupWaveSurfer,  // destroy waveSurfer
-    loadSong,           // load a URL
-    fadeVolume,         // fade logic
+    waveSurferRef, // contains waveSurfer instance
+    initWaveSurfer, // create waveSurfer once
+    cleanupWaveSurfer, // destroy waveSurfer
+    loadSong, // load a URL
+    fadeVolume, // fade logic
   } = useWaveSurfer({
     onSongEnd: null, // If you used "finish" event, you could handle it here
   });
@@ -148,13 +148,23 @@ export default function PlayTab({ songs, config, onCancel }) {
     // fade in
     fadeVolume(0, 1, FADE_DURATION, () => {
       // wait remainder, fade out
-      playTimeoutRef.current = setTimeout(() => {
-        fadeVolume(1, 0, FADE_DURATION, () => {
-          if (autoNext) handleNextSong();
-        });
-      }, (PLAY_DURATION - FADE_DURATION) * 1000);
+      playTimeoutRef.current = setTimeout(
+        () => {
+          fadeVolume(1, 0, FADE_DURATION, () => {
+            if (autoNext) handleNextSong();
+          });
+        },
+        (PLAY_DURATION - FADE_DURATION) * 1000,
+      );
     });
-  }, [waveSurferRef, fadeVolume, PLAY_DURATION, FADE_DURATION, autoNext, handleNextSong]);
+  }, [
+    waveSurferRef,
+    fadeVolume,
+    PLAY_DURATION,
+    FADE_DURATION,
+    autoNext,
+    handleNextSong,
+  ]);
 
   // -----------------------------
   //   Load Current Song
@@ -163,13 +173,14 @@ export default function PlayTab({ songs, config, onCancel }) {
     cleanupEverything();
 
     const currentSong = songs[currentIndex];
-    if (!currentSong) {// no valid song => bail
+    if (!currentSong) {
+      // no valid song => bail
       setIsPlaying(false);
       setCurrentIndex(-1);
       return;
     }
     console.log("Ready to Play Song:", currentSong);
-    initWaveSurfer(); 
+    initWaveSurfer();
     loadSong(currentSong.AudioUrl, () => {
       // waveSurfer onReady
       setReady(true);
@@ -226,7 +237,9 @@ export default function PlayTab({ songs, config, onCancel }) {
   // Scroll to active
   useEffect(() => {
     if (listRef.current && currentIndex >= 0) {
-      const listItem = listRef.current.querySelector(`[data-idx="${currentIndex}"]`);
+      const listItem = listRef.current.querySelector(
+        `[data-idx="${currentIndex}"]`,
+      );
       if (listItem) {
         listItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }

@@ -21,12 +21,11 @@ export function GameProvider({ children }) {
     levels: [],
     styles: {},
     artists: [],
-    periods:[],
+    periods: [],
     validConfig: false,
   });
-  
-  console.log("GameProvider config:", config);  
 
+  console.log("GameProvider config:", config);
 
   // 2) Score/Usage tracking
   const [currentScore, setCurrentScore] = useState(0);
@@ -118,7 +117,7 @@ export function GameProvider({ children }) {
     filteredArtists,
     updateFilteredArtists,
   };
-console.log("GameProvider value:", value);
+  console.log("GameProvider value:", value);
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
 
