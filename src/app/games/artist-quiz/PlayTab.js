@@ -13,22 +13,14 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
+
 import { useGameContext } from "@/contexts/GameContext";
 import useWaveSurfer from "@/hooks/useWaveSurfer";
 import useArtistQuiz from "@/hooks/useArtistQuiz";
 import { shuffleArray } from "@/utils/dataFetching";
 
-// Example placeholders for your icons
-import HubIcon from "@mui/icons-material/Home"; // or whichever icon you have
-import ScoreboardIcon from "@mui/icons-material/Scoreboard";
-import DarkModeIcon from "@mui/icons-material/DarkMode";
-// Alternatively import your actual icon components
-
 export default function PlayTab({ songs, config, onCancel }) {
-  // A) Grab context logic
-  const { config: gameConfig } = useGameContext();
-
-  // B) Grab quiz logic
+  // 1) Pull quiz logic
   const {
     calculateMaxScore,
     calculateDecrementPerInterval,
@@ -40,30 +32,30 @@ export default function PlayTab({ songs, config, onCancel }) {
     getDistractors,
   } = useArtistQuiz();
 
-  // C) Local States for gameplay
+  // 2) Local states
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentSong, setCurrentSong] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Timer & scoring
+  // Timer & scoring for the round
   const [roundScore, setRoundScore] = useState(0);
   const [timeElapsed, setTimeElapsed] = useState(0);
 
-  // Session Tracking
+  // For the entire session
   const [sessionScore, setSessionScore] = useState(0);
   const [roundOver, setRoundOver] = useState(false);
   const [showFinalSummary, setShowFinalSummary] = useState(false);
 
-  // **(NEW)** Extra stats for final summary:
-  const [roundStats, setRoundStats] = useState([]);
+  // Extra stats to compute average
   // each element => { timeUsed, distractorsUsed }
+  const [roundStats, setRoundStats] = useState([]);
 
   // Answers
   const [answers, setAnswers] = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [wrongAnswers, setWrongAnswers] = useState([]);
 
-  // UI feedback
+  // UI
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
@@ -71,22 +63,19 @@ export default function PlayTab({ songs, config, onCancel }) {
   const timeLimit = config.timeLimit ?? 15;
   const numSongs = config.numSongs ?? 10;
 
-  // For dynamic scoring
+  // Scoring formulas
   const maxScore = calculateMaxScore(timeLimit);
-  const decrementPerInterval = calculateDecrementPerInterval(
-    maxScore,
-    timeLimit,
-  );
+  const decrementPerInterval = calculateDecrementPerInterval(maxScore, timeLimit);
 
   // waveSurfer
-  const { waveSurferRef, initWaveSurfer, cleanupWaveSurfer, loadSong } =
+  const { waveSurferRef, initWaveSurfer, cleanupWaveSurfer, loadSong, fadeVolume } =
     useWaveSurfer({ onSongEnd: null });
 
-  // Track last loaded track
+  // To avoid reloading the same track
   const lastSongRef = useRef(null);
 
   // -----------------------------
-  // 1) STOP everything
+  // A) stopAllAudioAndTimers
   // -----------------------------
   const stopAllAudioAndTimers = useCallback(() => {
     cleanupWaveSurfer();
@@ -94,16 +83,16 @@ export default function PlayTab({ songs, config, onCancel }) {
   }, [cleanupWaveSurfer, clearIntervals]);
 
   // -----------------------------
-  // 2) handleTimeUp
+  // B) handleTimeUp => user ran out of time
   // -----------------------------
   const handleTimeUp = useCallback(() => {
     stopAllAudioAndTimers();
     setRoundOver(true);
 
-    // Add leftover to session
-    setSessionScore((old) => old + Math.max(roundScore, 0));
+    // add leftover roundScore to session
+    setSessionScore((prev) => prev + Math.max(roundScore, 0));
 
-    // Record the stats for this round
+    // record stats
     setRoundStats((prev) => [
       ...prev,
       {
@@ -113,63 +102,50 @@ export default function PlayTab({ songs, config, onCancel }) {
     ]);
 
     setSnackbarMessage(
-      `Time's up! Correct => ${currentSong?.ArtistMaster || "???"}`,
+      `Time's up! Correct => ${currentSong?.ArtistMaster || "???"}`
     );
     setOpenSnackbar(true);
-  }, [
-    roundScore,
-    currentSong,
-    stopAllAudioAndTimers,
-    timeElapsed,
-    wrongAnswers,
-  ]);
+  }, [roundScore, stopAllAudioAndTimers, timeElapsed, wrongAnswers, currentSong]);
 
   // -----------------------------
-  // 3) startIntervals
+  // C) startIntervals => decrement logic
   // -----------------------------
   const startIntervals = useCallback(() => {
-    // Score decrement every 0.1s
+    // Score
     decrementIntervalRef.current = setInterval(() => {
-      setRoundScore((old) => Math.max(old - decrementPerInterval, 0));
+      setRoundScore((prev) => Math.max(prev - decrementPerInterval, 0));
     }, INTERVAL_MS);
 
     // Time
     timeIntervalRef.current = setInterval(() => {
-      setTimeElapsed((old) => {
-        const nextVal = old + 0.1;
+      setTimeElapsed((prev) => {
+        const nextVal = prev + 0.1;
         if (nextVal >= timeLimit) {
           handleTimeUp();
         }
         return nextVal;
       });
     }, INTERVAL_MS);
-  }, [
-    decrementIntervalRef,
-    timeIntervalRef,
-    decrementPerInterval,
-    timeLimit,
-    handleTimeUp,
-  ]);
+  }, [decrementIntervalRef, timeIntervalRef, decrementPerInterval, timeLimit, handleTimeUp]);
 
   // -----------------------------
-  // 4) handleAnswerSelect
+  // D) handleAnswerSelect => user picks
   // -----------------------------
   const handleAnswerSelect = (ans) => {
     if (roundOver || !currentSong) return;
-    if (selectedAnswer === ans) return; // same pick => ignore
+    if (selectedAnswer === ans) return;
 
     setSelectedAnswer(ans);
-
-    const correct = (currentSong.ArtistMaster || "").trim().toLowerCase();
-    const guess = ans.trim().toLowerCase();
+    const correct = (currentSong.ArtistMaster || "").toLowerCase();
+    const guess = ans.toLowerCase();
 
     if (guess === correct) {
-      // correct => finalize
+      // correct
       stopAllAudioAndTimers();
       setRoundOver(true);
-      setSessionScore((old) => old + Math.max(roundScore, 0));
+      setSessionScore((prev) => prev + Math.max(roundScore, 0));
 
-      // Record stats
+      // record stats
       setRoundStats((prev) => [
         ...prev,
         {
@@ -182,23 +158,25 @@ export default function PlayTab({ songs, config, onCancel }) {
       setOpenSnackbar(true);
     } else {
       // wrong => penalty
-      setWrongAnswers((old) => [...old, ans]);
-      setRoundScore((old) => {
-        const newVal = Math.max(old - old * WRONG_PENALTY, 0);
+      setWrongAnswers((prev) => [...prev, ans]);
+      setRoundScore((prev) => {
+        const newVal = Math.max(prev - prev * WRONG_PENALTY, 0);
         if (newVal <= 0) {
           stopAllAudioAndTimers();
           setRoundOver(true);
 
-          // Record stats
-          setRoundStats((prev) => [
-            ...prev,
+          // record stats
+          setRoundStats((old) => [
+            ...old,
             {
               timeUsed: timeElapsed,
               distractorsUsed: wrongAnswers.length + 1,
             },
           ]);
 
-          setSnackbarMessage(`Score=0! Correct => ${currentSong.ArtistMaster}`);
+          setSnackbarMessage(
+            `Score=0! Correct => ${currentSong.ArtistMaster}`
+          );
           setOpenSnackbar(true);
         }
         return newVal;
@@ -207,51 +185,47 @@ export default function PlayTab({ songs, config, onCancel }) {
   };
 
   // -----------------------------
-  // 5) handleNextSong
+  // E) handleNextSong => next
   // -----------------------------
   const handleNextSong = useCallback(() => {
     setOpenSnackbar(false);
     const nextIndex = currentIndex + 1;
     if (nextIndex >= numSongs || nextIndex >= songs.length) {
-      // final
+      // end
       setShowFinalSummary(true);
       return;
     }
     setCurrentIndex(nextIndex);
   }, [currentIndex, numSongs, songs]);
 
-  // Simple performance message
-  const getPerformanceMessage = () => {
-    const pct = (roundScore / maxScore) * 100;
-    if (pct >= 80) return "Excellent job!";
-    if (pct >= 50) return "Great work!";
-    if (pct >= 20) return "Not bad!";
-    if (pct >= 1) return "Just Barely.";
-    return "You'll get the next one!";
-  };
-
   // -----------------------------
-  // 6) “Manual” button => loadAndPlaySongRaw
-  //    (No fade, no random seek)
+  // F) random seek + fade in
   // -----------------------------
-  const manualPlaySong = useCallback(() => {
+  const clickPlaySong = useCallback(() => {
     if (!currentSong) return;
     if (lastSongRef.current === currentSong.AudioUrl) return;
+
     lastSongRef.current = currentSong.AudioUrl;
 
     initWaveSurfer();
-
     loadSong(currentSong.AudioUrl, () => {
       const ws = waveSurferRef.current;
       if (!ws) {
         console.warn("No waveSurferRef => cannot play audio.");
         return;
       }
-      ws.setVolume(1.0);
+      // random snippet start
+      const dur = ws.getDuration();
+      const randomStart = Math.floor(Math.random() * 90);
+      ws.seekTo(Math.min(randomStart, dur - 1) / dur);
+
+      // attempt play => fade in
       ws.play()
         .then(() => {
-          setIsPlaying(true);
-          startIntervals();
+          fadeVolume(0, 1, 1.0, () => {
+            setIsPlaying(true);
+            startIntervals();
+          });
         })
         .catch((err) => {
           console.error("WaveSurfer play error:", err);
@@ -263,13 +237,13 @@ export default function PlayTab({ songs, config, onCancel }) {
     initWaveSurfer,
     loadSong,
     waveSurferRef,
-    setIsPlaying,
+    fadeVolume,
     startIntervals,
     handleNextSong,
   ]);
 
   // -----------------------------
-  // 7) initRound => set local states
+  // G) initRound => local states
   // -----------------------------
   const initRound = useCallback(() => {
     if (currentIndex >= songs.length) return;
@@ -284,13 +258,11 @@ export default function PlayTab({ songs, config, onCancel }) {
   }, [currentIndex, songs, maxScore]);
 
   // -----------------------------
-  // 8) build answers => correct + 3 distractors
+  // H) Build answers => correct + 3 distractors
   // -----------------------------
   useEffect(() => {
     if (!currentSong) return;
     const correctArtist = currentSong.ArtistMaster || "";
-
-    // We can pick from the same songs array:
     const allArtists = [...new Set(songs.map((s) => s.ArtistMaster))];
     const distractors = getDistractors(correctArtist, allArtists);
     const finalAnswers = shuffleArray([correctArtist, ...distractors]);
@@ -298,18 +270,17 @@ export default function PlayTab({ songs, config, onCancel }) {
   }, [currentSong, songs, getDistractors]);
 
   // -----------------------------
-  // 9) On mount / index => initRound
+  // I) On mount or index => initRound
   // -----------------------------
   useEffect(() => {
     initRound();
-    return clearIntervals;
+    return clearIntervals; // clear old intervals
   }, [currentIndex, initRound, clearIntervals]);
 
   // -----------------------------
-  // 10) If final => show summary
+  // J) final summary
   // -----------------------------
   if (showFinalSummary) {
-    // **Compute average time & average distractors** from roundStats
     const totalRounds = roundStats.length;
     let avgTime = 0;
     let avgDistractors = 0;
@@ -317,7 +288,7 @@ export default function PlayTab({ songs, config, onCancel }) {
       const sumTime = roundStats.reduce((acc, r) => acc + r.timeUsed, 0);
       const sumDistractors = roundStats.reduce(
         (acc, r) => acc + r.distractorsUsed,
-        0,
+        0
       );
       avgTime = sumTime / totalRounds;
       avgDistractors = sumDistractors / totalRounds;
@@ -337,13 +308,9 @@ export default function PlayTab({ songs, config, onCancel }) {
         <Typography variant="h4" gutterBottom>
           Session Complete!
         </Typography>
-
-        {/* A) Final Score */}
         <Typography variant="h6" gutterBottom>
           Total Score: {Math.floor(sessionScore)}
         </Typography>
-
-        {/* B) Average time + distractors */}
         <Typography variant="body1" gutterBottom>
           Average Time: {avgTime.toFixed(1)} sec
         </Typography>
@@ -367,74 +334,45 @@ export default function PlayTab({ songs, config, onCancel }) {
     );
   }
 
-  // -----------------------------
-  //  Add top-right icons row
-  // -----------------------------
-  // We'll place them in a small “toolbar” at top-right
-  // Adjust styling as you wish
-  const handleHubClick = () => {
-    console.log("Navigate to hub...");
-    // router.push("/games/gamehub") or something
-  };
-  const handleScoreClick = () => {
-    console.log("Show high-scores or scoreboard...");
-  };
-  const handleThemeClick = () => {
-    console.log("Toggle theme...");
+  // Utility to get performance text
+  const getPerformanceMessage = () => {
+    const pct = (roundScore / maxScore) * 100;
+    if (pct >= 80) return "Excellent job!";
+    if (pct >= 50) return "Great work!";
+    if (pct >= 20) return "Not bad!";
+    if (pct > 1) return "Just Barely.";
+    return "You'll get the next one!";
   };
 
-  // compute time progress for display
+  // Time bar
   const timePercent = (timeElapsed / timeLimit) * 100;
 
   return (
     <Box
       sx={{
-        position: "relative",
         minHeight: "100vh",
         background: "var(--background)",
         color: "var(--foreground)",
         p: 2,
       }}
     >
-      {/* 
-        Top-Right icons 
-        (Hub / Score / Theme):
-      */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: 8,
-          right: 8,
-          display: "flex",
-          gap: 2,
-          alignItems: "center",
-        }}
-      >
-        <HubIcon sx={{ cursor: "pointer" }} onClick={handleHubClick} />
-        <ScoreboardIcon sx={{ cursor: "pointer" }} onClick={handleScoreClick} />
-        <DarkModeIcon sx={{ cursor: "pointer" }} onClick={handleThemeClick} />
-      </Box>
-
       {/* Title */}
-      <Typography
-        variant="h5"
-        sx={{ mt: 2, mb: 2, textAlign: "center", fontWeight: "bold" }}
-      >
+      <Typography variant="h5" sx={{ mb: 2, textAlign: "center", fontWeight: "bold" }}>
         Identify the Artist
       </Typography>
 
-      {/* Show “Session Score” at top if desired */}
+      {/* Running session score */}
       <Typography variant="body1" sx={{ mb: 2, textAlign: "center" }}>
-        Session Score (So Far): {sessionScore}
+        Session Score (So Far): {Math.floor(sessionScore)}
       </Typography>
 
-      {/* Time & Round Score */}
+      {/* Round time + score */}
       <Typography variant="h6" sx={{ mb: 2, textAlign: "center" }}>
         Time: {timeElapsed.toFixed(1)}/{timeLimit} | Round Score:{" "}
         {Math.floor(roundScore)}/{Math.floor(maxScore)}
       </Typography>
 
-      {/* Progress bar if playing */}
+      {/* If playing => show progress bar */}
       {isPlaying && (
         <Box sx={{ mx: "auto", mb: 2, maxWidth: 400 }}>
           <LinearProgress
@@ -445,12 +383,12 @@ export default function PlayTab({ songs, config, onCancel }) {
         </Box>
       )}
 
-      {/* If not playing & not roundOver => let user press 'Play Song' */}
+      {/* Manual Play button (when not playing and not roundOver) */}
       {!isPlaying && !roundOver && currentSong && (
         <Box sx={{ textAlign: "center", mb: 2 }}>
           <Button
             variant="contained"
-            onClick={manualPlaySong}
+            onClick={clickPlaySong}
             sx={{
               backgroundColor: "var(--accent)",
               color: "var(--background)",
@@ -490,7 +428,7 @@ export default function PlayTab({ songs, config, onCancel }) {
                 border: `2px solid ${borderColor}`,
                 borderRadius: "4px",
                 cursor: "pointer",
-                "&:hover": { background: "var(--input-bg)" },
+                "&:hover": { backgroundColor: "var(--input-bg)" },
               }}
             >
               <ListItemText
@@ -505,7 +443,7 @@ export default function PlayTab({ songs, config, onCancel }) {
         })}
       </List>
 
-      {/* If roundOver => Next/Cancel */}
+      {/* If roundOver => show performance + next/cancel */}
       {roundOver && (
         <Box sx={{ mt: 3, textAlign: "center" }}>
           {roundScore > 0 ? (
@@ -514,7 +452,7 @@ export default function PlayTab({ songs, config, onCancel }) {
             </Typography>
           ) : (
             <Typography variant="h6" gutterBottom>
-              No Score. Correct =`&gt;` {currentSong?.ArtistMaster}
+              No Score. Correct = {currentSong?.ArtistMaster}
             </Typography>
           )}
 
@@ -532,7 +470,7 @@ export default function PlayTab({ songs, config, onCancel }) {
               borderColor: "var(--foreground)",
               color: "var(--foreground)",
               "&:hover": {
-                background: "var(--foreground)",
+                backgroundColor: "var(--foreground)",
                 color: "var(--background)",
               },
             }}
@@ -542,7 +480,7 @@ export default function PlayTab({ songs, config, onCancel }) {
         </Box>
       )}
 
-      {/* Snackbar for feedback */}
+      {/* Snackbar for user feedback */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
@@ -567,8 +505,7 @@ PlayTab.propTypes = {
       SongID: PropTypes.string,
       AudioUrl: PropTypes.string.isRequired,
       ArtistMaster: PropTypes.string.isRequired,
-      // ...
-    }),
+    })
   ).isRequired,
   config: PropTypes.object.isRequired,
   onCancel: PropTypes.func.isRequired,
