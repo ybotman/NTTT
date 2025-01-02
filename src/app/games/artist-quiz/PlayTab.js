@@ -65,11 +65,19 @@ export default function PlayTab({ songs, config, onCancel }) {
 
   // Scoring formulas
   const maxScore = calculateMaxScore(timeLimit);
-  const decrementPerInterval = calculateDecrementPerInterval(maxScore, timeLimit);
+  const decrementPerInterval = calculateDecrementPerInterval(
+    maxScore,
+    timeLimit,
+  );
 
   // waveSurfer
-  const { waveSurferRef, initWaveSurfer, cleanupWaveSurfer, loadSong, fadeVolume } =
-    useWaveSurfer({ onSongEnd: null });
+  const {
+    waveSurferRef,
+    initWaveSurfer,
+    cleanupWaveSurfer,
+    loadSong,
+    fadeVolume,
+  } = useWaveSurfer({ onSongEnd: null });
 
   // To avoid reloading the same track
   const lastSongRef = useRef(null);
@@ -102,10 +110,16 @@ export default function PlayTab({ songs, config, onCancel }) {
     ]);
 
     setSnackbarMessage(
-      `Time's up! Correct => ${currentSong?.ArtistMaster || "???"}`
+      `Time's up! Correct => ${currentSong?.ArtistMaster || "???"}`,
     );
     setOpenSnackbar(true);
-  }, [roundScore, stopAllAudioAndTimers, timeElapsed, wrongAnswers, currentSong]);
+  }, [
+    roundScore,
+    stopAllAudioAndTimers,
+    timeElapsed,
+    wrongAnswers,
+    currentSong,
+  ]);
 
   // -----------------------------
   // C) startIntervals => decrement logic
@@ -126,7 +140,13 @@ export default function PlayTab({ songs, config, onCancel }) {
         return nextVal;
       });
     }, INTERVAL_MS);
-  }, [decrementIntervalRef, timeIntervalRef, decrementPerInterval, timeLimit, handleTimeUp]);
+  }, [
+    decrementIntervalRef,
+    timeIntervalRef,
+    decrementPerInterval,
+    timeLimit,
+    handleTimeUp,
+  ]);
 
   // -----------------------------
   // D) handleAnswerSelect => user picks
@@ -174,9 +194,7 @@ export default function PlayTab({ songs, config, onCancel }) {
             },
           ]);
 
-          setSnackbarMessage(
-            `Score=0! Correct => ${currentSong.ArtistMaster}`
-          );
+          setSnackbarMessage(`Score=0! Correct => ${currentSong.ArtistMaster}`);
           setOpenSnackbar(true);
         }
         return newVal;
@@ -201,10 +219,13 @@ export default function PlayTab({ songs, config, onCancel }) {
   // -----------------------------
   // F) random seek + fade in
   // -----------------------------
+  const FADE_DURATION = 0.8; // same as learn
+  const PLAY_DURATION = config.timeLimit ?? 15; // or some default
+
   const clickPlaySong = useCallback(() => {
     if (!currentSong) return;
+    // skip if we have the same track
     if (lastSongRef.current === currentSong.AudioUrl) return;
-
     lastSongRef.current = currentSong.AudioUrl;
 
     initWaveSurfer();
@@ -214,17 +235,21 @@ export default function PlayTab({ songs, config, onCancel }) {
         console.warn("No waveSurferRef => cannot play audio.");
         return;
       }
-      // random snippet start
+
+      // random snippet
       const dur = ws.getDuration();
       const randomStart = Math.floor(Math.random() * 90);
       ws.seekTo(Math.min(randomStart, dur - 1) / dur);
 
-      // attempt play => fade in
       ws.play()
         .then(() => {
+          // Optionally set volume to 0 if you haven't yet
+          ws.setVolume(0);
+
+          // fade in over 1 second
           fadeVolume(0, 1, 1.0, () => {
             setIsPlaying(true);
-            startIntervals();
+            startIntervals(); // or handle more logic if needed
           });
         })
         .catch((err) => {
@@ -234,11 +259,14 @@ export default function PlayTab({ songs, config, onCancel }) {
     });
   }, [
     currentSong,
+    FADE_DURATION,
+    PLAY_DURATION,
+    waveSurferRef,
+    lastSongRef,
     initWaveSurfer,
     loadSong,
-    waveSurferRef,
     fadeVolume,
-    startIntervals,
+    setIsPlaying,
     handleNextSong,
   ]);
 
@@ -288,7 +316,7 @@ export default function PlayTab({ songs, config, onCancel }) {
       const sumTime = roundStats.reduce((acc, r) => acc + r.timeUsed, 0);
       const sumDistractors = roundStats.reduce(
         (acc, r) => acc + r.distractorsUsed,
-        0
+        0,
       );
       avgTime = sumTime / totalRounds;
       avgDistractors = sumDistractors / totalRounds;
@@ -357,7 +385,10 @@ export default function PlayTab({ songs, config, onCancel }) {
       }}
     >
       {/* Title */}
-      <Typography variant="h5" sx={{ mb: 2, textAlign: "center", fontWeight: "bold" }}>
+      <Typography
+        variant="h5"
+        sx={{ mb: 2, textAlign: "center", fontWeight: "bold" }}
+      >
         Identify the Artist
       </Typography>
 
@@ -395,7 +426,7 @@ export default function PlayTab({ songs, config, onCancel }) {
               "&:hover": { opacity: 0.8 },
             }}
           >
-            Play Song
+            I am Ready!
           </Button>
         </Box>
       )}
@@ -505,7 +536,7 @@ PlayTab.propTypes = {
       SongID: PropTypes.string,
       AudioUrl: PropTypes.string.isRequired,
       ArtistMaster: PropTypes.string.isRequired,
-    })
+    }),
   ).isRequired,
   config: PropTypes.object.isRequired,
   onCancel: PropTypes.func.isRequired,
