@@ -64,8 +64,8 @@ export default function useArtistQuiz() {
     return maxScore / (timeLimit * 10);
   }, []);
 
-  // Wrong answer penalty => 5% (0.05)
-  const WRONG_PENALTY = 0.05;
+  // Wrong answer penalty => 50% (0.5)
+  const WRONG_PENALTY = 0.5;
 
   // We update time/score in 0.1 second intervals
   const INTERVAL_MS = 100;
