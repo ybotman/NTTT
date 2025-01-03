@@ -67,8 +67,9 @@ export default function PlayTab({ songs, config, onCancel }) {
     maxScore,
     WRONG_PENALTY,
     INTERVAL_MS,
-    onTimesUp: null,
-    onEndOfGame: null,
+    onTimesUp: handleTimesUp,
+    onRoundOver: handleRoundOver,
+   // onEndOfGame: null,
     songs, // pass the entire songs array so it can do initRound logic
   });
 
@@ -101,6 +102,17 @@ export default function PlayTab({ songs, config, onCancel }) {
     cleanupWaveSurfer();
     stopAllIntervals();
   }, [cleanupWaveSurfer, stopAllIntervals]);
+  // Bn) Callback when time runs out
+  const handleTimesUp = useCallback(() => {
+    stopAllAudioAndTimers();
+    setRoundOver(true);
+  }, [stopAllAudioAndTimers, setRoundOver]);
+
+  // Cn) Callback when round ends (correct guess or forced zero)
+  const handleRoundOver = useCallback(({ correct }) => {
+    console.log("PlayTab-> handleRoundOver -> correct?", correct);
+    stopAllAudioAndTimers();
+  }, [stopAllAudioAndTimers]);
 
   //
   // B) Actually next or final

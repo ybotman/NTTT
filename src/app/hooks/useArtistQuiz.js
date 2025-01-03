@@ -64,8 +64,8 @@ export default function useArtistQuiz() {
     return maxScore / (timeLimit * 10);
   }, []);
 
-  // Wrong answer penalty => 50% (0.5)
-  const WRONG_PENALTY = 0.5;
+  // Wrong answer penalty => 25%
+  const WRONG_PENALTY = 0.25;
 
   // We update time/score in 0.1 second intervals
   const INTERVAL_MS = 100;
@@ -152,6 +152,7 @@ export default function useArtistQuiz() {
   //    Given the correct artist + a pool, returns 3 random, distinct from correct
   // -----------------------
   const getDistractors = useCallback((correctArtist, pool) => {
+    console.log(`Size of the pool: ${pool.length}`);
     // We want 3 unique artists that are not the correct one
     const filtered = pool.filter((a) => a !== correctArtist);
     // shuffle & pick 3

@@ -15,10 +15,10 @@ export default function useArtistQuizScoring({
   WRONG_PENALTY,
   INTERVAL_MS,
   onTimesUp,
-  onRoundOver,
+  onRoundOver,      // new callback for correct or forced-zero
   onEndOfGame,
-  getGoPhrase, 
-  songs,
+  getGoPhrase, // pass in from usePlay if desired
+  songs,       // pass in full songs array
 }) {
   // -----------------------------
   // Round & Session states
@@ -99,7 +99,6 @@ export default function useArtistQuizScoring({
 
   if (guess === correctArtist) {// CORRECT => finalize round
     stopAllIntervals();
-    onRoundOver?.({ correct: true });
     setRoundOver(true);
     setSessionScore(old => old + Math.max(roundScore, 0));
     setRoundStats(old => [
@@ -116,7 +115,6 @@ export default function useArtistQuizScoring({
 
     if (newVal <= 0) {
       stopAllIntervals();
-      onRoundOver?.({ correct: false });
       setRoundOver(true);
       onRoundOver?.({ correct: false });
       setRoundStats(old => [

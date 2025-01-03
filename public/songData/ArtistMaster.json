@@ -8,13 +8,13 @@
   {
     "artist": "Anibal Troilo",
     "active": "true",
-    "level": "2",
+    "level": "1",
     "grouped": []
   },
   {
     "artist": "Astor Piazzolla",
     "active": "true",
-    "level": "2",
+    "level": "1",
     "grouped": []
   },
   {
@@ -50,7 +50,7 @@
   {
     "artist": "Ricardo Tanturi",
     "active": "true",
-    "level": "3",
+    "level": "2",
     "grouped": []
   },
   {
@@ -128,7 +128,7 @@
   {
     "artist": "Francisco Canaro",
     "active": "true",
-    "level": "2",
+    "level": "1",
     "grouped": []
   },
   {
@@ -140,19 +140,19 @@
   {
     "artist": "Julio De Caro",
     "active": "true",
-    "level": "5",
+    "level": "2",
     "grouped": []
   },
   {
     "artist": "Juan Maglio",
     "active": "true",
-    "level": "5",
+    "level": "3",
     "grouped": []
   },
   {
     "artist": "Miguel Calo",
     "active": "true",
-    "level": "5",
+    "level": "3",
     "grouped": []
   }
 ]

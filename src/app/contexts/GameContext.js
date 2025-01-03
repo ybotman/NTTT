@@ -12,7 +12,7 @@ export function useGameContext() {
 }
 
 export function GameProvider({ children }) {
-  console.log("GameProvider children:", children);
+  //console.log("GameProvider children:", children);
 
   // 1) Game config (with null defaults where relevant)
   const [config, setConfig] = useState({

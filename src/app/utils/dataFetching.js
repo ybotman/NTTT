@@ -24,7 +24,7 @@ export async function fetchFilteredSongs(
   candombe = "",
   alternative = "",
   cancion = "",
-  qty = 10,
+  qty = "",
 ) {
   try {
     const [djSongsData, artistData] = await Promise.all([
@@ -97,8 +97,6 @@ export async function fetchFilteredSongs(
           song.Style && stylesLower.includes(song.Style.trim().toLowerCase()),
       );
     }
-
-    // Candombe, Alternative, Cancion
     if (candombe) {
       filtered = filtered.filter((song) => song.Candombe === candombe);
     }
@@ -111,8 +109,10 @@ export async function fetchFilteredSongs(
 
     const finalSongs = getRandomSongs(filtered, qty);
     const finalQty = finalSongs.length;
+    console.log("Filtered songs:", finalSongs); 
+    console.log("Filtered songs count:", finalQty);
 
-    console.log({
+    console.log( "from Filter Criteria",{
       artistMasters: validArtistMasters,
       artistLevels: validArtistLevels,
       composers: validComposers,

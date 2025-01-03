@@ -82,7 +82,9 @@ export default function GameHubPage() {
         }}
       >
         <Grid container spacing={3}>
-          {games.map((game, index) => {
+          {games
+            .filter((game) => game.isActive)
+            .map((game, index) => {
             // If isActive = true => we disable (un-clickable)
             const disabled = game.isActive === false;
 
