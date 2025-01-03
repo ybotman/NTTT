@@ -27,19 +27,15 @@ export default function PlayTab({ songs, config, onCancel }) {
   //
   // 1) Basic Quiz logic
   //
-  const {
-    calculateMaxScore,
-    WRONG_PENALTY,
-    INTERVAL_MS,
-    getDistractors,
-  } = useArtistQuiz();
+  const { calculateMaxScore, WRONG_PENALTY, INTERVAL_MS, getDistractors } =
+    useArtistQuiz();
 
   //
   // 2) Config
   //
   const timeLimit = config.timeLimit ?? 15;
-  const numSongs  = config.numSongs  ?? 10;
-  const maxScore  = calculateMaxScore(timeLimit);
+  const numSongs = config.numSongs ?? 10;
+  const maxScore = calculateMaxScore(timeLimit);
 
   //
   // 3) The scoring hook (handles initRound, answerSelect, intervals, etc.)
@@ -47,16 +43,24 @@ export default function PlayTab({ songs, config, onCancel }) {
   const {
     currentIndex,
     currentSong,
-    isPlaying, setIsPlaying,
-    answers, setAnswers,
+    isPlaying,
+    setIsPlaying,
+    answers,
+    setAnswers,
     selectedAnswer,
     wrongAnswers,
-    timeElapsed, setTimeElapsed,
-    roundScore,   setRoundScore,
-    roundOver,    setRoundOver,
-    sessionScore, setSessionScore,
-    showFinalSummary, setShowFinalSummary,
-    roundStats, setRoundStats,
+    timeElapsed,
+    setTimeElapsed,
+    roundScore,
+    setRoundScore,
+    roundOver,
+    setRoundOver,
+    sessionScore,
+    setSessionScore,
+    showFinalSummary,
+    setShowFinalSummary,
+    roundStats,
+    setRoundStats,
     startIntervals,
     stopAllIntervals,
     initRound,
@@ -69,26 +73,22 @@ export default function PlayTab({ songs, config, onCancel }) {
     INTERVAL_MS,
     onTimesUp: handleTimesUp,
     onRoundOver: handleRoundOver,
-   // onEndOfGame: null,
+    // onEndOfGame: null,
     songs, // pass the entire songs array so it can do initRound logic
   });
 
   //
   // 4) waveSurfer
   //
-  const {
-    waveSurferRef,
-    initWaveSurfer,
-    cleanupWaveSurfer,
-    playSnippet,
-  } = useWaveSurfer({ onSongEnd: null });
+  const { waveSurferRef, initWaveSurfer, cleanupWaveSurfer, playSnippet } =
+    useWaveSurfer({ onSongEnd: null });
   //
   // 5) get random "go phrase"
   //
   const { getGoPhrase } = usePlay();
 
   // For feedback
-  const [openSnackbar, setOpenSnackbar]     = React.useState(false);
+  const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const [snackbarMessage, setSnackbarMessage] = React.useState("");
 
   // Also track if we already loaded a track
@@ -98,7 +98,7 @@ export default function PlayTab({ songs, config, onCancel }) {
   // A) Stop everything
   //
   const stopAllAudioAndTimers = useCallback(() => {
-    console.log("PlayTab-> stopAllAudioAndTimers")
+    console.log("PlayTab-> stopAllAudioAndTimers");
     cleanupWaveSurfer();
     stopAllIntervals();
   }, [cleanupWaveSurfer, stopAllIntervals]);
@@ -109,16 +109,19 @@ export default function PlayTab({ songs, config, onCancel }) {
   }, [stopAllAudioAndTimers, setRoundOver]);
 
   // Cn) Callback when round ends (correct guess or forced zero)
-  const handleRoundOver = useCallback(({ correct }) => {
-    console.log("PlayTab-> handleRoundOver -> correct?", correct);
-    stopAllAudioAndTimers();
-  }, [stopAllAudioAndTimers]);
+  const handleRoundOver = useCallback(
+    ({ correct }) => {
+      console.log("PlayTab-> handleRoundOver -> correct?", correct);
+      stopAllAudioAndTimers();
+    },
+    [stopAllAudioAndTimers],
+  );
 
   //
   // B) Actually next or final
   //
   const doNextSong = useCallback(() => {
-    console.log("PlayTab-> doNextSong")
+    console.log("PlayTab-> doNextSong");
     setOpenSnackbar(false);
     handleNextSong(); // from the scoring hook
   }, [handleNextSong]);
@@ -127,7 +130,7 @@ export default function PlayTab({ songs, config, onCancel }) {
   // C) "clickPlaySong" => waveSurfer snippet+fade
   //
   const clickPlaySong = useCallback(() => {
-    console.log("PlayTab-> clickPlaySong")
+    console.log("PlayTab-> clickPlaySong");
     if (!currentSong) return;
     if (lastSongRef.current === currentSong.AudioUrl) return;
     lastSongRef.current = currentSong.AudioUrl;
@@ -161,11 +164,11 @@ export default function PlayTab({ songs, config, onCancel }) {
   useEffect(() => {
     if (!currentSong) return;
     const correctArtist = currentSong.ArtistMaster || "";
-    const allArtists    = [...new Set(songs.map((s) => s.ArtistMaster))];
-    const distractors   = getDistractors(correctArtist, allArtists);
-    const finalAnswers  = shuffleArray([correctArtist, ...distractors]);
+    const allArtists = [...new Set(songs.map((s) => s.ArtistMaster))];
+    const distractors = getDistractors(correctArtist, allArtists);
+    const finalAnswers = shuffleArray([correctArtist, ...distractors]);
     setAnswers(finalAnswers);
-    console.log("PlayTab-> useEffect-> setAnswers", finalAnswers)
+    console.log("PlayTab-> useEffect-> setAnswers", finalAnswers);
   }, [currentSong, songs, getDistractors, setAnswers]);
 
   //
@@ -182,7 +185,8 @@ export default function PlayTab({ songs, config, onCancel }) {
   //
   if (showFinalSummary) {
     const totalRounds = roundStats.length;
-    let avgTime = 0, avgDist = 0;
+    let avgTime = 0,
+      avgDist = 0;
 
     if (totalRounds > 0) {
       const sumTime = roundStats.reduce((acc, r) => acc + r.timeUsed, 0);
@@ -238,7 +242,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     if (pct >= 80) return "Excellent job!";
     if (pct >= 50) return "Great work!";
     if (pct >= 20) return "Not bad!";
-    if (pct > 1)  return "Just Barely.";
+    if (pct > 1) return "Just Barely.";
     return "You'll get the next one!";
   };
 
@@ -255,7 +259,10 @@ export default function PlayTab({ songs, config, onCancel }) {
       }}
     >
       {/* Title */}
-      <Typography variant="h5" sx={{ mb: 2, textAlign: "center", fontWeight: "bold" }}>
+      <Typography
+        variant="h5"
+        sx={{ mb: 2, textAlign: "center", fontWeight: "bold" }}
+      >
         Identify the Artist
       </Typography>
 
@@ -294,7 +301,7 @@ export default function PlayTab({ songs, config, onCancel }) {
             }}
           >
             {/* Could fetch & store a local 'goPhrase' in the scoring hook or here */}
-            I'm Ready!
+            I&apos;m Ready!
           </Button>
         </Box>
       )}
@@ -315,10 +322,11 @@ export default function PlayTab({ songs, config, onCancel }) {
 
           let borderColor = "var(--border-color)";
           if (roundOver && isChosenCorrect) borderColor = "green";
-          else if (isWrong)                borderColor = "red";
+          else if (isWrong) borderColor = "red";
 
           // disable if roundOver or not playing or isWrong or isChosenCorrect
-          const disabled = roundOver || !isPlaying || isWrong || isChosenCorrect;
+          const disabled =
+            roundOver || !isPlaying || isWrong || isChosenCorrect;
 
           return (
             <ListItem
@@ -414,10 +422,10 @@ export default function PlayTab({ songs, config, onCancel }) {
 PlayTab.propTypes = {
   songs: PropTypes.arrayOf(
     PropTypes.shape({
-      SongID:       PropTypes.string,
-      AudioUrl:     PropTypes.string.isRequired,
+      SongID: PropTypes.string,
+      AudioUrl: PropTypes.string.isRequired,
       ArtistMaster: PropTypes.string.isRequired,
-    })
+    }),
   ).isRequired,
   config: PropTypes.object.isRequired,
   onCancel: PropTypes.func.isRequired,

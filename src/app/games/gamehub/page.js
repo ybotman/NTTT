@@ -85,63 +85,63 @@ export default function GameHubPage() {
           {games
             .filter((game) => game.isActive)
             .map((game, index) => {
-            // If isActive = true => we disable (un-clickable)
-            const disabled = game.isActive === false;
+              // If isActive = true => we disable (un-clickable)
+              const disabled = game.isActive === false;
 
-            return (
-              <Grid xs={6} md={3} key={index}>
-                <Link href={disabled ? "#" : game.path} /* '#' if disabled */>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      cursor: disabled ? "default" : "pointer",
-                      opacity: disabled ? 0.5 : 1,
-                      transition: "transform 0.2s ease",
-                      textDecoration: "none",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: "85px",
-                        height: "85px",
-                        position: "relative",
-                        marginBottom: "10px",
-                        "&:hover": {
-                          transform: disabled ? "none" : "scale(1.1)",
-                          filter: disabled ? "none" : "brightness(1.5)",
-                        },
+              return (
+                <Grid xs={6} md={3} key={index}>
+                  <Link href={disabled ? "#" : game.path} /* '#' if disabled */>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        cursor: disabled ? "default" : "pointer",
+                        opacity: disabled ? 0.5 : 1,
+                        transition: "transform 0.2s ease",
+                        textDecoration: "none",
                       }}
                     >
-                      <Image
-                        src={`/${game.icon}`}
-                        alt={`${game.name} Icon`}
-                        fill
-                        sizes="(max-width: 600px) 100vw,
+                      <Box
+                        sx={{
+                          width: "85px",
+                          height: "85px",
+                          position: "relative",
+                          marginBottom: "10px",
+                          "&:hover": {
+                            transform: disabled ? "none" : "scale(1.1)",
+                            filter: disabled ? "none" : "brightness(1.5)",
+                          },
+                        }}
+                      >
+                        <Image
+                          src={`/${game.icon}`}
+                          alt={`${game.name} Icon`}
+                          fill
+                          sizes="(max-width: 600px) 100vw,
                                (max-width: 1200px) 50vw,
                                33vw"
-                        style={{
-                          objectFit: "cover",
-                          borderRadius: "8px",
-                          boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+                          style={{
+                            objectFit: "cover",
+                            borderRadius: "8px",
+                            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+                          }}
+                        />
+                      </Box>
+                      <Typography
+                        variant="body1"
+                        textAlign="center"
+                        sx={{
+                          color: disabled ? "gray" : "var(--foreground)",
                         }}
-                      />
-                    </Box>
-                    <Typography
-                      variant="body1"
-                      textAlign="center"
-                      sx={{
-                        color: disabled ? "gray" : "var(--foreground)",
-                      }}
-                    >
-                      {game.name}
-                    </Typography>
-                  </div>
-                </Link>
-              </Grid>
-            );
-          })}
+                      >
+                        {game.name}
+                      </Typography>
+                    </div>
+                  </Link>
+                </Grid>
+              );
+            })}
         </Grid>
       </Paper>
     </Box>

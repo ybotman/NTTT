@@ -109,10 +109,10 @@ export async function fetchFilteredSongs(
 
     const finalSongs = getRandomSongs(filtered, qty);
     const finalQty = finalSongs.length;
-    console.log("Filtered songs:", finalSongs); 
+    console.log("Filtered songs:", finalSongs);
     console.log("Filtered songs count:", finalQty);
 
-    console.log( "from Filter Criteria",{
+    console.log("from Filter Criteria", {
       artistMasters: validArtistMasters,
       artistLevels: validArtistLevels,
       composers: validComposers,

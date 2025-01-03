@@ -17,7 +17,7 @@ export default function useWaveSurfer({ onSongEnd }) {
       return;
     }
     waveSurferRef.current = WaveSurfer.create({
-      container: document.createElement("div"), 
+      container: document.createElement("div"),
       waveColor: "transparent",
       progressColor: "transparent",
       barWidth: 0,
@@ -80,9 +80,7 @@ export default function useWaveSurfer({ onSongEnd }) {
     fadeIntervalRef.current = setInterval(() => {
       currentStep++;
       currentVol += volumeStep;
-      waveSurferRef.current.setVolume(
-        Math.max(0, Math.min(currentVol, 1))
-      );
+      waveSurferRef.current.setVolume(Math.max(0, Math.min(currentVol, 1)));
       if (currentStep >= steps) {
         clearInterval(fadeIntervalRef.current);
         fadeIntervalRef.current = null;
@@ -92,39 +90,45 @@ export default function useWaveSurfer({ onSongEnd }) {
   }, []);
 
   // 5) Play snippet => random start + fade in
-  const playSnippet = useCallback((songUrl, {
-    snippetMaxStart = 90,
-    fadeDurationSec = 1.0,
-    onPlaySuccess,
-    onPlayError,
-  }) => {
-    if (!waveSurferRef.current) {
-      console.error("WaveSurfer is not initialized. Call initWaveSurfer().");
-      return;
-    }
-    loadSong(songUrl, () => {
-      const ws = waveSurferRef.current;
-      if (!ws) return;
+  const playSnippet = useCallback(
+    (
+      songUrl,
+      {
+        snippetMaxStart = 90,
+        fadeDurationSec = 1.0,
+        onPlaySuccess,
+        onPlayError,
+      },
+    ) => {
+      if (!waveSurferRef.current) {
+        console.error("WaveSurfer is not initialized. Call initWaveSurfer().");
+        return;
+      }
+      loadSong(songUrl, () => {
+        const ws = waveSurferRef.current;
+        if (!ws) return;
 
-      // random snippet
-      const dur = ws.getDuration();
-      const randomStart = Math.floor(Math.random() * snippetMaxStart);
-      ws.seekTo(Math.min(randomStart, dur - 1) / dur);
+        // random snippet
+        const dur = ws.getDuration();
+        const randomStart = Math.floor(Math.random() * snippetMaxStart);
+        ws.seekTo(Math.min(randomStart, dur - 1) / dur);
 
-      // play => fade in
-      ws.play()
-        .then(() => {
-          ws.setVolume(0);
-          fadeVolume(0, 1, fadeDurationSec, () => {
-            if (onPlaySuccess) onPlaySuccess();
+        // play => fade in
+        ws.play()
+          .then(() => {
+            ws.setVolume(0);
+            fadeVolume(0, 1, fadeDurationSec, () => {
+              if (onPlaySuccess) onPlaySuccess();
+            });
+          })
+          .catch((err) => {
+            console.error("WaveSurfer play error:", err);
+            if (onPlayError) onPlayError(err);
           });
-        })
-        .catch((err) => {
-          console.error("WaveSurfer play error:", err);
-          if (onPlayError) onPlayError(err);
-        });
-    });
-  }, [loadSong, fadeVolume]);
+      });
+    },
+    [loadSong, fadeVolume],
+  );
 
   // 6) Toggle (optional)
   const togglePlay = useCallback(() => {
@@ -146,6 +150,6 @@ export default function useWaveSurfer({ onSongEnd }) {
     loadSong,
     fadeVolume,
     togglePlay,
-    playSnippet,  // new snippet logic
+    playSnippet, // new snippet logic
   };
 }
