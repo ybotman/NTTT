@@ -1,5 +1,17 @@
 "use client";
+/*
+      {isPlaying && (
+        <Box sx={{ mx: "auto", mb: 2, maxWidth: 400 }}>
+          <LinearProgress
+            variant="determinate"
+            value={timePercent}
+            sx={{ height: 8, borderRadius: 4 }}
+          />
+        </Box>
+      )} 
+      */
 
+      
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import PropTypes from "prop-types";
 import {
@@ -245,15 +257,7 @@ useEffect(() => {
         currentRound={currentIndex}
       />
       {/* If playing => progress bar */}
-      {isPlaying && (
-        <Box sx={{ mx: "auto", mb: 2, maxWidth: 400 }}>
-          <LinearProgress
-            variant="determinate"
-            value={timePercent}
-            sx={{ height: 8, borderRadius: 4 }}
-          />
-        </Box>
-      )}
+
 
       {/* "Play Song" button */}
       {!isPlaying && !roundOver && currentSong && (
