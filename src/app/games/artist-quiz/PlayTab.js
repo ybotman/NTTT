@@ -18,6 +18,7 @@ import usePlay from "@/hooks/usePlay";
 import useArtistQuizScoring from "@/hooks/useArtistQuizScoring";
 import { shuffleArray } from "@/utils/dataFetching";
 import { getDistractors } from "@/utils/dataFetching";
+import RoundProgress from "@/components/ui/RoundProgress";
 
 export default function PlayTab({ songs, config, onCancel }) {
   // 1) Basic quiz config
@@ -28,6 +29,7 @@ export default function PlayTab({ songs, config, onCancel }) {
   // 2) Local state
   const [roundOver, setRoundOver] = useState(false);
   const lastSongRef = useRef(null);
+  const numSongs = config.numSongs ?? 10;
 
   // waveSurfer
   const { initWaveSurfer, cleanupWaveSurfer, playSnippet } = useWaveSurfer({
@@ -238,6 +240,10 @@ useEffect(() => {
         {Math.floor(roundScore)}/{Math.floor(maxScore)}
       </Typography>
 
+      <RoundProgress
+        totalRounds={numSongs}
+        currentRound={currentIndex}
+      />
       {/* If playing => progress bar */}
       {isPlaying && (
         <Box sx={{ mx: "auto", mb: 2, maxWidth: 400 }}>
