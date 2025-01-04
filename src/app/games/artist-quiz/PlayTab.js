@@ -26,7 +26,6 @@ import { getDistractors } from "@/utils/dataFetching";
 import RoundProgress from "@/components/ui/RoundProgress";
 import GameHubRoute from "@/components/ui/GameHubRoute";
 
-
 export default function PlayTab({ songs, config, onCancel }) {
   // 2) Quiz config
   const { calculateMaxScore, WRONG_PENALTY, INTERVAL_MS } = useArtistQuiz();
@@ -247,6 +246,7 @@ export default function PlayTab({ songs, config, onCancel }) {
       {/* 
           Top row with Title (left) and GameHubRoute (right)
       */}
+      {/* Title Row */}
       <Box
         sx={{
           display: "flex",
@@ -255,12 +255,17 @@ export default function PlayTab({ songs, config, onCancel }) {
           mb: 2,
         }}
       >
+        {/* Title */}
         <Typography variant="h5" sx={{ fontWeight: "bold" }}>
           Identify the Artist
         </Typography>
-        {/* The IconButton from GameHubRoute in upper-right */}
-        <GameHubRoute />
-                 {/* Back Arrow Icon */}
+
+        {/* Icons Row (Justified Right) */}
+        <Box sx={{ display: "flex", alignItems: "center", ml: "auto" }}>
+          {/* GameHubRoute Icon */}
+          <GameHubRoute />
+
+          {/* Back Arrow Icon */}
           <IconButton
             onClick={onCancel} // Add your back navigation logic here
             color="primary"
@@ -268,6 +273,7 @@ export default function PlayTab({ songs, config, onCancel }) {
           >
             <ArrowBackIcon />
           </IconButton>
+        </Box>
       </Box>
 
       {/* Round Progress */}
@@ -277,7 +283,7 @@ export default function PlayTab({ songs, config, onCancel }) {
       <Typography variant="h6" sx={{ mb: 2, textAlign: "center" }}>
         Available Points: {Math.floor(roundScore)}/{Math.floor(maxScore)}
       </Typography>
-      
+
       {isPlaying && (
         <Box sx={{ mx: "auto", mb: 2, maxWidth: 400 }}>
           <LinearProgress
@@ -399,7 +405,7 @@ PlayTab.propTypes = {
       SongID: PropTypes.string,
       AudioUrl: PropTypes.string.isRequired,
       ArtistMaster: PropTypes.string.isRequired,
-    })
+    }),
   ).isRequired,
   config: PropTypes.object.isRequired,
   onCancel: PropTypes.func.isRequired,

@@ -71,19 +71,14 @@ export default function useArtistQuiz() {
     const d = 0.0595;
 
     // 3) Compute polynomial
-    const val =
-      a -
-      b * clamped +
-      c * (clamped ** 2) -
-      d * (clamped ** 3);
+    const val = a - b * clamped + c * clamped ** 2 - d * clamped ** 3;
 
     // 4) Round if you want an integer
     return Math.round(val);
   }, []);
 
-
   // Wrong answer penalty
-  const WRONG_PENALTY = 0.10;
+  const WRONG_PENALTY = 0.1;
   // Interval => 100ms
   const INTERVAL_MS = 100;
 

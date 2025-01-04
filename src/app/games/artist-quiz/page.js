@@ -107,7 +107,8 @@ export default function ArtistQuizPage() {
           }}
         >
           Orchestra
-          <br />Q U I Z
+          <br />
+          &gt; QUIZ &lt;
         </Typography>
 
         {/* Play Button */}
