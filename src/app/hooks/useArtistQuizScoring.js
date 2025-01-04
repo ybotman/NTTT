@@ -12,29 +12,29 @@ export default function useArtistQuizScoring({
   maxScore,
   WRONG_PENALTY,
   INTERVAL_MS,
-  onTimesUp,     // parent callback when time is up
-  getGoPhrase,   // optional
+  onTimesUp, // parent callback when time is up
+  getGoPhrase, // optional
   songs,
 }) {
   // Round & Session states
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentSong, setCurrentSong]   = useState(null);
-  const [isPlaying,   setIsPlaying]     = useState(false);
+  const [currentSong, setCurrentSong] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
-  const [answers, setAnswers]           = useState([]);
+  const [answers, setAnswers] = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [wrongAnswers,  setWrongAnswers]    = useState([]);
+  const [wrongAnswers, setWrongAnswers] = useState([]);
 
-  const [timeElapsed, setTimeElapsed]   = useState(0);
-  const [roundScore,  setRoundScore]    = useState(maxScore);
+  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [roundScore, setRoundScore] = useState(maxScore);
 
   const [sessionScore, setSessionScore] = useState(0);
   const [showFinalSummary, setShowFinalSummary] = useState(false);
-  const [roundStats, setRoundStats]     = useState([]);
+  const [roundStats, setRoundStats] = useState([]);
 
   // Interval refs
   const decrementIntervalRef = useRef(null);
-  const timeIntervalRef      = useRef(null);
+  const timeIntervalRef = useRef(null);
 
   // initRound
   const initRound = useCallback(
@@ -54,7 +54,7 @@ export default function useArtistQuizScoring({
         // you could store or log the phrase, if needed
       }
     },
-    [songs, maxScore, getGoPhrase]
+    [songs, maxScore, getGoPhrase],
   );
 
   // stopAllIntervals

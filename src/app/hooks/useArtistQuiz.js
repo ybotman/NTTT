@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useGameContext } from "@/contexts/GameContext";
 
 /**
- * Provide quiz-specific logic & validations: 
- *  - load styles/artists 
- *  - validate config 
- *  - compute scoring parameters 
+ * Provide quiz-specific logic & validations:
+ *  - load styles/artists
+ *  - validate config
+ *  - compute scoring parameters
  */
 export default function useArtistQuiz() {
   // 1) Access global config from GameContext
@@ -36,7 +36,7 @@ export default function useArtistQuiz() {
       }
 
       const stylesSelected = Object.keys(theConfig.styles || {}).filter(
-        (k) => theConfig.styles[k]
+        (k) => theConfig.styles[k],
       );
       if (stylesSelected.length === 0) {
         return "At least one style must be selected.";
@@ -52,7 +52,7 @@ export default function useArtistQuiz() {
       }
       return "";
     },
-    [config]
+    [config],
   );
 
   // For dynamic scoring:
@@ -81,7 +81,7 @@ export default function useArtistQuiz() {
     const fetchStyles = async () => {
       try {
         const styleData = await fetch(`/songData/StyleMaster.json`).then((r) =>
-          r.json()
+          r.json(),
         );
         setPrimaryStyles(styleData.primaryStyles || []);
 
@@ -97,8 +97,8 @@ export default function useArtistQuiz() {
     // 2) Fetch artists
     const fetchArtists = async () => {
       try {
-        const artistData = await fetch(`/songData/ArtistMaster.json`).then((r) =>
-          r.json()
+        const artistData = await fetch(`/songData/ArtistMaster.json`).then(
+          (r) => r.json(),
         );
         const activeArtists = artistData
           .filter((a) => a.active === "true")
@@ -139,7 +139,7 @@ export default function useArtistQuiz() {
   const handleLevelsChange = (newLevels) => {
     if ((config.artists || []).length > 0 && newLevels.length > 0) {
       setValidationMessage(
-        "Levels not available when artists are selected. Clear artists first."
+        "Levels not available when artists are selected. Clear artists first.",
       );
       return;
     }

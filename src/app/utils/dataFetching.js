@@ -173,7 +173,11 @@ export function shuffleArray(array) {
  * @param {number} numDistractors
  * @returns {Promise<string[]>}  - array of distractor names
  */
-export async function getDistractors(correctArtist, config, numDistractors = 3) {
+export async function getDistractors(
+  correctArtist,
+  config,
+  numDistractors = 3,
+) {
   // 1) Fetch all artists from ArtistMaster
   const allArtists = await fetchAllArtists(); // from dataFetching.js
 
@@ -205,7 +209,7 @@ export async function getDistractors(correctArtist, config, numDistractors = 3) 
   // Add levels from any selected artist
   (config.artists || []).forEach((artistName) => {
     const lower = artistName.trim().toLowerCase();
-    const lvl   = artistLevelMap[lower];
+    const lvl = artistLevelMap[lower];
     if (lvl) finalLevels.add(lvl);
   });
 
@@ -217,7 +221,7 @@ export async function getDistractors(correctArtist, config, numDistractors = 3) 
     const nameLower = a.artist?.trim().toLowerCase();
     const numericLevel = parseInt(a.level, 10);
 
-    const isInLevel  = finalLevels.has(numericLevel);
+    const isInLevel = finalLevels.has(numericLevel);
     const isInArtist = (config.artists || [])
       .map((n) => n.trim().toLowerCase())
       .includes(nameLower);
@@ -228,7 +232,7 @@ export async function getDistractors(correctArtist, config, numDistractors = 3) 
   // 5) Exclude the correct artist
   const correctLower = correctArtist.trim().toLowerCase();
   const filtered = candidatePool.filter(
-    (a) => a.artist.trim().toLowerCase() !== correctLower
+    (a) => a.artist.trim().toLowerCase() !== correctLower,
   );
 
   // 6) Shuffle + slice
@@ -238,8 +242,6 @@ export async function getDistractors(correctArtist, config, numDistractors = 3) 
   console.log(`getDistractors => returning:`, finalList);
   return finalList;
 }
-
-
 
 /**
  * Get distractors by referencing config-selected artists & levels.

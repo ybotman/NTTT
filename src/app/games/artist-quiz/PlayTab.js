@@ -12,7 +12,7 @@
           />
         </Box>
       )} 
-*/      
+*/
 
 "use client";
 
@@ -40,7 +40,7 @@ export default function PlayTab({ songs, config, onCancel }) {
   // 1) Basic quiz config
   const { calculateMaxScore, WRONG_PENALTY, INTERVAL_MS } = useArtistQuiz();
   const timeLimit = config.timeLimit ?? 15;
-  const maxScore  = calculateMaxScore(timeLimit);
+  const maxScore = calculateMaxScore(timeLimit);
 
   // 2) Local state
   const [roundOver, setRoundOver] = useState(false);
@@ -59,15 +59,22 @@ export default function PlayTab({ songs, config, onCancel }) {
   const {
     currentIndex,
     currentSong,
-    isPlaying, setIsPlaying,
-    answers,   setAnswers,
+    isPlaying,
+    setIsPlaying,
+    answers,
+    setAnswers,
     selectedAnswer,
     wrongAnswers,
-    timeElapsed, setTimeElapsed,
-    roundScore,  setRoundScore,
-    sessionScore, setSessionScore,
-    showFinalSummary, setShowFinalSummary,
-    roundStats,   setRoundStats,
+    timeElapsed,
+    setTimeElapsed,
+    roundScore,
+    setRoundScore,
+    sessionScore,
+    setSessionScore,
+    showFinalSummary,
+    setShowFinalSummary,
+    roundStats,
+    setRoundStats,
     startIntervals,
     stopAllIntervals,
     initRound,
@@ -111,7 +118,7 @@ export default function PlayTab({ songs, config, onCancel }) {
         }
       }
     },
-    [scoringAnswerSelect, stopAudio]
+    [scoringAnswerSelect, stopAudio],
   );
 
   // 6) doNextSong => proceed to next
@@ -141,7 +148,14 @@ export default function PlayTab({ songs, config, onCancel }) {
         doNextSong();
       },
     });
-  }, [currentSong, initWaveSurfer, playSnippet, setIsPlaying, startIntervals, doNextSong]);
+  }, [
+    currentSong,
+    initWaveSurfer,
+    playSnippet,
+    setIsPlaying,
+    startIntervals,
+    doNextSong,
+  ]);
 
   // 8) Init round on mount or whenever index changes
   useEffect(() => {
@@ -149,22 +163,22 @@ export default function PlayTab({ songs, config, onCancel }) {
     return () => stopAudio();
   }, [currentIndex, initRound, stopAudio]);
 
-// 9) Build answers on currentSong change
-useEffect(() => {
-  if (!currentSong) return;
-  const correctArtist = currentSong.ArtistMaster || "";
+  // 9) Build answers on currentSong change
+  useEffect(() => {
+    if (!currentSong) return;
+    const correctArtist = currentSong.ArtistMaster || "";
 
-  getDistractors(correctArtist, config, 3)
-    .then((distractors) => {
-      // Combine correct + distractors and shuffle
-      const finalAnswers = shuffleArray([correctArtist, ...distractors]);
-      setAnswers(finalAnswers);
-    })
-    .catch((err) => {
-      console.error("Error in getDistractors:", err);
-      setAnswers([correctArtist]); // fallback
-    });
-}, [currentSong, config, setAnswers]);
+    getDistractors(correctArtist, config, 3)
+      .then((distractors) => {
+        // Combine correct + distractors and shuffle
+        const finalAnswers = shuffleArray([correctArtist, ...distractors]);
+        setAnswers(finalAnswers);
+      })
+      .catch((err) => {
+        console.error("Error in getDistractors:", err);
+        setAnswers([correctArtist]); // fallback
+      });
+  }, [currentSong, config, setAnswers]);
 
   // A) timePercent for progress bar
   const timePercent = (timeElapsed / timeLimit) * 100;
@@ -175,7 +189,7 @@ useEffect(() => {
     if (pct >= 80) return "Excellent job!";
     if (pct >= 50) return "Great work!";
     if (pct >= 20) return "Not bad!";
-    if (pct > 1)  return "Just Barely.";
+    if (pct > 1) return "Just Barely.";
     return "You'll get the next one!";
   };
 
@@ -241,7 +255,10 @@ useEffect(() => {
       }}
     >
       {/* Title */}
-      <Typography variant="h5" sx={{ mb: 2, textAlign: "center", fontWeight: "bold" }}>
+      <Typography
+        variant="h5"
+        sx={{ mb: 2, textAlign: "center", fontWeight: "bold" }}
+      >
         Identify the Artist
       </Typography>
 
@@ -250,7 +267,6 @@ useEffect(() => {
         Time: {timeElapsed.toFixed(1)}/{timeLimit} | Round Score:{" "}
         {Math.floor(roundScore)}/{Math.floor(maxScore)}
       </Typography>
-
 
       {/* "Play Song" button */}
       {!isPlaying && !roundOver && currentSong && (
@@ -288,7 +304,8 @@ useEffect(() => {
           else if (isWrong) borderColor = "red";
 
           // disable if roundOver or not playing or isWrong or isChosenCorrect
-          const disabled = roundOver || !isPlaying || isWrong || isChosenCorrect;
+          const disabled =
+            roundOver || !isPlaying || isWrong || isChosenCorrect;
 
           return (
             <ListItem
@@ -366,7 +383,7 @@ PlayTab.propTypes = {
       SongID: PropTypes.string,
       AudioUrl: PropTypes.string.isRequired,
       ArtistMaster: PropTypes.string.isRequired,
-    })
+    }),
   ).isRequired,
   config: PropTypes.object.isRequired,
   onCancel: PropTypes.func.isRequired,

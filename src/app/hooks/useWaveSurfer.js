@@ -128,7 +128,7 @@ export default function useWaveSurfer({ onSongEnd }) {
           });
       });
     },
-    [loadSong, fadeVolume]
+    [loadSong, fadeVolume],
   );
 
   return {
