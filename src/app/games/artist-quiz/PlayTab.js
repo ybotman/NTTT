@@ -1,5 +1,8 @@
-"use client";
 /*
+      <RoundProgress
+        totalRounds={numSongs}
+        currentRound={currentIndex}
+      />
       {isPlaying && (
         <Box sx={{ mx: "auto", mb: 2, maxWidth: 400 }}>
           <LinearProgress
@@ -9,9 +12,10 @@
           />
         </Box>
       )} 
-      */
+*/      
 
-      
+"use client";
+
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import PropTypes from "prop-types";
 import {
@@ -251,12 +255,6 @@ useEffect(() => {
         Time: {timeElapsed.toFixed(1)}/{timeLimit} | Round Score:{" "}
         {Math.floor(roundScore)}/{Math.floor(maxScore)}
       </Typography>
-
-      <RoundProgress
-        totalRounds={numSongs}
-        currentRound={currentIndex}
-      />
-      {/* If playing => progress bar */}
 
 
       {/* "Play Song" button */}
