@@ -1,3 +1,6 @@
+//src/app/components/ui/GameHubRoute.js
+//
+
 "use client";
 
 import React from "react";

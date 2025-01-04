@@ -40,7 +40,7 @@ export async function fetchFilteredSongs(
 ) {
   try {
     const [djSongsData, artistData] = await Promise.all([
-      fetch(`/songData/djSongs.json`).then((r) => r.json()),
+      fetch(`/songData/djSongsL2.json`).then((r) => r.json()),
       fetch(`/songData/ArtistMaster.json`).then((r) => r.json()),
     ]);
 

@@ -372,9 +372,6 @@ export default function PlayTab({ songs, config, onCancel }) {
         {/* If playing => show time & progress */}
         {isPlaying && (
           <Box sx={{ mb: 2 }}>
-            <Typography variant="body1" sx={{ mb: 1 }}>
-              Time Remaining: {timeLeft.toFixed(1)}s
-            </Typography>
             <LinearProgress
               variant="determinate"
               value={progressValue}

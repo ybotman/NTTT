@@ -52,7 +52,7 @@ export default function ConfigTab() {
         </Box>
         <Box sx={{ flex: 1 }}>
           <SecondsSlider
-            label="Seconds"
+            label="Changes Score: Seconds"
             min={3}
             max={29}
             step={1}

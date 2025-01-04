@@ -1,19 +1,6 @@
-/*
-      <RoundProgress
-        totalRounds={numSongs}
-        currentRound={currentIndex}
-      />
-      {isPlaying && (
-        <Box sx={{ mx: "auto", mb: 2, maxWidth: 400 }}>
-          <LinearProgress
-            variant="determinate"
-            value={timePercent}
-            sx={{ height: 8, borderRadius: 4 }}
-          />
-        </Box>
-      )} 
-*/
-
+//
+// src/app/games/artist-quiz/PlayTab.js
+//
 "use client";
 
 import React, { useEffect, useRef, useCallback, useState } from "react";
@@ -26,7 +13,9 @@ import {
   List,
   ListItem,
   ListItemText,
+  IconButton,
 } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 import useWaveSurfer from "@/hooks/useWaveSurfer";
 import useArtistQuiz from "@/hooks/useArtistQuiz";
@@ -35,14 +24,16 @@ import useArtistQuizScoring from "@/hooks/useArtistQuizScoring";
 import { shuffleArray } from "@/utils/dataFetching";
 import { getDistractors } from "@/utils/dataFetching";
 import RoundProgress from "@/components/ui/RoundProgress";
+import GameHubRoute from "@/components/ui/GameHubRoute";
+
 
 export default function PlayTab({ songs, config, onCancel }) {
-  // 1) Basic quiz config
+  // 2) Quiz config
   const { calculateMaxScore, WRONG_PENALTY, INTERVAL_MS } = useArtistQuiz();
   const timeLimit = config.timeLimit ?? 15;
   const maxScore = calculateMaxScore(timeLimit);
 
-  // 2) Local state
+  // Local state
   const [roundOver, setRoundOver] = useState(false);
   const lastSongRef = useRef(null);
   const numSongs = config.numSongs ?? 10;
@@ -55,7 +46,7 @@ export default function PlayTab({ songs, config, onCancel }) {
   // Optional “go phrase”
   const { getGoPhrase } = usePlay();
 
-  // 3) Call the scoring hook (no roundOver inside the hook)
+  // 3) Scoring hook
   const {
     currentIndex,
     currentSong,
@@ -94,7 +85,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     songs,
   });
 
-  // 4) stopAudio => waveSurfer + intervals
+  // 4) Stop audio & intervals
   const stopAudio = useCallback(() => {
     console.log("PlayTab-> stopAudio => waveSurfer cleanup + stop intervals");
     cleanupWaveSurfer();
@@ -157,7 +148,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     doNextSong,
   ]);
 
-  // 8) Init round on mount or whenever index changes
+  // 8) Init round on mount or index change
   useEffect(() => {
     initRound(currentIndex);
     return () => stopAudio();
@@ -170,7 +161,6 @@ export default function PlayTab({ songs, config, onCancel }) {
 
     getDistractors(correctArtist, config, 3)
       .then((distractors) => {
-        // Combine correct + distractors and shuffle
         const finalAnswers = shuffleArray([correctArtist, ...distractors]);
         setAnswers(finalAnswers);
       })
@@ -180,7 +170,7 @@ export default function PlayTab({ songs, config, onCancel }) {
       });
   }, [currentSong, config, setAnswers]);
 
-  // A) timePercent for progress bar
+  // A) timePercent for progress
   const timePercent = (timeElapsed / timeLimit) * 100;
 
   // B) Helper => performance text
@@ -193,7 +183,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     return "You'll get the next one!";
   };
 
-  // C) If final => summary screen
+  // C) If final => summary
   if (showFinalSummary) {
     const totalRounds = roundStats.length;
     let avgTime = 0,
@@ -244,7 +234,7 @@ export default function PlayTab({ songs, config, onCancel }) {
     );
   }
 
-  // D) Render the quiz UI
+  // D) Main quiz UI
   return (
     <Box
       sx={{
@@ -254,19 +244,49 @@ export default function PlayTab({ songs, config, onCancel }) {
         p: 2,
       }}
     >
-      {/* Title */}
-      <Typography
-        variant="h5"
-        sx={{ mb: 2, textAlign: "center", fontWeight: "bold" }}
+      {/* 
+          Top row with Title (left) and GameHubRoute (right)
+      */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+        }}
       >
-        Identify the Artist
-      </Typography>
+        <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+          Identify the Artist
+        </Typography>
+        {/* The IconButton from GameHubRoute in upper-right */}
+        <GameHubRoute />
+                 {/* Back Arrow Icon */}
+          <IconButton
+            onClick={onCancel} // Add your back navigation logic here
+            color="primary"
+            aria-label="Back"
+          >
+            <ArrowBackIcon />
+          </IconButton>
+      </Box>
+
+      {/* Round Progress */}
+      <RoundProgress totalRounds={numSongs} currentRound={currentIndex} />
 
       {/* Round time + score */}
       <Typography variant="h6" sx={{ mb: 2, textAlign: "center" }}>
-        Time: {timeElapsed.toFixed(1)}/{timeLimit} | Round Score:{" "}
-        {Math.floor(roundScore)}/{Math.floor(maxScore)}
+        Available Points: {Math.floor(roundScore)}/{Math.floor(maxScore)}
       </Typography>
+      
+      {isPlaying && (
+        <Box sx={{ mx: "auto", mb: 2, maxWidth: 400 }}>
+          <LinearProgress
+            variant="determinate"
+            value={timePercent}
+            sx={{ height: 8, borderRadius: 4 }}
+          />
+        </Box>
+      )}
 
       {/* "Play Song" button */}
       {!isPlaying && !roundOver && currentSong && (
@@ -286,10 +306,6 @@ export default function PlayTab({ songs, config, onCancel }) {
       )}
 
       {/* Answers */}
-      <Typography variant="body1" sx={{ mb: 2, textAlign: "center" }}>
-        Select the correct Artist:
-      </Typography>
-
       <List sx={{ mb: 2, maxWidth: 400, margin: "auto" }}>
         {answers.map((ans) => {
           const isWrong = wrongAnswers.includes(ans);
@@ -303,7 +319,7 @@ export default function PlayTab({ songs, config, onCancel }) {
           if (roundOver && isChosenCorrect) borderColor = "green";
           else if (isWrong) borderColor = "red";
 
-          // disable if roundOver or not playing or isWrong or isChosenCorrect
+          // disable if roundOver or not playing or isWrong or correct
           const disabled =
             roundOver || !isPlaying || isWrong || isChosenCorrect;
 
@@ -383,7 +399,7 @@ PlayTab.propTypes = {
       SongID: PropTypes.string,
       AudioUrl: PropTypes.string.isRequired,
       ArtistMaster: PropTypes.string.isRequired,
-    }),
+    })
   ).isRequired,
   config: PropTypes.object.isRequired,
   onCancel: PropTypes.func.isRequired,

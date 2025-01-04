@@ -59,14 +59,31 @@ export default function useArtistQuiz() {
 
   // Basic maxScore calculation
   const calculateMaxScore = useCallback((timeLimit) => {
-    // Clamped between 3–15
-    const clamped = Math.max(3, Math.min(timeLimit, 15));
-    // E.g. 500 -> 300 scale
-    return 500 - ((clamped - 3) / 12) * 200;
+    // 1) Clamp time between 3 and 30
+    const clamped = Math.max(3, Math.min(timeLimit, 30));
+
+    // 2) Cubic polynomial coefficients (approx. interpolation):
+    // Score(t) = a - b*t + c*t^2 - d*t^3
+    // => passing near (3, 500), (9, 250), (15, 150), (30, 50)
+    const a = 705.39;
+    const b = 79.0;
+    const c = 3.69;
+    const d = 0.0595;
+
+    // 3) Compute polynomial
+    const val =
+      a -
+      b * clamped +
+      c * (clamped ** 2) -
+      d * (clamped ** 3);
+
+    // 4) Round if you want an integer
+    return Math.round(val);
   }, []);
 
-  // Wrong answer penalty => 25%
-  const WRONG_PENALTY = 0.25;
+
+  // Wrong answer penalty
+  const WRONG_PENALTY = 0.10;
   // Interval => 100ms
   const INTERVAL_MS = 100;
 
