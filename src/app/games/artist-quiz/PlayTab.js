@@ -245,11 +245,6 @@ useEffect(() => {
         Identify the Artist
       </Typography>
 
-      {/* Session Score */}
-      <Typography variant="body1" sx={{ mb: 2, textAlign: "center" }}>
-        Session Score: {Math.floor(sessionScore)}
-      </Typography>
-
       {/* Round time + score */}
       <Typography variant="h6" sx={{ mb: 2, textAlign: "center" }}>
         Time: {timeElapsed.toFixed(1)}/{timeLimit} | Round Score:{" "}
