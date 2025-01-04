@@ -1,80 +1,59 @@
-// -------------------------------------------
-// src/app/hooks/useArtistQuizScoring.js
-// -------------------------------------------
 "use client";
 
 import { useState, useRef, useCallback } from "react";
 
 /**
  * Provide time & scoring logic for Artist Quiz,
- * plus initRound and handleAnswerSelect to unify logic.
+ * but the parent owns roundOver & stopping audio.
  */
 export default function useArtistQuizScoring({
   timeLimit,
   maxScore,
   WRONG_PENALTY,
   INTERVAL_MS,
-  onTimesUp,
-  onRoundOver, // new callback for correct or forced-zero
-  onEndOfGame,
-  getGoPhrase, // pass in from usePlay if desired
-  songs, // pass in full songs array
+  onTimesUp,     // parent decides how to handle roundOver
+  onEndOfGame,   // optional
+  getGoPhrase,   // optional
+  songs,
 }) {
-  // -----------------------------
   // Round & Session states
-  // -----------------------------
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentSong, setCurrentSong] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentSong, setCurrentSong]   = useState(null);
+  const [isPlaying,   setIsPlaying]     = useState(false);
 
-  const [answers, setAnswers] = useState([]);
+  const [answers, setAnswers]           = useState([]);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [wrongAnswers, setWrongAnswers] = useState([]);
+  const [wrongAnswers,  setWrongAnswers]    = useState([]);
 
-  const [timeElapsed, setTimeElapsed] = useState(0);
-  const [roundScore, setRoundScore] = useState(maxScore);
-  const [roundOver, setRoundOver] = useState(false);
+  const [timeElapsed, setTimeElapsed]   = useState(0);
+  const [roundScore,  setRoundScore]    = useState(maxScore);
 
   const [sessionScore, setSessionScore] = useState(0);
   const [showFinalSummary, setShowFinalSummary] = useState(false);
+  const [roundStats, setRoundStats]     = useState([]);
 
-  // Each round’s stats => { timeUsed, distractorsUsed }
-  const [roundStats, setRoundStats] = useState([]);
-
-  // Refs for intervals
+  // Interval refs
   const decrementIntervalRef = useRef(null);
-  const timeIntervalRef = useRef(null);
+  const timeIntervalRef      = useRef(null);
 
-  // -------------------------------------------------------
-  // (A) initRound => Sets up the next round
-  // -------------------------------------------------------
-  const initRound = useCallback(
-    async (idx) => {
-      console.log("uAQS-Init round", idx);
-      if (!songs || idx >= songs.length) return;
+  // initRound
+  const initRound = useCallback(async (idx) => {
+    if (!songs || idx >= songs.length) return;
+    setCurrentIndex(idx);
+    setCurrentSong(songs[idx]);
+    setSelectedAnswer(null);
+    setWrongAnswers([]);
+    setRoundScore(maxScore);
+    setTimeElapsed(0);
+    setIsPlaying(false);
 
-      // 1) reset states for new round
-      setCurrentIndex(idx);
-      setCurrentSong(songs[idx]);
-      setSelectedAnswer(null);
-      setWrongAnswers([]);
-      setRoundOver(false);
-      setRoundScore(maxScore);
-      setTimeElapsed(0);
-      setIsPlaying(false);
+    if (getGoPhrase) {
+      const phrase = await getGoPhrase(); // ignoring
+    }
+  }, [songs, maxScore, getGoPhrase]);
 
-      // 2) If we do random "go phrase"
-      if (getGoPhrase) {
-        const phrase = await getGoPhrase();
-      }
-    },
-    [songs, maxScore, getGoPhrase],
-  );
-  // -------------------------------------------------------
-  // (D) stopAllIntervals => clear the intervals
-  // -------------------------------------------------------
+  // stopAllIntervals
   const stopAllIntervals = useCallback(() => {
-    console.log("uAQS-Stopping intervals");
     if (decrementIntervalRef.current) {
       clearInterval(decrementIntervalRef.current);
       decrementIntervalRef.current = null;
@@ -85,73 +64,59 @@ export default function useArtistQuizScoring({
     }
   }, []);
 
-  // -------------------------------------------------------
-  // (B) handleAnswerSelect => user picks an answer
-  // -------------------------------------------------------
+  // handleAnswerSelect => returns { roundEnded, correct }
   const handleAnswerSelect = (ans) => {
-    console.log("uAQS-handleAnswerSelect", ans);
-    if (!currentSong || roundOver || !isPlaying) return;
-
-    // if (selectedAnswer === ans) return;
+    if (!currentSong || !isPlaying) {
+      return { roundEnded: false, correct: false };
+    }
     setSelectedAnswer(ans);
 
     const correctArtist = (currentSong.ArtistMaster || "").trim().toLowerCase();
     const guess = ans.trim().toLowerCase();
+    const isCorrect = guess === correctArtist;
 
-    console.log("guess:", guess, " correct:", correctArtist);
-
-    if (guess === correctArtist) {
-      // CORRECT => finalize round
+    if (isCorrect) {
       stopAllIntervals();
-      setRoundOver(true);
       setSessionScore((old) => old + Math.max(roundScore, 0));
       setRoundStats((old) => [
         ...old,
         { timeUsed: timeElapsed, distractorsUsed: wrongAnswers.length },
       ]);
-
-      onRoundOver?.({ correct: true });
+      // Return object so parent can set roundOver
+      return { roundEnded: true, correct: true };
     } else {
-      // WRONG => apply penalty
+      // Wrong => penalize
       setWrongAnswers((old) => [...old, ans]);
       const newVal = Math.max(roundScore - roundScore * WRONG_PENALTY, 0);
       setRoundScore(newVal);
 
       if (newVal <= 0) {
         stopAllIntervals();
-        setRoundOver(true);
-        onRoundOver?.({ correct: false });
         setRoundStats((old) => [
           ...old,
           { timeUsed: timeElapsed, distractorsUsed: wrongAnswers.length + 1 },
         ]);
-        onRoundOver?.({ correct: false });
+        // forced zero => parent ends round
+        return { roundEnded: true, correct: false };
       } else {
-        // let them guess again => do not set roundOver
-        //setSnackbarMessage(`Wrong guess! - Score penalized. Try again.`);
+        // let them guess again
+        return { roundEnded: false, correct: false };
       }
     }
   };
 
-  // -------------------------------------------------------
-  // (C) startIntervals => begin the time & score countdown
-  // -------------------------------------------------------
+  // startIntervals => time & score countdown
   const startIntervals = useCallback(() => {
-    // Score decrement
-
     decrementIntervalRef.current = setInterval(() => {
-      setRoundScore((old) => {
-        const nextVal = Math.max(old - maxScore / (timeLimit * 10), 0);
-        return nextVal;
-      });
+      setRoundScore((old) => Math.max(old - maxScore / (timeLimit * 10), 0));
     }, INTERVAL_MS);
 
-    // Time countdown
     timeIntervalRef.current = setInterval(() => {
       setTimeElapsed((old) => {
         const nextVal = old + 0.1;
         if (nextVal >= timeLimit) {
-          // time is up => callback
+          // Time is up => parent sets roundOver
+          stopAllIntervals();
           if (onTimesUp) onTimesUp();
         }
         return nextVal;
@@ -159,14 +124,10 @@ export default function useArtistQuizScoring({
     }, INTERVAL_MS);
   }, [maxScore, timeLimit, INTERVAL_MS, onTimesUp]);
 
-  // -------------------------------------------------------
-  // (E) handleNextSong => proceed or end
-  // -------------------------------------------------------
+  // handleNextSong => go to next index or end
   const handleNextSong = useCallback(() => {
-    console.log("uAQS-handleNextSong");
     const nextIndex = currentIndex + 1;
     if (!songs || nextIndex >= songs.length) {
-      // no more => final
       setShowFinalSummary(true);
       if (onEndOfGame) onEndOfGame();
       return;
@@ -174,38 +135,24 @@ export default function useArtistQuizScoring({
     initRound(nextIndex);
   }, [currentIndex, songs, onEndOfGame, initRound]);
 
-  // Return your entire scoring + round data
   return {
-    // Round states
     currentIndex,
     currentSong,
-    isPlaying,
-    setIsPlaying,
-    answers,
-    setAnswers,
+    isPlaying, setIsPlaying,
+    answers,   setAnswers,
     selectedAnswer,
     wrongAnswers,
-    timeElapsed,
-    setTimeElapsed,
-    roundScore,
-    setRoundScore,
-    roundOver,
-    setRoundOver,
-    // Session states
-    sessionScore,
-    setSessionScore,
-    showFinalSummary,
-    setShowFinalSummary,
-    roundStats,
-    setRoundStats,
-    // Intervals
+
+    timeElapsed,  setTimeElapsed,
+    roundScore,   setRoundScore,
+    sessionScore, setSessionScore,
+    showFinalSummary, setShowFinalSummary,
+    roundStats,   setRoundStats,
+
     startIntervals,
     stopAllIntervals,
-    // Methods
     initRound,
     handleAnswerSelect,
     handleNextSong,
-
-    // Optionally keep handleTimeUp etc. if needed
   };
 }

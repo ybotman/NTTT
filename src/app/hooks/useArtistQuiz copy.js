@@ -4,10 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useGameContext } from "@/contexts/GameContext";
 
 /**
- * Provide quiz-specific logic & validations: 
- *  - load styles/artists 
- *  - validate config 
- *  - compute scoring parameters 
+ * Provide quiz-specific logic: validation, distractors, scoring functions, etc.
  */
 export default function useArtistQuiz() {
   // 1) Access global config from GameContext
@@ -36,7 +33,7 @@ export default function useArtistQuiz() {
       }
 
       const stylesSelected = Object.keys(theConfig.styles || {}).filter(
-        (k) => theConfig.styles[k]
+        (k) => theConfig.styles[k],
       );
       if (stylesSelected.length === 0) {
         return "At least one style must be selected.";
@@ -52,23 +49,41 @@ export default function useArtistQuiz() {
       }
       return "";
     },
-    [config]
+    [config],
   );
 
   // For dynamic scoring:
 
-  // Basic maxScore calculation
   const calculateMaxScore = useCallback((timeLimit) => {
-    // Clamped between 3–15
     const clamped = Math.max(3, Math.min(timeLimit, 15));
-    // E.g. 500 -> 300 scale
     return 500 - ((clamped - 3) / 12) * 200;
+  }, []);
+
+  // Decrement per 0.1s => maxScore / (timeLimit * 10)
+  const calculateDecrementPerInterval = useCallback((maxScore, timeLimit) => {
+    return maxScore / (timeLimit * 10);
   }, []);
 
   // Wrong answer penalty => 25%
   const WRONG_PENALTY = 0.25;
-  // Interval => 100ms
+
+  // We update time/score in 0.1 second intervals
   const INTERVAL_MS = 100;
+
+  // We’ll keep these Refs so PlayTab can clear intervals
+  const decrementIntervalRef = useRef(null);
+  const timeIntervalRef = useRef(null);
+
+  const clearIntervals = useCallback(() => {
+    if (decrementIntervalRef.current) {
+      clearInterval(decrementIntervalRef.current);
+      decrementIntervalRef.current = null;
+    }
+    if (timeIntervalRef.current) {
+      clearInterval(timeIntervalRef.current);
+      timeIntervalRef.current = null;
+    }
+  }, []);
 
   // -----------------------
   // B) One-time fetch for Styles & ArtistMaster
@@ -81,7 +96,7 @@ export default function useArtistQuiz() {
     const fetchStyles = async () => {
       try {
         const styleData = await fetch(`/songData/StyleMaster.json`).then((r) =>
-          r.json()
+          r.json(),
         );
         setPrimaryStyles(styleData.primaryStyles || []);
 
@@ -97,8 +112,8 @@ export default function useArtistQuiz() {
     // 2) Fetch artists
     const fetchArtists = async () => {
       try {
-        const artistData = await fetch(`/songData/ArtistMaster.json`).then((r) =>
-          r.json()
+        const artistData = await fetch(`/songData/ArtistMaster.json`).then(
+          (r) => r.json(),
         );
         const activeArtists = artistData
           .filter((a) => a.active === "true")
@@ -128,10 +143,28 @@ export default function useArtistQuiz() {
   useEffect(() => {
     const error = validateInputs(config);
     setValidationMessage(error);
+    // Also store overall validity in config if you wish
+    // updateConfig("validConfig", !error);
   }, [config, validateInputs]);
 
   // -----------------------
-  // D) Handlers for config changes
+  // D) Helper: getDistractors
+  //    Given the correct artist + a pool, returns 3 random, distinct from correct
+  // -----------------------
+  const getDistractors = useCallback((correctArtist, pool) => {
+    console.log(`Size of the pool: ${pool.length}`);
+    // We want 3 unique artists that are not the correct one
+    const filtered = pool.filter((a) => a !== correctArtist);
+    // shuffle & pick 3
+    for (let i = filtered.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+    }
+    return filtered.slice(0, 3);
+  }, []);
+
+  // -----------------------
+  // E) Handlers for config changes
   // -----------------------
   const handleNumSongsChange = (val) => updateConfig("numSongs", val);
   const handleTimeLimitChange = (val) => updateConfig("timeLimit", val);
@@ -139,7 +172,7 @@ export default function useArtistQuiz() {
   const handleLevelsChange = (newLevels) => {
     if ((config.artists || []).length > 0 && newLevels.length > 0) {
       setValidationMessage(
-        "Levels not available when artists are selected. Clear artists first."
+        "Levels not available when artists are selected. Clear artists first.",
       );
       return;
     }
@@ -158,7 +191,6 @@ export default function useArtistQuiz() {
     updateConfig("artists", arr);
   };
 
-  // Return only what we use
   return {
     // Core config & error messages
     config,
@@ -166,10 +198,17 @@ export default function useArtistQuiz() {
     primaryStyles,
     artistOptions,
 
-    // Scoring parameters
+    // Exposed scoring logic
     calculateMaxScore,
+    calculateDecrementPerInterval,
     WRONG_PENALTY,
     INTERVAL_MS,
+    decrementIntervalRef,
+    timeIntervalRef,
+    clearIntervals,
+
+    // Distractors
+    getDistractors,
 
     // Config update handlers
     handleNumSongsChange,

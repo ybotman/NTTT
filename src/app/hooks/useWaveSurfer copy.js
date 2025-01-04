@@ -1,11 +1,11 @@
+//-----------------------------------------------------------------------------
+// src/app/hooks/useWaveSurfer.js
+//-----------------------------------------------------------------------------
 "use client";
 
 import { useRef, useCallback } from "react";
 import WaveSurfer from "wavesurfer.js";
 
-/**
- * Manages WaveSurfer instance for audio playback.
- */
 export default function useWaveSurfer({ onSongEnd }) {
   const waveSurferRef = useRef(null);
   const fadeIntervalRef = useRef(null);
@@ -128,8 +128,21 @@ export default function useWaveSurfer({ onSongEnd }) {
           });
       });
     },
-    [loadSong, fadeVolume]
+    [loadSong, fadeVolume],
   );
+
+  // 6) Toggle (optional)
+  const togglePlay = useCallback(() => {
+    if (!waveSurferRef.current) {
+      console.error("WaveSurfer is not initialized.");
+      return;
+    }
+    if (waveSurferRef.current.isPlaying()) {
+      waveSurferRef.current.pause();
+    } else {
+      waveSurferRef.current.play();
+    }
+  }, []);
 
   return {
     waveSurferRef,
@@ -137,6 +150,7 @@ export default function useWaveSurfer({ onSongEnd }) {
     cleanupWaveSurfer,
     loadSong,
     fadeVolume,
-    playSnippet,
+    togglePlay,
+    playSnippet, // new snippet logic
   };
 }

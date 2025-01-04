@@ -75,10 +75,7 @@ export default function ConfigTab() {
           <PeriodsSelector
             label="Periods:"
             selectedPeriods={config.periods || []}
-            onChange={(val) => {
-              // We can call a simple update here as well:
-              // e.g. updateConfig("periods", val) if we wanted
-            }}
+            onChange={(val) => {}}
           />
         </Box>
         {/* Second Column: Styles & Artists */}

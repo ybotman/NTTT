@@ -22,130 +22,106 @@ import { shuffleArray } from "@/utils/dataFetching";
 import { getDistractorsByConfig } from "@/utils/dataFetching";
 
 export default function PlayTab({ songs, config, onCancel }) {
-  //
-  // 1) Basic Quiz logic from ArtistQuiz
-  //
+  // -----------------------------
+  // 1) Basic quiz config
+  // -----------------------------
   const { calculateMaxScore, WRONG_PENALTY, INTERVAL_MS } = useArtistQuiz();
-
-  //
-  // 2) Config
-  //
   const timeLimit = config.timeLimit ?? 15;
-  const maxScore = calculateMaxScore(timeLimit);
+  const maxScore  = calculateMaxScore(timeLimit);
 
-  //
-  // 3) Local states (snackbar, message, lastSong, etc.)
-  //
+  // -----------------------------
+  // 2) Parent local states
+  // -----------------------------
+  const [roundOver, setRoundOver]     = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const lastSongRef = useRef(null);
 
-  //
-  // 4) waveSurfer Hook
-  //
-  const { initWaveSurfer, cleanupWaveSurfer, playSnippet } = useWaveSurfer({
-    onSongEnd: null,
-  });
+  // WaveSurfer
+  const { initWaveSurfer, cleanupWaveSurfer, playSnippet } = useWaveSurfer({ onSongEnd: null });
 
-  //
-  // 5) Hook that fetches random phrases (if needed)
-  //
+  // (Optional) random phrase
   const { getGoPhrase } = usePlay();
 
-  //---------------------------------------------------------
-  // D) handleTimesUp => invoked when timeLimit is reached
-  //---------------------------------------------------------
-  const handleTimesUp = useCallback(() => {
-    console.log("PlayTab-> handleTimesUp");
-    //stopAllAudioAndTimersRef();
-    setRoundOver(true); // end the round
-    setRoundScore(0);   // optionally force zero
+  // -----------------------------
+  // 3) onTimesUp => time is up
+  // -----------------------------
+  const onTimesUp = useCallback(() => {
+    console.log("PlayTab-> onTimesUp => setting roundOver + forcing 0 score");
+    setRoundOver(true);
+    setRoundScore(0);
+    stopAudio();
   }, [setRoundOver, setRoundScore]);
 
-  //---------------------------------------------------------
-  // E) handleRoundOver => correct guess or forced zero
-  //---------------------------------------------------------
-  const handleRoundOver = useCallback(
-    ({ correct }) => {
-      console.log("PlayTab-> handleRoundOver -> correct?", correct);
-      //stopAllAudioAndTimersRef();
-      cleanupWaveSurfer();
-      stopAllIntervals();
-      setRoundOver(true);
-    },
-    [cleanupWaveSurfer, stopAllIntervals, setRoundOver]
-  );
-
-  // --------------------------------------------------------
-  // Now we call the scoring hook (AFTER the above callbacks)
-  // --------------------------------------------------------
+  // The main scoring hook (no roundOver inside the hook):
   const {
     currentIndex,
     currentSong,
-    isPlaying,
-    setIsPlaying,
-    answers,
-    setAnswers,
+    isPlaying,     setIsPlaying,
+    answers,       setAnswers,
     selectedAnswer,
     wrongAnswers,
     timeElapsed,
     setTimeElapsed,
-    roundScore,
-    setRoundScore,
-    roundOver,
-    setRoundOver,
-    sessionScore,
-    setSessionScore,
-    showFinalSummary,
-    setShowFinalSummary,
-    roundStats,
-    setRoundStats,
+    roundScore,    setRoundScore,
+    sessionScore,  setSessionScore,
+    showFinalSummary, setShowFinalSummary,
+    roundStats,    setRoundStats,
     startIntervals,
-    stopAllIntervals, // needed in our "fullyStopEverything"
+    stopAllIntervals,
     initRound,
-    handleAnswerSelect,
+    handleAnswerSelect: scoringAnswerSelect,
     handleNextSong,
   } = useArtistQuizScoring({
     timeLimit,
     maxScore,
     WRONG_PENALTY,
     INTERVAL_MS,
-    onTimesUp: handleTimesUp,       // We'll override with handleTimesUp below
-    onRoundOver: handleRoundOver,   // We'll override with handleRoundOver below
+    onTimesUp,       // Called when timeLimit is reached => parent sets roundOver
     songs,
   });
 
-  //---------------------------------------------------------
-  // B) "stopAllAudioAndTimers" => waveSurfer cleanup
-  //---------------------------------------------------------
-  const stopAllAudioAndTimers = useCallback(() => {
-    console.log("PlayTab-> stopAllAudioAndTimers");
+  // -----------------------------
+  // 4) Stop Audio
+  // -----------------------------
+  const stopAudio = useCallback(() => {
+    console.log("PlayTab-> stopAudio => waveSurfer cleanup + stop intervals");
     cleanupWaveSurfer();
-  }, [cleanupWaveSurfer]);
-
-  //---------------------------------------------------------
-  // C) "fullyStopEverything" => waveSurfer + intervals
-  //---------------------------------------------------------
-  const fullyStopEverything = useCallback(() => {
-    stopAllAudioAndTimers();
     stopAllIntervals();
-  }, [stopAllAudioAndTimers, stopAllIntervals]);
+  }, [cleanupWaveSurfer, stopAllIntervals]);
 
-  // We can alias it for simpler usage:
-  const stopAllAudioAndTimersRef = fullyStopEverything;
+  // -----------------------------
+  // 5) handleAnswerSelect => user picks an answer in the UI
+  // We call the hook's logic to see if it's correct/forced zero
+  // Then we decide if roundOver
+  // -----------------------------
+  const handleAnswerSelect = useCallback(
+    (ans) => {
+      console.log("PlayTab-> handleAnswerSelect =>", ans);
+      const { roundEnded, correct } = scoringAnswerSelect(ans);
 
-  //---------------------------------------------------------
-  // F) "doNextSong" => proceed to next round
-  //---------------------------------------------------------
+      // If the hook returns roundEnded => user got correct or forced 0
+      if (roundEnded) {
+        setRoundOver(true);
+        stopAudio();
+      }
+    },
+    [scoringAnswerSelect, setRoundOver, stopAudio]
+  );
+
+  // -----------------------------
+  // 6) doNextSong => proceed
+  // -----------------------------
   const doNextSong = useCallback(() => {
     console.log("PlayTab-> doNextSong");
     setOpenSnackbar(false);
+    setRoundOver(false); // new round => reset parent roundOver
     handleNextSong();
-  }, [handleNextSong]);
+  }, [handleNextSong, setRoundOver]);
 
-  //---------------------------------------------------------
-  // G) "clickPlaySong" => waveSurfer snippet + fade
-  //---------------------------------------------------------
+  // -----------------------------
+  // 7) clickPlaySong => waveSurfer snippet
+  // -----------------------------
   const clickPlaySong = useCallback(() => {
     console.log("PlayTab-> clickPlaySong");
     if (!currentSong) return;
@@ -165,78 +141,43 @@ export default function PlayTab({ songs, config, onCancel }) {
         doNextSong();
       },
     });
-  }, [
-    currentSong,
-    initWaveSurfer,
-    playSnippet,
-    setIsPlaying,
-    startIntervals,
-    doNextSong,
-  ]);
+  }, [currentSong, initWaveSurfer, playSnippet, setIsPlaying, startIntervals, doNextSong]);
 
-  //---------------------------------------------------------
-  // H) On mount or index => initRound, plus cleanup
-  //---------------------------------------------------------
+  // -----------------------------
+  // 8) initRound on mount or index
+  // -----------------------------
   useEffect(() => {
     initRound(currentIndex);
-    return stopAllAudioAndTimersRef;
-  }, [currentIndex, initRound, stopAllAudioAndTimersRef]);
+    return () => stopAudio();
+  }, [currentIndex, initRound, stopAudio]);
 
-  //---------------------------------------------------------
-  // I) Rebuild answers when currentSong changes
-  //---------------------------------------------------------
+  // -----------------------------
+  // 9) Build answers whenever currentSong changes
+  // -----------------------------
   useEffect(() => {
     if (!currentSong) return;
-
-    const correct = currentSong.ArtistMaster || "";
-    // Example: if using your distractors method
-    // ...
-    // setAnswers([... final array ...]);
-
-  }, [currentSong, setAnswers]);
-
-  //---------------------------------------------------------
-  // H) Build answers whenever currentSong changes
-  //---------------------------------------------------------
-  useEffect(() => {
-    if (!currentSong) return;
-
     const correctArtist = currentSong.ArtistMaster || "";
     const allArtists = [...new Set(songs.map((s) => s.ArtistMaster))];
     const distractors = getDistractorsByConfig(correctArtist, allArtists, config, 3);
     const finalAnswers = shuffleArray([correctArtist, ...distractors]);
-
     setAnswers(finalAnswers);
     console.log("PlayTab-> setAnswers =>", finalAnswers);
   }, [currentSong, songs, config, setAnswers]);
 
-  //---------------------------------------------------------
-  // I) On mount or index => initRound, plus cleanup
-  //---------------------------------------------------------
-  useEffect(() => {
-    initRound(currentIndex);
-    // Cleanup old intervals on unmount or index change
-    return stopAllAudioAndTimersRef;
-  }, [currentIndex, initRound, stopAllAudioAndTimersRef]);
+  // (If final => summary screen omitted for brevity or your existing code remains the same.)
 
-  //---------------------------------------------------------
-  // J) If final => summary screen logic here...
-  //    (Your summary screen code remains unchanged)
-  //---------------------------------------------------------
+  // For display:
+  const timePercent = (timeElapsed / timeLimit) * 100;
 
-  //---------------------------------------------------------
-  // K) Performance text + progress bar calculations
-  //---------------------------------------------------------
   const getPerformanceMessage = () => {
     const pct = (roundScore / maxScore) * 100;
     if (pct >= 80) return "Excellent job!";
     if (pct >= 50) return "Great work!";
     if (pct >= 20) return "Not bad!";
-    if (pct > 1) return "Just Barely.";
+    if (pct > 1)  return "Just Barely.";
     return "You'll get the next one!";
   };
 
-  const timePercent = (timeElapsed / timeLimit) * 100;
 
   //---------------------------------------------------------
   // K) Render
