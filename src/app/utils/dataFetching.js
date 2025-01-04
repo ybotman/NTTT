@@ -165,26 +165,81 @@ export function shuffleArray(array) {
 }
 
 /**
- * Get 3 random distractor artists (names) excluding the correct artist.
+ * Rebuild getDistractors to fetch the full artist list
+ * and then use config (levels + selected artists).
+ *
+ * @param {string} correctArtist
+ * @param {object} config        - e.g. { levels: [1,2], artists: ["Juan D'Arienzo"] }
+ * @param {number} numDistractors
+ * @returns {Promise<string[]>}  - array of distractor names
  */
-export function getDistractors(correctArtist, allArtists) {
-  if (!correctArtist || !allArtists || !Array.isArray(allArtists)) {
+export async function getDistractors(correctArtist, config, numDistractors = 3) {
+  // 1) Fetch all artists from ArtistMaster
+  const allArtists = await fetchAllArtists(); // from dataFetching.js
+
+  if (!correctArtist || !Array.isArray(allArtists)) {
     console.warn("Invalid inputs for getDistractors:", {
       correctArtist,
+      config,
       allArtists,
     });
     return [];
   }
 
-  const candidates = allArtists
-    .filter((artist) => {
-      const artistName = artist?.artist?.toLowerCase();
-      return artistName && artistName !== correctArtist.toLowerCase();
-    })
-    .map((artist) => artist.artist);
+  // 2) Build a map of { artistNameLower: numericLevel }
+  const artistLevelMap = {};
+  allArtists.forEach((a) => {
+    const nameLower = a.artist?.trim().toLowerCase();
+    const numericLevel = parseInt(a.level, 10);
+    if (nameLower && !isNaN(numericLevel) && a.active === "true") {
+      artistLevelMap[nameLower] = numericLevel;
+    }
+  });
 
-  return shuffleArray(candidates).slice(0, 3);
+  // 3) Gather the final set of levels (from config.levels + config.artists)
+  const finalLevels = new Set();
+  // Add explicit levels from config
+  (config.levels || []).forEach((lvl) => {
+    finalLevels.add(Number(lvl));
+  });
+  // Add levels from any selected artist
+  (config.artists || []).forEach((artistName) => {
+    const lower = artistName.trim().toLowerCase();
+    const lvl   = artistLevelMap[lower];
+    if (lvl) finalLevels.add(lvl);
+  });
+
+  // 4) Now build the candidate pool
+  //    - Only artists who are active
+  //    - Whose level is in finalLevels
+  //    OR are in config.artists explicitly (some might not have level set)
+  const candidatePool = allArtists.filter((a) => {
+    const nameLower = a.artist?.trim().toLowerCase();
+    const numericLevel = parseInt(a.level, 10);
+
+    const isInLevel  = finalLevels.has(numericLevel);
+    const isInArtist = (config.artists || [])
+      .map((n) => n.trim().toLowerCase())
+      .includes(nameLower);
+
+    return a.active === "true" && (isInLevel || isInArtist);
+  });
+
+  // 5) Exclude the correct artist
+  const correctLower = correctArtist.trim().toLowerCase();
+  const filtered = candidatePool.filter(
+    (a) => a.artist.trim().toLowerCase() !== correctLower
+  );
+
+  // 6) Shuffle + slice
+  shuffleArray(filtered);
+  const finalList = filtered.slice(0, numDistractors).map((a) => a.artist);
+
+  console.log(`getDistractors => returning:`, finalList);
+  return finalList;
 }
+
+
 
 /**
  * Get distractors by referencing config-selected artists & levels.

@@ -17,7 +17,7 @@ import useArtistQuiz from "@/hooks/useArtistQuiz";
 import usePlay from "@/hooks/usePlay";
 import useArtistQuizScoring from "@/hooks/useArtistQuizScoring";
 import { shuffleArray } from "@/utils/dataFetching";
-import { getDistractorsByConfig } from "@/utils/dataFetching";
+import { getDistractors } from "@/utils/dataFetching";
 
 export default function PlayTab({ songs, config, onCancel }) {
   // 1) Basic quiz config
@@ -131,14 +131,22 @@ export default function PlayTab({ songs, config, onCancel }) {
     return () => stopAudio();
   }, [currentIndex, initRound, stopAudio]);
 
-  // 9) Single useEffect for building answers on currentSong change
-  useEffect(() => {
-    if (!currentSong) return;
-    const correctArtist = currentSong.ArtistMaster || "";
-    const allArtists = [...new Set(songs.map((s) => s.ArtistMaster))];
-    const distractors = getDistractorsByConfig(correctArtist, allArtists, config, 3);
-    setAnswers(shuffleArray([correctArtist, ...distractors]));
-  }, [currentSong, songs, config, setAnswers]);
+// 9) Build answers on currentSong change
+useEffect(() => {
+  if (!currentSong) return;
+  const correctArtist = currentSong.ArtistMaster || "";
+
+  getDistractors(correctArtist, config, 3)
+    .then((distractors) => {
+      // Combine correct + distractors and shuffle
+      const finalAnswers = shuffleArray([correctArtist, ...distractors]);
+      setAnswers(finalAnswers);
+    })
+    .catch((err) => {
+      console.error("Error in getDistractors:", err);
+      setAnswers([correctArtist]); // fallback
+    });
+}, [currentSong, config, setAnswers]);
 
   // A) timePercent for progress bar
   const timePercent = (timeElapsed / timeLimit) * 100;
